@@ -1,0 +1,83 @@
+{
+	"image": "Outside_A1",
+	"dimen": [48, 48],
+	"nodes": [
+		{
+			"tile": "automatic",
+			"animation": true,
+			"frames": 3,
+			"type": "water"
+		},
+		{
+			"tile": "automatic"
+		},
+		{
+			"tile": "automatic",
+			"animation": true,
+			"frames": 3
+		},
+		{
+			"tile": "automatic_horizontal",
+			"animation": true,
+			"frames": 3
+		},
+		{
+			"tile": "automatic",
+			"animation": true,
+			"frames": 3
+		},
+		{
+			"tile": "automatic"
+		},
+		{
+			"tile": "automatic",
+			"animation": true,
+			"frames": 3
+		},
+		{
+			"tile": "automatic_horizontal",
+			"animation": true,
+			"frames": 3
+		},
+		{
+			"tile": "automatic",
+			"animation": true,
+			"frames": 3
+		},
+		{
+			"tile": "automatic_horizontal",
+			"animation": true,
+			"frames": 3
+		},
+		{
+			"tile": "automatic",
+			"animation": true,
+			"frames": 3
+		},
+		{
+			"tile": "automatic_horizontal",
+			"animation": true,
+			"frames": 3
+		},
+		{
+			"tile": "automatic",
+			"animation": true,
+			"frames": 3
+		},
+		{
+			"tile": "automatic_horizontal",
+			"animation": true,
+			"frames": 3
+		},
+		{
+			"tile": "automatic",
+			"animation": true,
+			"frames": 3
+		},
+		{
+			"tile": "automatic_horizontal",
+			"animation": true,
+			"frames": 3
+		}
+	]
+}

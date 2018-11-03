@@ -1,0 +1,85 @@
+{
+	"image": "TileA1_2",
+	"nodes": [
+		{
+			"tile": "automatic",
+			"animation": true,
+			"frames": 3
+		},
+		{
+			"tile": "automatic_horizontal",
+			"animation": true,
+			"frames": 3
+		},
+		{
+			"tile": "automatic",
+			"animation": true,
+			"frames": 3
+		},
+		{
+			"tile": "automatic_horizontal",
+			"animation": true,
+			"frames": 3
+		},
+		{
+			"tile": "automatic",
+			"animation": true,
+			"frames": 3
+		},
+		{
+			"tile": "automatic_horizontal",
+			"animation": true,
+			"frames": 3
+		},
+		{
+			"tile": "automatic",
+			"animation": true,
+			"frames": 3
+		},
+		{
+			"tile": "automatic_horizontal",
+			"animation": true,
+			"frames": 3
+		},
+		{
+			"tile": "automatic",
+			"animation": true,
+			"frames": 3
+		},
+		{
+			"tile": "automatic_horizontal",
+			"animation": true,
+			"frames": 3
+		},
+		{
+			"tile": "automatic",
+			"animation": true,
+			"frames": 3
+		},
+		{
+			"tile": "automatic_horizontal",
+			"animation": true,
+			"frames": 3
+		},
+		{
+			"tile": "automatic",
+			"animation": true,
+			"frames": 3
+		},
+		{
+			"tile": "automatic_horizontal",
+			"animation": true,
+			"frames": 3
+		},
+		{
+			"tile": "automatic",
+			"animation": true,
+			"frames": 3
+		},
+		{
+			"tile": "automatic_horizontal",
+			"animation": true,
+			"frames": 3
+		}
+	]
+}

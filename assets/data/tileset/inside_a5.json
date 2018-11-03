@@ -1,0 +1,392 @@
+{
+	"image": "Inside_A5",
+	"dimen": [48, 48],
+	"nodes": [
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single",
+			"type": "wall"
+		},
+		{
+			"tile": "single",
+			"type": "wall"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		},
+		{
+			"tile": "single"
+		}
+	]
+}
