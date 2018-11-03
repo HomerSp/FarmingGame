@@ -1,6 +1,6 @@
 #include <algorithm>
 
-#include <engine/debug.h>
+#include <engine/logger.h>
 #include <engine/keys.h>
 
 using namespace engine;

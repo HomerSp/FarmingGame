@@ -1,6 +1,6 @@
 #include <thread>
 
-#include <engine/debug.h>
+#include <engine/logger.h>
 #include <engine/engine.h>
 
 using namespace engine;

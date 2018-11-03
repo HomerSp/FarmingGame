@@ -12,7 +12,7 @@ include_directories(
 set(HEADERS
     include/engine/types.h
     include/engine/engine.h
-    include/engine/debug.h
+    include/engine/logger.h
     include/engine/frametimer.h
     include/engine/physics.h
     include/engine/image.h
@@ -23,12 +23,13 @@ set(HEADERS
     include/engine/map.h
     include/engine/charset.h
     include/engine/tileset.h
+    include/engine/collisionmap.h
 )
 
 set(SOURCES
     types.cpp
     engine.cpp
-    debug.cpp
+    logger.cpp
     frametimer.cpp
     physics.cpp
     image.cpp
@@ -39,6 +40,7 @@ set(SOURCES
     map.cpp
     charset.cpp
     tileset.cpp
+    collisionmap.cpp
 )
 
 source_group("Header Files" FILES ${HEADERS})

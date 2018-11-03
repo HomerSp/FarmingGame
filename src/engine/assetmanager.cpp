@@ -1,6 +1,6 @@
 #include <fstream>
 
-#include <engine/debug.h>
+#include <engine/logger.h>
 #include <engine/assetmanager.h>
 
 using namespace engine;

@@ -4,12 +4,12 @@
 #include <sstream>
 
 namespace engine {
-	class DebugStream {
+	class LoggerStream {
 	public:
-		~DebugStream();
+		~LoggerStream();
 
 		template<class T>
-	    DebugStream &operator<<(const T &x) {
+	    LoggerStream &operator<<(const T &x) {
 	    	if(mStream.tellp() > 0) {
 	    		mStream << " ";
 	    	}
@@ -19,7 +19,7 @@ namespace engine {
 		}
 
 	protected:
-		DebugStream(std::ostream& s, std::string type);
+		LoggerStream(std::ostream& s, std::string type);
 
 	private:
 		std::ostream &mOut;
@@ -27,22 +27,22 @@ namespace engine {
 		std::ostringstream mStream;
 	};
 
-	class eCritical : public DebugStream {
+	class eCritical : public LoggerStream {
 	public:
 		eCritical();
 	};
 
-	class eWarning : public DebugStream {
+	class eWarning : public LoggerStream {
 	public:
 		eWarning();
 	};
 
-	class eInfo : public DebugStream {
+	class eInfo : public LoggerStream {
 	public:
 		eInfo();
 	};
 
-	class eDebug : public DebugStream {
+	class eDebug : public LoggerStream {
 	public:
 		eDebug();
 	};

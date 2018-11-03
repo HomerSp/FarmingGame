@@ -3,7 +3,7 @@
 
 #include <json/json.h>
 
-#include <engine/debug.h>
+#include <engine/logger.h>
 #include <engine/assetmanager.h>
 #include <engine/character.h>
 
