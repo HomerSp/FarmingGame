@@ -73,4 +73,4 @@ namespace engine {
 		std::map<int, std::shared_ptr<TilesetType> > mTypes;
 		std::shared_ptr<engine::Image> mImage;
 	};
-};
+}

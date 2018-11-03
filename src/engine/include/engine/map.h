@@ -74,4 +74,4 @@ namespace engine {
 		uint32_t mWidth;
 		uint32_t mHeight;
 	};
-};
+}
