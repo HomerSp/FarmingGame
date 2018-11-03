@@ -22,7 +22,7 @@ Character::Character(const std::string& name)
 	, mVelocity({0, 0})
 	, mFriction(1.0f)
 {
-	std::shared_ptr<Json::Value> docPtr = AssetManager::json(AssetManager::Character, name);
+	std::shared_ptr<Json::Value> docPtr = AssetManager::data(AssetManager::Character, name);
 	Json::Value doc = *docPtr;
 	if(!doc.isObject() || !doc.isMember("name") || !doc.isMember("charset")) {
 		eCritical() << "Invalid JSON data for character" << name;

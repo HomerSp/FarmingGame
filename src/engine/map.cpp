@@ -60,7 +60,7 @@ Map::Map(const std::string& name)
 	, mWidth(0)
 	, mHeight(0)
 {
-	std::shared_ptr<Json::Value> docPtr = AssetManager::json(AssetManager::Map, name);
+	std::shared_ptr<Json::Value> docPtr = AssetManager::data(AssetManager::Map, name);
 	Json::Value doc = *docPtr;
 	if(!doc.isObject()) {
 		eCritical() << "Invalid JSON data for" << name;

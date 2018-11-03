@@ -18,7 +18,7 @@ namespace engine {
 			Tileset,
 		};
 
-		static std::shared_ptr<Json::Value> json(Type type, const std::string& name);
+		static std::shared_ptr<Json::Value> data(Type type, const std::string& name);
 		static std::shared_ptr<engine::Image> image(Type type, const std::string& name);
 		
 		static std::string dataPath(Type type, const std::string& name);

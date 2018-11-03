@@ -7,7 +7,7 @@ using namespace engine;
 
 std::string AssetManager::sBase = "assets";
 
-std::shared_ptr<Json::Value> AssetManager::json(Type type, const std::string& name)
+std::shared_ptr<Json::Value> AssetManager::data(Type type, const std::string& name)
 {
 	std::shared_ptr<Json::Value> doc = std::shared_ptr<Json::Value>(new Json::Value());
 

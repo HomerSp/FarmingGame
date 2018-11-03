@@ -17,7 +17,7 @@ Charset::Charset(const std::string& name)
 	: mValid(false)
 	, mImage(nullptr)
 {
-	std::shared_ptr<Json::Value> docPtr = AssetManager::json(AssetManager::Charset, name);
+	std::shared_ptr<Json::Value> docPtr = AssetManager::data(AssetManager::Charset, name);
 	Json::Value& doc = *docPtr;
 	if(!doc.isObject()) {
 		eCritical() << "Could not open charset JSON file" << name;

@@ -295,7 +295,7 @@ Tileset::Tileset(const std::string& name)
 	, mTileDimension({32, 32})
 	, mImage(nullptr)
 {
-	std::shared_ptr<Json::Value> docPtr = AssetManager::json(AssetManager::Tileset, name);
+	std::shared_ptr<Json::Value> docPtr = AssetManager::data(AssetManager::Tileset, name);
 	Json::Value doc = *docPtr;
 	if(!doc.isObject()) {
 		eCritical() << "Could not open tileset JSON file" << name;
