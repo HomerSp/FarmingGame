@@ -127,7 +127,7 @@ Map::Map(const std::string& name)
 			return;
 		}
 
-		mLayers.insert(std::shared_ptr<MapLayer>(layer));
+		mLayers.push_back(std::shared_ptr<MapLayer>(layer));
 	}
 
 	mCollisionMap = std::shared_ptr<CollisionMap>(new CollisionMap(pixelWidth(), pixelHeight()));

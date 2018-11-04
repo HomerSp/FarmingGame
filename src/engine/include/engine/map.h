@@ -71,7 +71,7 @@ namespace engine {
 	private:
 		bool mValid;
 		std::unordered_map<std::string, std::shared_ptr<Tileset> > mTilesets;
-		std::unordered_set<std::shared_ptr<MapLayer> > mLayers;
+		std::vector<std::shared_ptr<MapLayer> > mLayers;
 		std::shared_ptr<CollisionMap> mCollisionMap;
 		uint32_t mWidth;
 		uint32_t mHeight;
