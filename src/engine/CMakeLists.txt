@@ -14,7 +14,6 @@ set(HEADERS
 	include/engine/engine.h
 	include/engine/logger.h
 	include/engine/frametimer.h
-	include/engine/physics.h
 	include/engine/image.h
 	include/engine/renderer.h
 	include/engine/assetmanager.h
@@ -31,7 +30,6 @@ set(SOURCES
 	engine.cpp
 	logger.cpp
 	frametimer.cpp
-	physics.cpp
 	image.cpp
 	renderer.cpp
 	assetmanager.cpp
