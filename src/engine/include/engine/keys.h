@@ -1,7 +1,7 @@
 #pragma once
 
 #include <list>
-#include <map>
+#include <unordered_map>
 
 namespace engine {
 	struct Keys
@@ -36,6 +36,6 @@ namespace engine {
 		}
 
 	private:
-		std::map<int, Keys::Type> mKeyTable;
+		std::unordered_map<int, Keys::Type> mKeyTable;
 	};
 }

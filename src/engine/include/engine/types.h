@@ -1,12 +1,15 @@
 #pragma once
 
 #include <cstdint>
+#include <unordered_map>
 
 namespace engine
 {
 	class Types
 	{
 	public:
+		typedef typename std::unordered_map<int, std::unordered_map<int, int> > Map2D;
+
 		struct Rect {
 		public:
 			Rect(int x = 0, int y = 0, int w = 0, int h = 0);

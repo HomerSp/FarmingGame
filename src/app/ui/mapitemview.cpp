@@ -15,7 +15,7 @@ MapItemView::MapItemView(QQuickItem* parent)
 	setImplicitWidth(width() + mEngine->bufferWidth());
 	setImplicitHeight(height() + mEngine->bufferHeight());
 
-	std::map<int, engine::Keys::Type> keys;
+	std::unordered_map<int, engine::Keys::Type> keys;
 	keys[Qt::Key_Up] = engine::Keys::Up;
 	keys[Qt::Key_Down] = engine::Keys::Down;
 	keys[Qt::Key_Left] = engine::Keys::Left;

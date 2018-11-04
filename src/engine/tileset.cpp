@@ -9,7 +9,7 @@
 
 using namespace engine;
 
-TilesetType::TilesetType(Types::Dimension& tileDimension, const std::string& tileType, const std::unordered_map<TilesetAttribute::Type, bool>& attrs, int& x, int& y, int& typeHeight, int frames)
+TilesetType::TilesetType(Types::Dimension& tileDimension, const std::string& tileType, const std::unordered_set<TilesetAttribute::Type>& attrs, int& x, int& y, int& typeHeight, int frames)
 	: mValid(false)
 	, mTileDimension(tileDimension)
 	, mTileType(TileTypeSingle)
@@ -52,7 +52,7 @@ TilesetType::TilesetType(Types::Dimension& tileDimension, const std::string& til
 	mValid = true;
 }
 
-TilesetNode* TilesetType::toNode(std::map<int, std::map<int, int> > &tiles, uint32_t x, uint32_t y, uint32_t width, uint32_t height)
+TilesetNode* TilesetType::toNode(Types::Map2D& tiles, uint32_t x, uint32_t y, uint32_t width, uint32_t height)
 {
 	TilesetNode* node = new TilesetNode();
 	node->anim = Types::Point((mTileType == TileTypeAuto) ? (mTileDimension.width * 2) : 0, (mTileType == TileTypeAutoHoriz) ? mTileDimension.height : 0);
@@ -334,7 +334,7 @@ Tileset::Tileset(const std::string& name)
 			}
 		}
 
-		std::unordered_map<TilesetAttribute::Type, bool> attrs;
+		std::unordered_set<TilesetAttribute::Type> attrs;
 		if(nodeObj.isMember("attributes")) {
 			Json::Value attrsObj = nodeObj["attributes"];
 			for(uint32_t i = 0; i < attrsObj.size(); i++)
@@ -342,10 +342,13 @@ Tileset::Tileset(const std::string& name)
 				std::string key = attrsObj[i].asString();
 				if(key == "water")
 				{
-					attrs[TilesetAttribute::Water] = true;
-				} else if(key == "row_above")
+					attrs.insert(TilesetAttribute::Water);
+				} else if(key == "above_row")
 				{
-					attrs[TilesetAttribute::RowAbove] = true;
+					attrs.insert(TilesetAttribute::AboveRow);
+				} else if(key == "above_all")
+				{
+					attrs.insert(TilesetAttribute::AboveAll);
 				} else {
 					Logger::warning() << "Unknown attribute" << key << "for tileset" << name;
 				}
@@ -434,7 +437,7 @@ void Tileset::updateCollisionMap(CollisionMap& tilesetMap, CollisionMap& map, Ti
 	}
 }
 
-bool Tileset::updateTiles(std::map<int, std::map<int, int> > &table, std::map<int, std::shared_ptr<TilesetNode> >& map, uint32_t width, uint32_t height)
+bool Tileset::updateTiles(Types::Map2D& table, std::unordered_map<int, std::shared_ptr<TilesetNode> >& map, uint32_t width, uint32_t height)
 {
 	for(uint32_t x = 0; x < width; x++) {
 		for(uint32_t y = 0; y < height; y++) {

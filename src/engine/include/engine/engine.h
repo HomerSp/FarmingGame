@@ -19,7 +19,7 @@ namespace engine {
 		bool process();
 		void paint(Renderer& renderer);
 
-		void setKeyMap(const std::map<int, Keys::Type>& keys);
+		void setKeyMap(const std::unordered_map<int, Keys::Type>& keys);
 		void setKeyDown(int key);
 		void setKeyUp(int key);
 

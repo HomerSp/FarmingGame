@@ -9,7 +9,7 @@
 
 using namespace engine;
 
-MapLayer::MapLayer(const std::map<int, std::map<int, int> >& data, std::shared_ptr<Tileset> tileset, uint32_t width, uint32_t height)
+MapLayer::MapLayer(const Types::Map2D& data, std::shared_ptr<Tileset> tileset, uint32_t width, uint32_t height)
 	: mValid(false)
 	, mData(data)
 	, mTileset(tileset)
@@ -114,7 +114,7 @@ Map::Map(const std::string& name)
 			return;
 		}
 
-		std::map<int, std::map<int, int> > data;
+		std::unordered_map<int, std::unordered_map<int, int> > data;
 		Json::Value dataObj = layerObj["data"];
 		for(uint32_t x = 0; x < mWidth; x++) {
 			for(uint32_t y = 0; y < mHeight; y++) {
@@ -127,7 +127,7 @@ Map::Map(const std::string& name)
 			return;
 		}
 
-		mLayers.push_back(std::shared_ptr<MapLayer>(layer));
+		mLayers.insert(std::shared_ptr<MapLayer>(layer));
 	}
 
 	mCollisionMap = std::shared_ptr<CollisionMap>(new CollisionMap(pixelWidth(), pixelHeight()));

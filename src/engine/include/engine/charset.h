@@ -1,7 +1,7 @@
 #pragma once
 
-#include <map>
 #include <memory>
+#include <unordered_map>
 
 #include <json/json.h>
 
@@ -43,7 +43,7 @@ namespace engine {
 	private:
 		bool mValid;
 		std::shared_ptr<engine::Image> mImage;
-		std::map<Charset::Type, std::shared_ptr<CharsetNode> > mNodes;
+		std::unordered_map<Charset::Type, std::shared_ptr<CharsetNode> > mNodes;
 
 	};
 } 

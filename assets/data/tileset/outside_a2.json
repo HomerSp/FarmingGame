@@ -27,7 +27,7 @@
 		{
 			"tile": "automatic",
 			"attributes": [
-				"row_above"
+				"above_row"
 			]
 		},
 		{

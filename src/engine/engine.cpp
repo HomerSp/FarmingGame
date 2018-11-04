@@ -171,7 +171,7 @@ void Engine::paint(Renderer& renderer)
 	mHero->draw(renderer, Types::Point(mCameraX, mCameraY));
 }
 
-void Engine::setKeyMap(const std::map<int, Keys::Type>& keys)
+void Engine::setKeyMap(const std::unordered_map<int, Keys::Type>& keys)
 {
 	for(auto it = keys.begin(); it != keys.end(); it++)
 	{

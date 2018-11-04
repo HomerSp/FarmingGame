@@ -49,7 +49,7 @@ void Charset::draw(Renderer& renderer, const Types::Point& pos, Charset::Type ty
 		return;
 	}
 
-	std::shared_ptr<CharsetNode> node = mNodes.at(type);
+	std::shared_ptr<CharsetNode> node = mNodes.find(type)->second;
 	Types::Rect dst(pos.x, pos.y, node->rect.width, node->rect.height);
 	Types::Rect src(node->rect.x + (node->rect.width * frame), node->rect.y + (node->rect.height * direction), node->rect.width, node->rect.height);
 	renderer.drawImage(*mImage, dst, src);
@@ -79,7 +79,7 @@ int Charset::columns(Charset::Type type)
 		return 0;
 	}
 
-	return mNodes.at(type)->cells.cols;
+	return mNodes.find(type)->second->cells.cols;
 }
 
 void Charset::addNode(Charset::Type type, Json::Value& val)
