@@ -20,7 +20,7 @@ int main(int argc, char** argv)
     {
         for (size_t i = 0; i < image.get_width(); ++i)
         {
-        	int val = (image[j][i] == 0) ? 0 : 1;
+            int val = (image[j][i] != 255) ? 0 : 1;
             out.set_pixel(i, j, png::gray_pixel_1(val));
         }
     }

@@ -60,5 +60,32 @@ namespace engine
 
 			uint8_t r, g, b, a;
 		};
+
+		struct Quad
+		{
+		public:
+			Quad(int x1 = 0, int y1 = 0, int x2 = 0, int y2 = 0);
+
+			int x1, y1;
+			int x2, y2;
+		};
+
+		struct QuadF
+		{
+		public:
+			QuadF(float x1 = 0, float y1 = 0, float x2 = 0, float y2 = 0);
+
+			float x1, y1;
+			float x2, y2;
+		};
+
+		struct Pair
+		{
+		public:
+			Pair(int first = 0, int second = 0);
+
+			int first;
+			int second;
+		};
 	};
 } 

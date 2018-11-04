@@ -25,11 +25,20 @@ std::shared_ptr<engine::Image> AssetManager::image(Type type, const std::string&
 {
 	std::string path = AssetManager::imagePath(type, name);
 	if(path.length() > 0) {
-		std::shared_ptr<engine::Image> img = std::shared_ptr<engine::Image>(new engine::Image(path));
-		return img;
+		return std::shared_ptr<engine::Image>(new engine::Image(path));
 	}
 
 	return std::shared_ptr<engine::Image>(new engine::Image());
+}
+
+std::shared_ptr<engine::CollisionMap> AssetManager::collision(Type type, const std::string& name)
+{
+	std::string path = AssetManager::collisionPath(type, name);
+	if(path.length() > 0) {
+		return std::shared_ptr<engine::CollisionMap>(new engine::CollisionMap(path));
+	}
+
+	return std::shared_ptr<engine::CollisionMap>(new engine::CollisionMap());
 }
 
 std::string AssetManager::dataPath(Type type, const std::string& name)
@@ -61,6 +70,19 @@ std::string AssetManager::imagePath(Type type, const std::string& name)
 	case Charset:
 		ret += "charset";
 		break;
+	case Tileset:
+		ret += "tileset";
+		break;
+	default:
+		return "";
+	}
+	return ret + "/" + name + ".png";
+}
+
+std::string AssetManager::collisionPath(Type type, const std::string& name)
+{
+	std::string ret = AssetManager::sBase + "/collision/";
+	switch(type) {
 	case Tileset:
 		ret += "tileset";
 		break;

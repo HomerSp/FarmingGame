@@ -156,11 +156,11 @@ void Engine::paint(Renderer& renderer)
     // Centre small maps.
     float translateX = 0.0f, translateY = 0.0f;
     if(mMap->pixelWidth() < mWidth) {
-        translateX = (mMap->pixelWidth() / 2) - (mWidth / 2);
+        translateX = (mWidth / 2) - (mMap->pixelWidth() / 2);
     }
 
     if(mMap->pixelHeight() < mHeight) {
-        translateY = (mMap->pixelHeight() / 2) - (mHeight / 2);
+        translateY = (mHeight / 2) - (mMap->pixelHeight() / 2);
     }
 
     if(translateX != 0.0f || translateY != 0.0f) {

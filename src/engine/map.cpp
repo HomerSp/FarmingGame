@@ -44,15 +44,20 @@ void MapLayer::draw(Renderer& renderer, const Types::Rect& dst, bool clip)
 	}
 }
 
-void MapLayer::updateCollisionList(std::map<uint32_t, bool> &list)
+bool MapLayer::updateCollisionMap(CollisionMap& map)
 {
-	for(uint32_t x = 0; x < mData.size(); x++) {
-		for(uint32_t y = 0; y < mData.at(x).size(); y++) {
-			if(mTileset->isSolid(mData.at(x).at(y) - 1)) {
-				list[x + (y * mData.size())] = true;
-			}
-		}
+	std::shared_ptr<CollisionMap> tilesetCollisionMap = mTileset->loadCollisionMap();
+	if(!*tilesetCollisionMap) {
+		return false;
 	}
+
+	for(auto it = mNodes.begin(); it != mNodes.end(); it++) {
+		uint32_t nx = it->first % mWidth;
+		uint32_t ny = std::floor(it->first / mWidth);
+		mTileset->updateCollisionMap(*tilesetCollisionMap, map, *(it->second), nx, ny);
+	}
+
+	return true;
 }
 
 Map::Map(const std::string& name)
@@ -122,9 +127,17 @@ Map::Map(const std::string& name)
 			return;
 		}
 
-		layer->updateCollisionList(mCollisionList);
-
 		mLayers.push_back(std::shared_ptr<MapLayer>(layer));
+	}
+
+	mCollisionMap = std::shared_ptr<CollisionMap>(new CollisionMap(pixelWidth(), pixelHeight()));
+	mCollisionMap->set(144, 0, true);
+	for(auto it = mLayers.begin(); it != mLayers.end(); it++)
+	{
+		if(!(*it)->updateCollisionMap(*mCollisionMap))
+		{
+			return;
+		}
 	}
 
 	mValid = true;
@@ -158,7 +171,7 @@ void Map::draw(Renderer& renderer, const Types::Rect& dst, bool clip) {
 	renderer.translate((dst.x % tileDimens.width), (dst.y % tileDimens.height));
 }
 
-void Map::checkCollision(const Types::PointF& pos, const Types::Point& size, Types::PointF& dst, Types::PointF& velocity) const
+void Map::checkCollision(const Types::PointF& pos, const Types::Dimension& size, Types::PointF& dst, Types::PointF& velocity) const
 {
 	if(pos.x + dst.x < 0.0f)
 	{
@@ -166,7 +179,7 @@ void Map::checkCollision(const Types::PointF& pos, const Types::Point& size, Typ
 		velocity.x = 0.0f;
 	}
 
-	if(pos.y + dst.y < -(size.y / 2))
+	if(pos.y + dst.y < -(size.height / 2))
 	{
 		dst.y = 0.0f;
 		velocity.y = 0.0f;
@@ -178,95 +191,88 @@ void Map::checkCollision(const Types::PointF& pos, const Types::Point& size, Typ
 		return;
 	}
 
-	int8_t diff = 0;
-	if(dst.x != 0.0f && isColliding({pos.x + dst.x, pos.y}, size, diff, false)) {
-		if(diff == 0) {
+	Types::Pair diff;
+	int8_t rDiff = 0;
+	if(dst.x != 0.0f && isColliding({pos.x + dst.x, pos.y}, size, diff, rDiff, false)) {
+		if(rDiff == 0) {
 			velocity.x = 0.0f;
 		}
 
 		if(dst.y == 0.0f) {
-			if(diff < 0) {
+			if(rDiff < 0) {
 				dst.y = (dst.x < 0.0f) ? dst.x : -dst.x;
-			} else if(diff > 0) {
+			} else if(rDiff > 0) {
 				dst.y = (dst.x < 0.0f) ? -dst.x : dst.x;
 			}
 		}
 
-		Types::Dimension d = getTileDimension();
 		if(dst.x < 0.0f) {
-			dst.x = (std::floor(pos.x / d.width) * d.width) - pos.x + 0.01f;
+			dst.x = diff.first;
 		} else {
-			dst.x = (std::floor(pos.x / d.width) * d.width) + d.width - pos.x - 0.01f;
+			dst.x = diff.second;
 		}
 	}
-	if(dst.y != 0.0f && isColliding({pos.x, pos.y + dst.y}, size, diff, true)) {
-		if(diff == 0) {
+	if(dst.y != 0.0f && isColliding({pos.x, pos.y + dst.y}, size, diff, rDiff, true)) {
+		if(rDiff == 0) {
 			velocity.y = 0.0f;
 		}
 
 		if(dst.x == 0.0f) {
-			if(diff < 0) {
+			if(rDiff < 0) {
 				dst.x = (dst.y < 0.0f) ? dst.y : -dst.y;
-			} else if(diff > 0) {
+			} else if(rDiff > 0) {
 				dst.x = (dst.y < 0.0f) ? -dst.y : dst.y;
 			}
 		}
 
-		Types::Dimension d = getTileDimension();
 		if(dst.y < 0.0f) {
-			dst.y = (std::floor(pos.y / d.height) * d.height) + (size.y / 2) - pos.y + 0.01f;
+			dst.y = diff.first;
 		} else {
-			dst.y = (std::floor(pos.y / d.height) * d.height) + d.height - pos.y - 0.01f;
+			dst.y = diff.second;
 		}
 	}
 }
 
-bool Map::isColliding(const Types::PointF& pos, const Types::Point& size, int8_t& diff, bool vertical) const
+bool Map::isColliding(const Types::PointF& pos, const Types::Dimension& size, Types::Pair& diff, int8_t& rDiff, bool vertical) const
 {
-	diff = 0;
+	rDiff = 0;
 
-	Types::Dimension d = getTileDimension();
-
-	uint32_t xLeft = (pos.x) / d.width;
-	uint32_t xRight = (pos.x + size.x) / d.width;	
-	uint32_t yTop = (pos.y + (size.y / 2)) / d.height;
-	uint32_t yBottom = (pos.y + size.y) / d.height;
-	if(xRight >= mWidth || yBottom >= mHeight) {
-		return true;
-	}
-
-	bool topLeft = mCollisionList.find(xLeft + (yTop * mWidth)) != mCollisionList.end();
-	bool topRight = mCollisionList.find(xRight + (yTop * mWidth)) != mCollisionList.end();
-	bool bottomLeft = mCollisionList.find(xLeft + (yBottom * mWidth)) != mCollisionList.end();
-	bool bottomRight = mCollisionList.find(xRight + (yBottom * mWidth)) != mCollisionList.end();
-
+	int startY = (size.height / 2);
+	Types::Quad foundDiff;
+	bool found = mCollisionMap->get(pos.x, pos.y + startY, size.width, startY, &foundDiff);
+	
 	// Check if we can move around the obstacle.
 	if(vertical) {
-		if((topLeft && !topRight) || (bottomLeft && !bottomRight)) {
-			if(pos.x >= (xRight * d.width) - (size.x / 2)) {
-				diff = 1;
-			}
-		} else if((!topLeft && topRight) || (!bottomLeft && bottomRight)) {
-			if(pos.x <= (xLeft * d.width) + (size.x / 2)) {
-				diff = -1;
-			}
+		diff.first = foundDiff.y1;
+		diff.second = foundDiff.y2;
+
+		int obsdiff = size.width / 2;
+		if(	(foundDiff.y1 == 0 && foundDiff.x1 >= 0 && size.width - foundDiff.x2 < obsdiff) ||
+			(foundDiff.y2 == 0 && foundDiff.x1 >= 0 && size.width - foundDiff.x2 < obsdiff))
+		{
+			rDiff = 1;
+		} else if(	(foundDiff.y1 == 0 && foundDiff.x2 >= 0 && size.width - foundDiff.x1 < obsdiff) ||
+					(foundDiff.y2 == 0 && foundDiff.x2 >= 0 && size.width - foundDiff.x1 < obsdiff))
+		{
+			rDiff = -1;
 		}
 	} else {
-		if((topRight && !bottomRight) || (topLeft && !bottomLeft)) {
-			if(pos.y >= (yBottom * d.height) - (size.y) + (size.y / 4)) {
-				diff = 1;
-			}
-		} else if((bottomRight && !topRight) || (bottomLeft && !topLeft)) {
-			if(pos.y <= (yTop * d.height) + (size.y / 4)) {
-				diff = -1;
-			}
+		diff.first = foundDiff.x1;
+		diff.second = foundDiff.x2;
+
+		int obsdiff = size.height / 4;
+		if(	(foundDiff.x1 == 0 && foundDiff.y1 >= 0 && startY - foundDiff.y2 < obsdiff) ||
+			(foundDiff.x2 == 0 && foundDiff.y1 >= 0 && startY - foundDiff.y2 < obsdiff))
+		{
+			rDiff = 1;
+		} else if(	(foundDiff.x1 == 0 && foundDiff.y2 >= 0 && startY - foundDiff.y1 < obsdiff) ||
+					(foundDiff.x2 == 0 && foundDiff.y2 >= 0 && startY - foundDiff.y1 < obsdiff))
+		{
+			rDiff = -1;
 		}
 	}
 	
-	return topLeft
-		|| topRight
-		|| bottomLeft
-		|| bottomRight;
+	return found;
 }
 
 Types::Dimension Map::getTileDimension() const {

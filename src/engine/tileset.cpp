@@ -302,7 +302,7 @@ Tileset::Tileset(const std::string& name)
 		return;
 	}
 
-	if(!doc.isMember("image")|| !doc.isMember("nodes")) {
+	if(!doc.isMember("image")|| !doc.isMember("nodes") || !doc.isMember("collision")) {
 		eCritical() << "Could not find required tileset JSON data for" << name;
 		return;
 	}
@@ -312,7 +312,9 @@ Tileset::Tileset(const std::string& name)
 		eCritical() << "Could not load tileset image for" << name;
 		return;
 	}
-	
+
+	mCollisionMap = doc["collision"].asString();
+
 	if(doc.isMember("dimen")) {
 		Json::Value dimenArr = doc["dimen"];
 		if(dimenArr.size() == 2) {
@@ -375,11 +377,51 @@ Tileset::~Tileset()
 
 void Tileset::draw(Renderer& renderer, TilesetNode& node, const Types::Point& pos)
 {
+	Types::Rect dst(0, 0, mTileDimension.width / 2, mTileDimension.height / 2);
 	int dx = 0, dy = 0;
 	for(int i = 0; i < 4; i++) {
-		Types::Rect dst((pos.x * mTileDimension.width) + (dx * (mTileDimension.width / 2)), (pos.y * mTileDimension.height) + (dy * (mTileDimension.height / 2)), mTileDimension.width / 2, mTileDimension.height / 2);
-		Types::Rect src(node.pos[i].x + (node.anim.x * node.current), node.pos[i].y + (node.anim.y * node.current), mTileDimension.width / 2, mTileDimension.height / 2);
+		dst.x = (pos.x * mTileDimension.width) + (dx * (mTileDimension.width / 2));
+		dst.y = (pos.y * mTileDimension.height) + (dy * (mTileDimension.height / 2));
+
+		Types::Rect src(node.pos[i].x + (node.anim.x * node.current), node.pos[i].y + (node.anim.y * node.current), dst.width, dst.height);
 		renderer.drawImage(*mImage, dst, src);
+
+		dx++;
+		if(dx > 1) {
+			dx = 0;
+			dy++;
+		}
+	}
+}
+
+std::shared_ptr<CollisionMap> Tileset::loadCollisionMap()
+{
+	std::shared_ptr<CollisionMap> collisionMap = AssetManager::collision(AssetManager::Tileset, mCollisionMap);
+	if(!*collisionMap) {
+		eCritical() << "Could not load tileset collision map" << mCollisionMap;
+	}
+
+	return collisionMap;
+}
+
+void Tileset::updateCollisionMap(CollisionMap& tilesetMap, CollisionMap& map, TilesetNode& node, uint32_t x, uint32_t y)
+{
+	Types::Dimension dimen(mTileDimension.width / 2, mTileDimension.height / 2);
+
+	uint32_t dx = 0, dy = 0;
+	for(int i = 0; i < 4; i++)
+	{
+		for(int cy = 0; cy < dimen.height; cy++)
+		{
+			for(int cx = 0; cx < dimen.width; cx++)
+			{
+				if(tilesetMap.get(node.pos[i].x + cx, node.pos[i].y + cy)) {
+					uint32_t dstx = (x * mTileDimension.width) + (dx * (mTileDimension.width / 2)) + cx;
+					uint32_t dsty = (y * mTileDimension.height) + (dy * (mTileDimension.height / 2)) + cy;
+					map.set(dstx, dsty, true);
+				}
+			}
+		}
 
 		dx++;
 		if(dx > 1) {

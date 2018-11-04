@@ -1,6 +1,7 @@
 {
 	"image": "Outside_A2",
 	"dimen": [48, 48],
+	"collision": "Outside_A2",
 	"nodes": [
 		{
 			"tile": "automatic"

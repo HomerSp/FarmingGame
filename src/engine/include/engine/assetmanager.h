@@ -5,6 +5,7 @@
 
 #include <json/json.h>
 
+#include <engine/collisionmap.h>
 #include <engine/image.h>
 
 namespace engine {
@@ -20,9 +21,11 @@ namespace engine {
 
 		static std::shared_ptr<Json::Value> data(Type type, const std::string& name);
 		static std::shared_ptr<engine::Image> image(Type type, const std::string& name);
+		static std::shared_ptr<engine::CollisionMap> collision(Type type, const std::string& name);
 		
 		static std::string dataPath(Type type, const std::string& name);
 		static std::string imagePath(Type type, const std::string& name);
+		static std::string collisionPath(Type type, const std::string& name);
 
 	private:
 		static std::string sBase;

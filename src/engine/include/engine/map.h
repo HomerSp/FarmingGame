@@ -15,7 +15,7 @@ namespace engine {
 		void animate(uint64_t frameDiff);
 		void draw(Renderer& renderer, const Types::Rect& rect, bool clip);
 
-		void updateCollisionList(std::map<uint32_t, bool> &list);
+		bool updateCollisionMap(CollisionMap& map);
 
 		bool operator!() const {
 			return !mValid;
@@ -39,7 +39,7 @@ namespace engine {
 		void animate(uint64_t frameDiff);
 		void draw(Renderer& renderer, const Types::Rect& rect, bool clip = true);
 
-		void checkCollision(const Types::PointF& pos, const Types::Point& size, Types::PointF& dst, Types::PointF& velocity) const;
+		void checkCollision(const Types::PointF& pos, const Types::Dimension& size, Types::PointF& dst, Types::PointF& velocity) const;
 
 		uint32_t width() const {
 			return mWidth;
@@ -64,13 +64,13 @@ namespace engine {
 		}
 
 	protected:
-		bool isColliding(const Types::PointF& pos, const Types::Point& size, int8_t& diff, bool vertical) const;
+		bool isColliding(const Types::PointF& pos, const Types::Dimension& size, Types::Pair& diff, int8_t& rDiff, bool vertical) const;
 
 	private:
 		bool mValid;
 		std::map<std::string, std::shared_ptr<Tileset> > mTilesets;
 		std::list<std::shared_ptr<MapLayer> > mLayers;
-		std::map<uint32_t, bool> mCollisionList;
+		std::shared_ptr<CollisionMap> mCollisionMap;
 		uint32_t mWidth;
 		uint32_t mHeight;
 	};

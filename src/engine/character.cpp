@@ -79,7 +79,7 @@ void Character::process(uint64_t frameDiff, Map* map) {
     	if(map != nullptr)
     	{
     		Types::PointF pos(mPos.x, mPos.y);
-    		Types::Point size(width(), height());
+    		Types::Dimension size(width(), height());
     		map->checkCollision(pos, size, dst, mVelocity);
     	}
 

@@ -5,6 +5,7 @@
 #include <png++/png.hpp>
 
 #include <engine/renderer.h>
+#include <engine/collisionmap.h>
 
 namespace engine {
 	struct TilesetNode {
@@ -55,13 +56,16 @@ namespace engine {
 
 		void draw(Renderer& renderer, TilesetNode& node, const Types::Point& pos);
 
-		bool updateTiles(std::map<int, std::map<int, int> >& tiles, std::map<int, std::shared_ptr<TilesetNode> >& map, uint32_t width, uint32_t height);
-
 		Types::Dimension getTileDimension() const {
 			return mTileDimension;
 		}
 
-		bool isSolid(int n) const ;
+		bool isSolid(int n) const;
+
+		std::shared_ptr<CollisionMap> loadCollisionMap();
+
+		void updateCollisionMap(CollisionMap& tilesetMap, CollisionMap& map, TilesetNode& node, uint32_t x, uint32_t y);
+		bool updateTiles(std::map<int, std::map<int, int> >& tiles, std::map<int, std::shared_ptr<TilesetNode> >& map, uint32_t width, uint32_t height);
 
 		bool operator!() const {
 			return !mValid;
@@ -72,5 +76,6 @@ namespace engine {
 		Types::Dimension mTileDimension;
 		std::map<int, std::shared_ptr<TilesetType> > mTypes;
 		std::shared_ptr<engine::Image> mImage;
+		std::string mCollisionMap;
 	};
 }
