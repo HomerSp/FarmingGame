@@ -8,6 +8,7 @@ class QtRenderer : public engine::Renderer
 {
 public:
 	QtRenderer();
+	virtual ~QtRenderer() = default;
 
 	int width();
 	int height();
@@ -18,7 +19,8 @@ public:
 
 	void translate(float x, float y);
 
-	void setPainter(QPainter* painter) {
+	void setPainter(QPainter* painter)
+	{
 		mPainter = painter;
 	}
 

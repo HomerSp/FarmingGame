@@ -19,12 +19,14 @@ namespace engine
 
 		void save(const std::string& path);
 
-		bool operator!() {
+		bool operator!()
+		{
 			return !mValid;
 		}
 
 	protected:
-		inline bool bounds(uint32_t x, uint32_t y) const {
+		inline bool bounds(uint32_t x, uint32_t y) const
+		{
 			return (x + (y * mWidth) < mSolid.size());
 		}
 

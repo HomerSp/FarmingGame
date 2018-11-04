@@ -44,5 +44,5 @@ set(SOURCES
 source_group("Header Files" FILES ${HEADERS})
 source_group("Source Files" FILES ${SOURCES})
 
-ADD_LIBRARY( ${PROJECT} STATIC
+add_library( ${PROJECT} STATIC
 			 ${SOURCES} )

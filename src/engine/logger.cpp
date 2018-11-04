@@ -4,12 +4,13 @@ using namespace engine;
 
 LoggerStream::LoggerStream(std::ostream &s, std::string type)
 	: mOut(s)
-	, mType(type)
+	, mType(std::move(type))
 {
 
 }
 
-LoggerStream::~LoggerStream() {
+LoggerStream::~LoggerStream()
+{
 	mOut << mType << ": " << mStream.str() << std::endl << std::flush;
 }
 

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <memory>
+
 #include <QHoverEvent>
 #include <QQuickPaintedItem>
 #include <QPainter>
@@ -24,7 +26,7 @@ protected:
 
 private:
 	QtRenderer mRenderer;
-	engine::Map* mMap;
+	std::shared_ptr<engine::Map> mMap;
 
 	engine::Types::Rect mSquare;
 };

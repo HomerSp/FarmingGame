@@ -3,8 +3,10 @@
 #include <chrono>
 #include <string>
 
-namespace engine {
-	class FrameTimer {
+namespace engine
+{
+	class FrameTimer
+	{
 	public:
 		FrameTimer();
 

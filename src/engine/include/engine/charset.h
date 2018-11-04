@@ -9,8 +9,10 @@
 #include <engine/renderer.h>
 #include <engine/image.h>
 
-namespace engine {
-	struct CharsetNode {
+namespace engine
+{
+	struct CharsetNode
+	{
 	public:
 		CharsetNode(const Types::Rect& rc, const Types::Cells& cells);
 
@@ -18,9 +20,11 @@ namespace engine {
 		Types::Cells cells;
 	};
 
-	class Charset {
+	class Charset
+	{
 	public:
-		enum Type {
+		enum Type
+		{
 			TypeWalk = 0,
 		};
 
@@ -33,7 +37,8 @@ namespace engine {
 
 		int columns(Charset::Type type);
 
-		bool operator!() const {
+		bool operator!() const
+		{
 			return !mValid;
 		}
 

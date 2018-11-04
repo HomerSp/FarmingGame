@@ -1,39 +1,46 @@
 #pragma once
 
 #include <memory>
+#include <vector>
 
 #include <png++/png.hpp>
 
-namespace engine {
-	class Image {
+namespace engine
+{
+	class Image
+	{
 	public:
 		Image();
 		Image(const std::string& path);
-		~Image();
 
-		uint8_t* data() const {
-			return mData.get();
+		const unsigned char* data() const
+		{
+			return mData.data();
 		}
 
-		uint32_t dataSize() const {
+		uint32_t dataSize() const
+		{
 			return mWidth * mHeight * 4;
 		}
 
-		int width() const {
+		uint32_t width() const
+		{
 			return mWidth;
 		}
 
-		int height() const {
+		uint32_t height() const
+		{
 			return mHeight;
 		}
 
-		bool operator!() const {
+		bool operator!() const
+		{
 			return mWidth == 0;
 		}
 
 	private:
-		int mWidth;
-		int mHeight;
-		std::shared_ptr<uint8_t> mData;
+		uint32_t mWidth;
+		uint32_t mHeight;
+		std::vector<unsigned char> mData;
 	};
 }

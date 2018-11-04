@@ -8,18 +8,20 @@
 #include <engine/renderer.h>
 #include <engine/tileset.h>
 
-namespace engine {
-	class MapLayer {
+namespace engine
+{
+	class MapLayer
+	{
 	public:
-		MapLayer(const Types::Map2D& data, std::shared_ptr<Tileset> tileset, uint32_t width, uint32_t height);
-		~MapLayer();
+		MapLayer(Types::Map2D data, std::shared_ptr<Tileset> tileset, uint32_t width, uint32_t height);
 
-		void animate(uint64_t frameDiff);
-		void draw(Renderer& renderer, const Types::Rect& rect, bool clip);
+		void animate(uint64_t currentFrame);
+		void draw(Renderer& renderer, const Types::Rect& dst, bool clip);
 
 		bool updateCollisionMap(CollisionMap& map);
 
-		bool operator!() const {
+		bool operator!() const
+		{
 			return !mValid;
 		}
 
@@ -33,35 +35,40 @@ namespace engine {
 		uint64_t mCurrentFrames;
 	};
 
-	class Map {
+	class Map
+	{
 	public:
 		Map(const std::string& name);
-		~Map();
 
-		void animate(uint64_t frameDiff);
-		void draw(Renderer& renderer, const Types::Rect& rect, bool clip = true);
+		void animate(uint64_t currentFrame);
+		void draw(Renderer& renderer, const Types::Rect& dst, bool clip = true);
 
 		void checkCollision(const Types::PointF& pos, const Types::Dimension& size, Types::PointF& dst, Types::PointF& velocity) const;
 
-		uint32_t width() const {
+		uint32_t width() const
+		{
 			return mWidth;
 		}
 
-		uint32_t pixelWidth() const {
+		uint32_t pixelWidth() const
+		{
 			return mWidth * getTileDimension().width;
 		}
 
-		uint32_t height() const {
+		uint32_t height() const
+		{
 			return mHeight;
 		}
 
-		uint32_t pixelHeight() const {
+		uint32_t pixelHeight() const
+		{
 			return mHeight * getTileDimension().height;
 		}
 
 		Types::Dimension getTileDimension() const;
 
-		bool operator!() const {
+		bool operator!() const
+		{
 			return !mValid;
 		}
 

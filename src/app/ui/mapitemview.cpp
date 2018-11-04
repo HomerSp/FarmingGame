@@ -1,5 +1,6 @@
-#include <QTimer>
 #include <QThread>
+#include <QTimer>
+
 #include <ui/mapitemview.h>
 
 MapItemView::MapItemView(QQuickItem* parent)
@@ -9,8 +10,8 @@ MapItemView::MapItemView(QQuickItem* parent)
 	setFocus(true);
 	setClip(true);
 
-	mEngine = std::shared_ptr<engine::Engine>(new engine::Engine(width(), height()));
-	mRenderer = std::shared_ptr<QtRenderer>(new QtRenderer());
+	mEngine = std::make_shared<engine::Engine>(width(), height());
+	mRenderer = std::make_shared<QtRenderer>();
 
 	setImplicitWidth(width() + mEngine->bufferWidth());
 	setImplicitHeight(height() + mEngine->bufferHeight());
@@ -69,7 +70,7 @@ void MapItemView::paint(QPainter *painter)
 
 void MapItemView::process()
 {
-	if(mEngine->process())
+	if (mEngine->process())
 	{
 		update();
 	}

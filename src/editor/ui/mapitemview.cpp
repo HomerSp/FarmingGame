@@ -9,7 +9,7 @@ MapItemView::MapItemView(QQuickItem* parent)
 {
 	setAcceptHoverEvents(true);
 
-	mMap = new engine::Map("map_small");
+	mMap = std::make_shared<engine::Map>("map_small");
 	setImplicitWidth(mMap->pixelWidth());
 	setImplicitHeight(mMap->pixelHeight());
 
@@ -25,7 +25,8 @@ void MapItemView::paint(QPainter *painter)
 	engine::Types::Rect dst(0, 0, width(), height());
 	mMap->draw(mRenderer, dst, false);
 
-	if(mSquare.x >= 0) {
+	if (mSquare.x >= 0)
+	{
 		mRenderer.fillRect(mSquare, engine::Types::Color(0, 0, 0, 50));
 
 		engine::Types::Color lineColor(255, 255, 255);
@@ -62,7 +63,8 @@ void MapItemView::hoverMoveEvent(QHoverEvent *event)
 {
 	float x = std::floor(event->pos().x() / mSquare.width) * mSquare.width;
 	float y = std::floor(event->pos().y() / mSquare.height) *  mSquare.height;
-	if(x != mSquare.x || y != mSquare.y) {
+	if (x != mSquare.x || y != mSquare.y)
+	{
 		mSquare.x = x;
 		mSquare.y = y;
 		update();

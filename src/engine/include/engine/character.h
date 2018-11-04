@@ -9,11 +9,15 @@
 #include <engine/map.h>
 #include <engine/charset.h>
 
-namespace engine {
-	class Character {
+namespace engine
+{
+	class Character
+	{
 	public:
-		struct Direction {
-			typedef enum {
+		struct Direction
+		{
+			typedef enum
+			{
 				Down = 0,
 				Left,
 				Right,
@@ -22,7 +26,6 @@ namespace engine {
 		};
 
 		Character(const std::string& name);
-		~Character();
 
 		void animate(uint64_t currentFrame);
 		void draw(Renderer& renderer, const Types::Point& camera);
@@ -31,19 +34,23 @@ namespace engine {
 		void reset();
 		void velocity(uint64_t frameDiff, int8_t x, int8_t y);
 
-		float x() const {
+		float x() const
+		{
 			return mPos.x;
 		}
 
-		float y() const {
+		float y() const
+		{
 			return mPos.y;
 		}
 
-		int width() const {
+		int width() const
+		{
 			return mCharset->width(mCharsetType);
 		}
 
-		int height() const {
+		int height() const
+		{
 			return mCharset->height(mCharsetType);
 		}
 
@@ -52,28 +59,33 @@ namespace engine {
 		void turnTo(Direction::Type direction);
 
 		void setDirection(Direction::Type direction);
-		void setSpeed(float speed) {
+		void setSpeed(float speed)
+		{
 			mSpeed = speed;
 		}
 
-		void setFriction(float friction) {
+		void setFriction(float friction)
+		{
 			mFriction = friction;
 		}
 
-		void setX(float x) {
+		void setX(float x)
+		{
 			mPos.x = x;
 		}
 
-		void setY(float y) {
+		void setY(float y)
+		{
 			mPos.y = y;
 		}
 
-		bool operator!() const {
+		bool operator!() const
+		{
 			return !mValid;
 		}
 
 	protected:
-		void updateVelocity(float& velocity, int8_t d, float val);
+		void updateVelocity(float& velocity, int8_t direction, float val);
 
 	private:
 		bool mValid;

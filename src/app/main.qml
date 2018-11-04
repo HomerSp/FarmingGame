@@ -6,7 +6,8 @@ import QtQuick.Layouts 1.3
 import Qt.labs.settings 1.0
 import se.aqba.qt.farming 1.0
 
-ApplicationWindow {
+ApplicationWindow
+{
 	id: mainWindow
 	visible: true
 	width: 1024
@@ -16,18 +17,21 @@ ApplicationWindow {
 	visibility: ApplicationWindow.AutomaticVisibility
 	title: qsTr("Farming")
 
-	Rectangle {
+	Rectangle
+	{
 		id: frame
 		anchors.fill: parent
 		clip: true
 
-		MapItemView {
+		MapItemView
+		{
 			id: content
 			anchors.fill: parent
 		}
 	}
 
-	Settings {
+	Settings
+	{
 		id: windowState
 		property alias x: mainWindow.x
 		property alias y: mainWindow.y

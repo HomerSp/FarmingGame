@@ -1,5 +1,13 @@
 cmake_minimum_required(VERSION 3.1.0)
 
+if(LINT)
+	set(CMAKE_CXX_CLANG_TIDY "/usr/bin/clang-tidy-6.0;-checks=*,-fuchsia-default-arguments,-google-build-using-namespace")
+endif(LINT)
+
+if(DEBUG)
+	set(CMAKE_BUILD_TYPE Debug)
+endif(DEBUG)
+
 set(PROJECT "src")
 project(${PROJECT})
 

@@ -8,8 +8,10 @@
 #include <engine/map.h>
 #include <engine/character.h>
 
-namespace engine {
-	class Engine {
+namespace engine
+{
+	class Engine
+	{
 	public:
 		Engine(uint32_t width, uint32_t height);
 
@@ -23,7 +25,8 @@ namespace engine {
 		void setKeyDown(int key);
 		void setKeyUp(int key);
 
-		void setFocus(bool focus) {
+		void setFocus(bool focus)
+		{
 			mHasFocus = focus;
 		}
 

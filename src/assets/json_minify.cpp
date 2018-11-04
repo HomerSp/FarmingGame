@@ -5,14 +5,16 @@
 
 #include "include/utils.h"
 
-int main(int argc, char** argv)
+int main(int argc, char* argv[])
 {
-	if(argc != 3) {
+	if (argc != 3)
+	{
 		return -1;
 	}
 
 	std::ifstream input(argv[1]);
-	if(!input) {
+	if (!input)
+	{
 		return -1;
 	}
 
@@ -22,7 +24,8 @@ int main(int argc, char** argv)
 	Utils::createParentDir(argv[2]);
 
 	std::ofstream output(argv[2], std::ofstream::out);
-	if(!output) {
+	if (!output)
+	{
 		return -1;
 	}
 

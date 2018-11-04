@@ -11,8 +11,11 @@
 #include <engine/renderer.h>
 #include <engine/collisionmap.h>
 
-namespace engine {
-	struct TilesetNode {
+namespace engine
+{
+	struct TilesetNode
+	{
+	public:
 		Types::Point pos[4];
 		Types::Point anim;
 		int frames;
@@ -31,22 +34,26 @@ namespace engine {
 		} Type;
 	};
 
-	class TilesetType {
+	class TilesetType
+	{
 	public:
-		TilesetType(Types::Dimension& tileDimension, const std::string& tileType, const std::bitset<TilesetAttribute::Last>& attrs, int& x, int& y, int& typeHeight, int frames);
+		TilesetType(Types::Dimension& tileDimension, const std::string& tileType, const std::bitset<TilesetAttribute::Last>& attrs, uint32_t& x, uint32_t& y, uint32_t& typeHeight, int frames);
 
-		TilesetNode* toNode(Types::Map2D &tiles, uint32_t x, uint32_t y, uint32_t width, uint32_t height);
+		std::shared_ptr<TilesetNode> toNode(Types::Map2D &tiles, uint32_t x, uint32_t y, uint32_t width, uint32_t height);
 
-		bool hasAttribute(TilesetAttribute::Type type) const {
+		bool hasAttribute(TilesetAttribute::Type type) const
+		{
 			return mAttributes[type];
 		}
 
-		bool operator!() const {
+		bool operator!() const
+		{
 			return !mValid;
 		}
 
 	private:
-		enum TileType {
+		enum TileType
+		{
 			TileTypeSingle = 0,
 			TileTypeAuto,
 			TileTypeAutoHoriz,
@@ -56,19 +63,20 @@ namespace engine {
 		Types::Dimension& mTileDimension;
 		TileType mTileType;
 		std::bitset<TilesetAttribute::Last> mAttributes;
-		int mX;
-		int mY;
+		uint32_t mX;
+		uint32_t mY;
 		int mFrames;
 	};
 
-	class Tileset {
+	class Tileset
+	{
 	public:
 		Tileset(const std::string& name);
-		~Tileset();
 
 		void draw(Renderer& renderer, TilesetNode& node, const Types::Point& pos);
 
-		Types::Dimension getTileDimension() const {
+		Types::Dimension getTileDimension() const
+		{
 			return mTileDimension;
 		}
 
@@ -77,7 +85,8 @@ namespace engine {
 		void updateCollisionMap(CollisionMap& tilesetMap, CollisionMap& map, TilesetNode& node, uint32_t x, uint32_t y);
 		bool updateTiles(Types::Map2D& tiles, std::unordered_map<int, std::shared_ptr<TilesetNode> >& map, uint32_t width, uint32_t height);
 
-		bool operator!() const {
+		bool operator!() const
+		{
 			return !mValid;
 		}
 

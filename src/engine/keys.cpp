@@ -1,18 +1,13 @@
 #include <algorithm>
 
-#include <engine/logger.h>
 #include <engine/keys.h>
 
 using namespace engine;
 
-KeyList::KeyList()
-	: std::list<Keys::Type>()
+void KeyList::append(Keys::Type key)
 {
-
-}
-
-void KeyList::append(Keys::Type key) {
-	if(size() > 0 && back() == key) {
+	if (!empty() && back() == key)
+	{
 		return;
 	}
 
@@ -20,16 +15,20 @@ void KeyList::append(Keys::Type key) {
 	push_back(key);
 }
 
-void KeyList::append(int key) {
-	if(mKeyTable.find(key) == mKeyTable.end()) {
+void KeyList::append(int key)
+{
+	if (mKeyTable.find(key) == mKeyTable.end())
+	{
 		return;
 	}
 
 	append(mKeyTable.find(key)->second);
 }
 
-void KeyList::remove(int key) {
-	if(mKeyTable.find(key) == mKeyTable.end()) {
+void KeyList::remove(int key)
+{
+	if (mKeyTable.find(key) == mKeyTable.end())
+	{
 		return;
 	}
 
@@ -37,6 +36,7 @@ void KeyList::remove(int key) {
 	remove_if([type](Keys::Type n){ return n == type; });
 }
 
-bool KeyList::contains(Keys::Type key) {
+bool KeyList::contains(Keys::Type key)
+{
 	return std::find(begin(), end(), key) != end();
 }

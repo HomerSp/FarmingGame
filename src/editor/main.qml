@@ -6,7 +6,8 @@ import QtQuick.Layouts 1.3
 import Qt.labs.settings 1.0
 import se.aqba.qt.farming 1.0
 
-ApplicationWindow {
+ApplicationWindow
+{
 	id: mainWindow
 	visible: true
 	width: 1024
@@ -16,37 +17,45 @@ ApplicationWindow {
 	visibility: ApplicationWindow.AutomaticVisibility
 	title: qsTr("Farming Editor")
 
-	menuBar: MenuBar {
-		Menu {
+	menuBar: MenuBar
+	{
+		Menu
+		{
 			title: qsTr("&File")
 
-			Action {
+			Action
+			{
 				text: qsTr("Home")
 				onTriggered: webView.url = "https://youtube.com/"
 			}
 
-			Action {
+			Action
+			{
 				text: qsTr("&Quit")
-				onTriggered: {
+				onTriggered:
+				{
 					Qt.quit()
 				}
 			}
 		}
 	}
 
-	ScrollView {
+	ScrollView
+	{
 		id: frame
 		anchors.fill: parent
 		clip: true
 		contentWidth: content.implicitWidth
 		contentHeight: content.implicitHeight
 
-		MapItemView {
+		MapItemView
+		{
 			id: content
 		}
 	}
 
-	Settings {
+	Settings
+	{
 		id: windowState
 		property alias x: mainWindow.x
 		property alias y: mainWindow.y

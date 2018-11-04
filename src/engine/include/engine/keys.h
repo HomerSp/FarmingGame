@@ -3,11 +3,13 @@
 #include <list>
 #include <unordered_map>
 
-namespace engine {
+namespace engine
+{
 	struct Keys
 	{
 	public:
-		typedef enum {
+		typedef enum
+		{
 			None = 0,
 			Down,
 			Left,
@@ -20,9 +22,10 @@ namespace engine {
 		} Type;
 	};
 
-	class KeyList : public std::list<Keys::Type> {
+	class KeyList : public std::list<Keys::Type>
+	{
 	public:
-		explicit KeyList();
+		explicit KeyList() = default;
 
 		void append(Keys::Type key);
 		void append(int key);
@@ -31,7 +34,8 @@ namespace engine {
 
 		bool contains(Keys::Type key);
 
-		Keys::Type &operator[](int type) {
+		Keys::Type &operator[](int type)
+		{
 			return mKeyTable[type];
 		}
 

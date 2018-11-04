@@ -7,6 +7,6 @@ include_directories(
 	${src_DIR}/engine/include
 )
 
-LINK_DIRECTORIES(${src_DIR}/engine)
+link_directories(${src_DIR}/engine)
 
 set(engine_LIBRARY engine ${JsonCpp_LIBRARY} ${Pngpp_LIBRARY})

@@ -23,10 +23,12 @@ uint64_t FrameTimer::last() const
 	return mLast;
 }
 
-void FrameTimer::start() {
+void FrameTimer::start()
+{
 	mSaved = elapsed();
 }
 
-void FrameTimer::end() {
+void FrameTimer::end()
+{
 	mLast = mSaved;
 }

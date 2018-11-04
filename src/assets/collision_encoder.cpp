@@ -2,14 +2,16 @@
 
 #include "include/utils.h"
 
-int main(int argc, char** argv)
+int main(int argc, char *argv[])
 {
-	if(argc != 3) {
+	if (argc != 3)
+	{
 		return -1;
 	}
 
 	png::image<png::gray_pixel, png::pixel_buffer<png::gray_pixel> > image(argv[1]);
-	if(image.get_width() == 0) {
+	if (image.get_width() == 0)
+	{
 		return -1;
 	}
 

@@ -3,10 +3,12 @@
 #include <engine/types.h>
 #include <engine/image.h>
 
-namespace engine {
-	class Renderer {
+namespace engine
+{
+	class Renderer
+	{
 	public:
-		Renderer();
+		Renderer() = default;
 
 		virtual int width() = 0;
 		virtual int height() = 0;

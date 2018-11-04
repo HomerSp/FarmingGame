@@ -1,7 +1,8 @@
+#include <cmath>
 #include <thread>
 
-#include <engine/logger.h>
 #include <engine/engine.h>
+#include <engine/logger.h>
 
 using namespace engine;
 
@@ -14,10 +15,12 @@ Engine::Engine(uint32_t width, uint32_t height)
 	, mMap(nullptr)
 	, mHero(nullptr)
 {
-	mMap = std::shared_ptr<engine::Map>(new engine::Map("map"));
-	mHero = std::shared_ptr<engine::Character>(new engine::Character("hero"));
-	mHero->setX((mMap->pixelWidth() - mHero->width()) / 2);
-	mHero->setY((mMap->pixelHeight() - mHero->height()) / 2);
+	Logger::debug() << "Creating Engine";
+
+	mMap = std::make_shared<engine::Map>("map");
+	mHero = std::make_shared<engine::Character>("hero");
+	mHero->setX(std::floor((mMap->pixelWidth() - mHero->width()) / 2));
+	mHero->setY(std::floor((mMap->pixelHeight() - mHero->height()) / 2));
 }
 
 int Engine::bufferWidth() const
@@ -37,42 +40,53 @@ bool Engine::process()
 	mFrameTimer.start();
 
 	int8_t x = 0, y = 0;
-	if(mHasFocus && !mDownKeys.empty()) {
+	if (mHasFocus && !mDownKeys.empty())
+	{
 		bool turned = false;
-		for(auto it = mDownKeys.rbegin(); it != mDownKeys.rend(); it++) {
-		   switch(*it) {
+		for (auto it = mDownKeys.rbegin(); it != mDownKeys.rend(); it++)
+		{
+		   switch(*it)
+			{
 			case engine::Keys::Up:
-				if(y == 0) {
+				if (y == 0)
+				{
 					y = -1;
 				}
-				if(!turned) {
+				if (!turned)
+				{
 					mHero->turnTo(engine::Character::Direction::Up);
 					turned = true;
 				}
 				break;
 			case engine::Keys::Down:
-				if(y == 0) {
+				if (y == 0)
+				{
 					y = 1;
 				}
-				if(!turned) {
+				if (!turned)
+				{
 					mHero->turnTo(engine::Character::Direction::Down);
 					turned = true;
 				}
 				break;
 			case engine::Keys::Left:
-				if(x == 0) {
+				if (x == 0)
+				{
 					x = -1;
 				}
-				if(!turned) {
+				if (!turned)
+				{
 					mHero->turnTo(engine::Character::Direction::Left);
 					turned = true;
 				}
 				break;
 			case engine::Keys::Right:
-				if(x == 0) {
+				if (x == 0)
+				{
 					x = 1;
 				}
-				if(!turned) {
+				if (!turned)
+				{
 					mHero->turnTo(engine::Character::Direction::Right);
 					turned = true;
 				}
@@ -81,25 +95,32 @@ bool Engine::process()
 				break;
 			}
 
-			if(x != 0 && y != 0) {
+			if (x != 0 && y != 0)
+			{
 				break;
 			}
 		}
 
-		if(mDownKeys.contains(engine::Keys::Friction)) {
+		if (mDownKeys.contains(engine::Keys::Friction))
+		{
 			mHero->setFriction(0.1f);
-		} else {
+		} else
+		{
 			mHero->setFriction(1.0f);
 		}
 
-		if(mDownKeys.contains(engine::Keys::Run)) {
+		if (mDownKeys.contains(engine::Keys::Run))
+		{
 			mHero->setSpeed(2.0f);
-		} else if(mDownKeys.contains(engine::Keys::Walk)) {
+		} else if (mDownKeys.contains(engine::Keys::Walk))
+		{
 			mHero->setSpeed(0.5f);
-		} else {
+		} else
+		{
 			mHero->setSpeed(1.0f);
 		}
-	} else {
+	} else
+	{
 		mHero->setSpeed(1.0f);
 		mHero->reset();
 	}
@@ -107,40 +128,44 @@ bool Engine::process()
 	mHero->velocity(mFrameTimer.diff(), x, y);
 	mHero->process(mFrameTimer.diff(), mMap.get());
 
-	if(!mHero->isMoving()) {
+	if (!mHero->isMoving())
+	{
 		mHero->reset();
 	}
 
-	if(mHero->isMoving()) {
+	if (mHero->isMoving())
+	{
 		mHero->animate(mFrameTimer.elapsed());
 	}
 
 	mMap->animate(mFrameTimer.elapsed());
 
-	int cameraX = mHero->x() - (mWidth / 2) + (mHero->width() / 2);
-	if(cameraX < 0) {
+	int cameraX = mHero->x() - std::floor((mWidth / 2) + (mHero->width() / 2));
+	if (cameraX < 0)
+	{
 		cameraX = 0;
 	}
 
 	mCameraX = cameraX;
-	if(mCameraX >= mMap->pixelWidth() - mWidth)
+	if (mCameraX >= mMap->pixelWidth() - mWidth)
 	{
 		mCameraX = mMap->pixelWidth() - mWidth;
 	}
 
-	int cameraY = mHero->y() - (mHeight / 2) + (mHero->height() / 2);
-	if(cameraY < 0)
+	int cameraY = mHero->y() - std::floor((mHeight / 2) + (mHero->height() / 2));
+	if (cameraY < 0)
 	{
 		cameraY = 0;
 	}
 
 	mCameraY = cameraY;
-	if(mCameraY >= mMap->pixelHeight() - mHeight)
+	if (mCameraY >= mMap->pixelHeight() - mHeight)
 	{
 		mCameraY = mMap->pixelHeight() - mHeight;
 	}
 
-	if(mDownKeys.contains(engine::Keys::Test)) {
+	if (mDownKeys.contains(engine::Keys::Test))
+	{
 		std::this_thread::sleep_for (std::chrono::milliseconds(50));
 	}
 
@@ -155,15 +180,18 @@ void Engine::paint(Renderer& renderer)
 
 	// Centre small maps.
 	float translateX = 0.0f, translateY = 0.0f;
-	if(mMap->pixelWidth() < mWidth) {
-		translateX = (mWidth / 2) - (mMap->pixelWidth() / 2);
+	if (mMap->pixelWidth() < mWidth)
+	{
+		translateX = std::floor((mWidth / 2) - (mMap->pixelWidth() / 2));
 	}
 
-	if(mMap->pixelHeight() < mHeight) {
-		translateY = (mHeight / 2) - (mMap->pixelHeight() / 2);
+	if (mMap->pixelHeight() < mHeight)
+	{
+		translateY = std::floor((mHeight / 2) - (mMap->pixelHeight() / 2));
 	}
 
-	if(translateX != 0.0f || translateY != 0.0f) {
+	if (translateX != 0.0f || translateY != 0.0f)
+	{
 		renderer.translate(translateX, translateY);
 	}
 
@@ -173,9 +201,9 @@ void Engine::paint(Renderer& renderer)
 
 void Engine::setKeyMap(const std::unordered_map<int, Keys::Type>& keys)
 {
-	for(auto it = keys.begin(); it != keys.end(); it++)
+	for (auto key: keys)
 	{
-		mDownKeys[it->first] = it->second;
+		mDownKeys[key.first] = key.second;
 	}
 }
 

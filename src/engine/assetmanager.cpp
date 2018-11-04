@@ -1,18 +1,35 @@
 #include <fstream>
 
-#include <engine/logger.h>
 #include <engine/assetmanager.h>
+#include <engine/logger.h>
 
 using namespace engine;
 
-std::string AssetManager::sBase = "assets";
+std::shared_ptr<AssetManager> AssetManager::sInstance = nullptr;
+
+AssetManager::AssetManager()
+	: mBase("assets")
+{
+
+}
+
+std::shared_ptr<AssetManager> AssetManager::get()
+{
+	if (!sInstance)
+	{
+		struct make_shared_enabler : public AssetManager {};
+		sInstance = std::make_shared<make_shared_enabler>();
+	}
+
+	return sInstance;
+}
 
 std::shared_ptr<Json::Value> AssetManager::data(Type type, const std::string& name)
 {
-	std::shared_ptr<Json::Value> doc = std::shared_ptr<Json::Value>(new Json::Value());
+	std::shared_ptr<Json::Value> doc = std::make_shared<Json::Value>();
 
 	std::string path = AssetManager::dataPath(type, name);
-	if(path.length() > 0)
+	if (path.length() > 0)
 	{
 		std::ifstream file(path);
 		file >> *doc.get();
@@ -24,27 +41,30 @@ std::shared_ptr<Json::Value> AssetManager::data(Type type, const std::string& na
 std::shared_ptr<engine::Image> AssetManager::image(Type type, const std::string& name)
 {
 	std::string path = AssetManager::imagePath(type, name);
-	if(path.length() > 0) {
-		return std::shared_ptr<engine::Image>(new engine::Image(path));
+	if (path.length() > 0)
+	{
+		return std::make_shared<engine::Image>(path);
 	}
 
-	return std::shared_ptr<engine::Image>(new engine::Image());
+	return std::make_shared<engine::Image>();
 }
 
 std::shared_ptr<engine::CollisionMap> AssetManager::collision(Type type, const std::string& name)
 {
 	std::string path = AssetManager::collisionPath(type, name);
-	if(path.length() > 0) {
-		return std::shared_ptr<engine::CollisionMap>(new engine::CollisionMap(path));
+	if (path.length() > 0)
+	{
+		return std::make_shared<engine::CollisionMap>(path);
 	}
 
-	return std::shared_ptr<engine::CollisionMap>(new engine::CollisionMap());
+	return std::make_shared<engine::CollisionMap>();
 }
 
 std::string AssetManager::dataPath(Type type, const std::string& name)
 {
-	std::string ret = AssetManager::sBase + "/data/";
-	switch(type) {
+	std::string ret = mBase + "/data/";
+	switch(type)
+{
 	case Character:
 		ret += "character";
 		break;
@@ -65,8 +85,9 @@ std::string AssetManager::dataPath(Type type, const std::string& name)
 
 std::string AssetManager::imagePath(Type type, const std::string& name)
 {
-	std::string ret = AssetManager::sBase + "/image/";
-	switch(type) {
+	std::string ret = mBase + "/image/";
+	switch(type)
+{
 	case Charset:
 		ret += "charset";
 		break;
@@ -81,8 +102,9 @@ std::string AssetManager::imagePath(Type type, const std::string& name)
 
 std::string AssetManager::collisionPath(Type type, const std::string& name)
 {
-	std::string ret = AssetManager::sBase + "/collision/";
-	switch(type) {
+	std::string ret = mBase + "/collision/";
+	switch(type)
+{
 	case Tileset:
 		ret += "tileset";
 		break;

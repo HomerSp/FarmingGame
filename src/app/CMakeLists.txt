@@ -41,4 +41,4 @@ target_link_libraries(${PROJECT}
 	Qt5::Qml
 	Qt5::Quick
 	${engine_LIBRARY}
-	)
+)

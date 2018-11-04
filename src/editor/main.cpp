@@ -1,8 +1,10 @@
 #include <QApplication>
 #include <QQmlApplicationEngine>
+
 #include <ui/mapitemview.h>
 
-int main(int argc, char** argv) {
+int main(int argc, char** argv)
+{
 	QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 	QCoreApplication::setApplicationName("FarmingEditor");
 	QCoreApplication::setOrganizationName("aqba");
@@ -12,9 +14,10 @@ int main(int argc, char** argv) {
 
 	QQmlApplicationEngine engine;
 	engine.load(QUrl(QLatin1String("qrc:/main.qml")));
-	if (engine.rootObjects().isEmpty()) {
+	if (engine.rootObjects().isEmpty())
+	{
 		return -1;
 	}
 
-	return app.exec();
+	return QApplication::exec();
 } 

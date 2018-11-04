@@ -3,14 +3,18 @@
 #include <iostream>
 #include <sstream>
 
-namespace engine {
-	class LoggerStream {
+namespace engine
+{
+	class LoggerStream
+	{
 	public:
 		~LoggerStream();
 
 		template<class T>
-		LoggerStream &operator<<(const T &x) {
-			if(mStream.tellp() > 0) {
+		LoggerStream &operator<<(const T &x)
+		{
+			if (mStream.tellp() > 0)
+			{
 				mStream << " ";
 			}
 
@@ -30,22 +34,26 @@ namespace engine {
 	struct Logger
 	{
 	public:
-		class critical : public LoggerStream {
+		class critical : public LoggerStream
+		{
 		public:
 			critical();
 		};
 
-		class warning : public LoggerStream {
+		class warning : public LoggerStream
+		{
 		public:
 			warning();
 		};
 
-		class info : public LoggerStream {
+		class info : public LoggerStream
+		{
 		public:
 			info();
 		};
 
-		class debug : public LoggerStream {
+		class debug : public LoggerStream
+		{
 		public:
 			debug();
 		};

@@ -2,15 +2,14 @@
 
 #include <memory>
 
-#include <QQuickPaintedItem>
-#include <QPainter>
-#include <QElapsedTimer>
 #include <QKeyEvent>
+#include <QPainter>
+#include <QQuickPaintedItem>
 #include <QTimer>
 
+#include <engine/character.h>
 #include <engine/engine.h>
 #include <engine/frametimer.h>
-#include <engine/character.h>
 #include <engine/keys.h>
 #include <engine/map.h>
 

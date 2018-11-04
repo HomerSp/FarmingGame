@@ -16,21 +16,17 @@ Image::Image(const std::string& path)
 	mWidth = png.get_width();
 	mHeight = png.get_height();
 
-	mData = std::shared_ptr<uint8_t>(new uint8_t[mHeight * mWidth * 4]);
-
-	uint8_t* data = mData.get();
-	for(int y = 0; y < mHeight; y++) {
+	mData.reserve(mWidth * mHeight * 4);
+	for (uint32_t y = 0; y < mHeight; y++)
+	{
 		auto row = png.get_row(y);
-		for(int x = 0; x < mWidth; x++) {
+		for (uint32_t x = 0; x < mWidth; x++)
+		{
 			auto pixel = row[x];
-			*(data++) = pixel.blue;
-			*(data++) = pixel.green;
-			*(data++) = pixel.red;
-			*(data++) = pixel.alpha;
+			mData.push_back(pixel.blue);
+			mData.push_back(pixel.green);
+			mData.push_back(pixel.red);
+			mData.push_back(pixel.alpha);
 		}
 	}
 } 
-
-Image::~Image() {
-
-}
