@@ -1,5 +1,6 @@
 #pragma once
 
+#include <bitset>
 #include <memory>
 #include <unordered_map>
 #include <unordered_set>
@@ -26,17 +27,18 @@ namespace engine {
 			AboveRow = 0,
 			AboveAll,
 			Water,
+			Last,
 		} Type;
 	};
 
 	class TilesetType {
 	public:
-		TilesetType(Types::Dimension& tileDimension, const std::string& tileType, const std::unordered_set<TilesetAttribute::Type>& attrs, int& x, int& y, int& typeHeight, int frames);
+		TilesetType(Types::Dimension& tileDimension, const std::string& tileType, const std::bitset<TilesetAttribute::Last>& attrs, int& x, int& y, int& typeHeight, int frames);
 
 		TilesetNode* toNode(Types::Map2D &tiles, uint32_t x, uint32_t y, uint32_t width, uint32_t height);
 
 		bool hasAttribute(TilesetAttribute::Type type) const {
-			return mAttributes.find(type) != mAttributes.end();
+			return mAttributes[type];
 		}
 
 		bool operator!() const {
@@ -53,7 +55,7 @@ namespace engine {
 		bool mValid;
 		Types::Dimension& mTileDimension;
 		TileType mTileType;
-		std::unordered_set<TilesetAttribute::Type> mAttributes;
+		std::bitset<TilesetAttribute::Last> mAttributes;
 		int mX;
 		int mY;
 		int mFrames;

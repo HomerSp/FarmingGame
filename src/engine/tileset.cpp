@@ -9,7 +9,7 @@
 
 using namespace engine;
 
-TilesetType::TilesetType(Types::Dimension& tileDimension, const std::string& tileType, const std::unordered_set<TilesetAttribute::Type>& attrs, int& x, int& y, int& typeHeight, int frames)
+TilesetType::TilesetType(Types::Dimension& tileDimension, const std::string& tileType, const std::bitset<TilesetAttribute::Last>& attrs, int& x, int& y, int& typeHeight, int frames)
 	: mValid(false)
 	, mTileDimension(tileDimension)
 	, mTileType(TileTypeSingle)
@@ -334,7 +334,7 @@ Tileset::Tileset(const std::string& name)
 			}
 		}
 
-		std::unordered_set<TilesetAttribute::Type> attrs;
+		std::bitset<TilesetAttribute::Last> attrs;
 		if(nodeObj.isMember("attributes")) {
 			Json::Value attrsObj = nodeObj["attributes"];
 			for(uint32_t i = 0; i < attrsObj.size(); i++)
@@ -342,13 +342,13 @@ Tileset::Tileset(const std::string& name)
 				std::string key = attrsObj[i].asString();
 				if(key == "water")
 				{
-					attrs.insert(TilesetAttribute::Water);
+					attrs[TilesetAttribute::Water] = true;
 				} else if(key == "above_row")
 				{
-					attrs.insert(TilesetAttribute::AboveRow);
+					attrs[TilesetAttribute::AboveRow] = true;
 				} else if(key == "above_all")
 				{
-					attrs.insert(TilesetAttribute::AboveAll);
+					attrs[TilesetAttribute::AboveAll] = true;
 				} else {
 					Logger::warning() << "Unknown attribute" << key << "for tileset" << name;
 				}
