@@ -25,7 +25,7 @@ Character::Character(const std::string& name)
 	std::shared_ptr<Json::Value> docPtr = AssetManager::data(AssetManager::Character, name);
 	Json::Value doc = *docPtr;
 	if(!doc.isObject() || !doc.isMember("name") || !doc.isMember("charset")) {
-		eCritical() << "Invalid JSON data for character" << name;
+		Logger::critical() << "Invalid JSON data for character" << name;
 		return;
 	}
 

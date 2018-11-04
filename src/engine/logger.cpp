@@ -13,25 +13,25 @@ LoggerStream::~LoggerStream() {
 	mOut << mType << ": " << mStream.str() << std::endl << std::flush;
 }
 
-eCritical::eCritical()
+Logger::critical::critical()
 	: LoggerStream(std::cerr, "Critical")
 {
 
 }
 
-eWarning::eWarning()
+Logger::warning::warning()
 	: LoggerStream(std::cerr, "Warning")
 {
 
 }
 
-eInfo::eInfo()
+Logger::info::info()
 	: LoggerStream(std::cout, "Info")
 {
 
 }
 
-eDebug::eDebug()
+Logger::debug::debug()
 	: LoggerStream(std::cout, "Debug")
 {
 

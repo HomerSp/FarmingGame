@@ -25,7 +25,7 @@ TilesetType::TilesetType(Types::Dimension& tileDimension, const std::string& til
 	} else if(tileType == "single") {
 		mTileType = TileTypeSingle;
 	} else {
-		eCritical() << "Invalid tileset node tile" << tileType;
+		Logger::critical() << "Invalid tileset node tile" << tileType;
 		return;
 	}
 
@@ -286,18 +286,18 @@ Tileset::Tileset(const std::string& name)
 	std::shared_ptr<Json::Value> docPtr = AssetManager::data(AssetManager::Tileset, name);
 	Json::Value doc = *docPtr;
 	if(!doc.isObject()) {
-		eCritical() << "Could not open tileset JSON file" << name;
+		Logger::critical() << "Could not open tileset JSON file" << name;
 		return;
 	}
 
 	if(!doc.isMember("image")|| !doc.isMember("nodes") || !doc.isMember("collision")) {
-		eCritical() << "Could not find required tileset JSON data for" << name;
+		Logger::critical() << "Could not find required tileset JSON data for" << name;
 		return;
 	}
 
 	mImage = AssetManager::image(AssetManager::Tileset, doc["image"].asString());
 	if(!*mImage) {
-		eCritical() << "Could not load tileset image for" << name;
+		Logger::critical() << "Could not load tileset image for" << name;
 		return;
 	}
 
@@ -317,12 +317,12 @@ Tileset::Tileset(const std::string& name)
 	for(uint32_t i = 0; i < nodes.size(); i++) {
 		Json::Value nodeObj = nodes[i];
 		if(!nodeObj.isMember("tile")) {
-			eCritical() << "Could not find required tileset node JSON data for" << name;
+			Logger::critical() << "Could not find required tileset node JSON data for" << name;
 			return;
 		}
 
 		if(y >= mImage->height()) {
-			eCritical() << "Too many nodes in tileset data for" << name;
+			Logger::critical() << "Too many nodes in tileset data for" << name;
 			return;
 		}
 
@@ -347,7 +347,7 @@ Tileset::Tileset(const std::string& name)
 				{
 					attrs[TilesetAttribute::RowAbove] = true;
 				} else {
-					eWarning() << "Unknown attribute" << key << "for tileset" << name;
+					Logger::warning() << "Unknown attribute" << key << "for tileset" << name;
 				}
 			}
 		}
@@ -367,7 +367,7 @@ Tileset::Tileset(const std::string& name)
 	}
 
 	if(y != mImage->height()) {
-		eWarning() << "Possible missing nodes in tileset data for" << name;
+		Logger::warning() << "Possible missing nodes in tileset data for" << name;
 	}
 
 	mValid = true;
@@ -401,7 +401,7 @@ std::shared_ptr<CollisionMap> Tileset::loadCollisionMap()
 {
 	std::shared_ptr<CollisionMap> collisionMap = AssetManager::collision(AssetManager::Tileset, mCollisionMap);
 	if(!*collisionMap) {
-		eCritical() << "Could not load tileset collision map" << mCollisionMap;
+		Logger::critical() << "Could not load tileset collision map" << mCollisionMap;
 	}
 
 	return collisionMap;

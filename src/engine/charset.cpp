@@ -20,18 +20,18 @@ Charset::Charset(const std::string& name)
 	std::shared_ptr<Json::Value> docPtr = AssetManager::data(AssetManager::Charset, name);
 	Json::Value& doc = *docPtr;
 	if(!doc.isObject()) {
-		eCritical() << "Could not open charset JSON file" << name;
+		Logger::critical() << "Could not open charset JSON file" << name;
 		return;
 	}
 
 	if(!doc.isMember("image")) {
-		eCritical() << "Could not find required charset JSON data for" << name;
+		Logger::critical() << "Could not find required charset JSON data for" << name;
 		return;
 	}
 
 	mImage = AssetManager::image(AssetManager::Charset, doc["image"].asString());
 	if(!*mImage) {
-		eCritical() << "Could not load charset image for" << name;
+		Logger::critical() << "Could not load charset image for" << name;
 		return;
 	}
 

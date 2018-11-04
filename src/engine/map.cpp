@@ -68,12 +68,12 @@ Map::Map(const std::string& name)
 	std::shared_ptr<Json::Value> docPtr = AssetManager::data(AssetManager::Map, name);
 	Json::Value doc = *docPtr;
 	if(!doc.isObject()) {
-		eCritical() << "Invalid JSON data for" << name;
+		Logger::critical() << "Invalid JSON data for" << name;
 		return;
 	}
 
 	if(!doc.isMember("width") || !doc.isMember("height") || !doc.isMember("layers")) {
-		eCritical() << "Could not find required map JSON attributes for" << name;
+		Logger::critical() << "Could not find required map JSON attributes for" << name;
 		return;
 	}
 
@@ -84,7 +84,7 @@ Map::Map(const std::string& name)
 	for(uint32_t i = 0; i < layers.size(); i++) {
 		Json::Value layerObj = layers[i];
 		if(!layerObj.isMember("tileset")) {
-			eCritical() << "Could not find required map layer JSON attributes for" << name;
+			Logger::critical() << "Could not find required map layer JSON attributes for" << name;
 			return;
 		}
 
@@ -105,12 +105,12 @@ Map::Map(const std::string& name)
 		Json::Value layerObj = layers[i];
 		std::string name = layerObj["tileset"].asString();
 		if(mTilesets.find(name) == mTilesets.end()) {
-			eCritical() << "Could not find tileset for" << name;
+			Logger::critical() << "Could not find tileset for" << name;
 			return;
 		}
 
 		if(!layerObj.isMember("data")) {
-			eCritical() << "Could not find required layer JSON attributes for" << name;
+			Logger::critical() << "Could not find required layer JSON attributes for" << name;
 			return;
 		}
 

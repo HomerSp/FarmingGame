@@ -27,23 +27,27 @@ namespace engine {
 		std::ostringstream mStream;
 	};
 
-	class eCritical : public LoggerStream {
+	struct Logger
+	{
 	public:
-		eCritical();
-	};
+		class critical : public LoggerStream {
+		public:
+			critical();
+		};
 
-	class eWarning : public LoggerStream {
-	public:
-		eWarning();
-	};
+		class warning : public LoggerStream {
+		public:
+			warning();
+		};
 
-	class eInfo : public LoggerStream {
-	public:
-		eInfo();
-	};
+		class info : public LoggerStream {
+		public:
+			info();
+		};
 
-	class eDebug : public LoggerStream {
-	public:
-		eDebug();
+		class debug : public LoggerStream {
+		public:
+			debug();
+		};
 	};
 }
