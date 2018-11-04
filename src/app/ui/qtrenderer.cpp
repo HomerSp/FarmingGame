@@ -45,6 +45,6 @@ void QtRenderer::drawImage(const engine::Image& img, const engine::Types::Rect &
 void QtRenderer::translate(float x, float y)
 {
 	assert(mPainter != nullptr);
-	
+
 	mPainter->translate(x, y);
 }

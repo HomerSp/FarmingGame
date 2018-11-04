@@ -11,7 +11,7 @@
 
 class MapItemView : public QQuickPaintedItem
 {
-    Q_OBJECT
+	Q_OBJECT
 public:
 	MapItemView(QQuickItem* parent = 0);
 

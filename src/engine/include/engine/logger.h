@@ -9,13 +9,13 @@ namespace engine {
 		~LoggerStream();
 
 		template<class T>
-	    LoggerStream &operator<<(const T &x) {
-	    	if(mStream.tellp() > 0) {
-	    		mStream << " ";
-	    	}
+		LoggerStream &operator<<(const T &x) {
+			if(mStream.tellp() > 0) {
+				mStream << " ";
+			}
 
-		    mStream << x;
-		    return *this;
+			mStream << x;
+			return *this;
 		}
 
 	protected:

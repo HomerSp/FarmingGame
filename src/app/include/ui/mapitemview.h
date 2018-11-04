@@ -18,7 +18,7 @@
 
 class MapItemView : public QQuickPaintedItem
 {
-    Q_OBJECT
+	Q_OBJECT
 public:
 	MapItemView(QQuickItem* parent = 0);
 
@@ -29,9 +29,9 @@ signals:
 protected:
 	void focusInEvent(QFocusEvent *event) override;
 	void focusOutEvent(QFocusEvent *event) override;
-    void keyPressEvent(QKeyEvent *event) override;
-    void keyReleaseEvent(QKeyEvent *event) override;
-    void geometryChanged(const QRectF &newGeometry, const QRectF &oldGeometry);
+	void keyPressEvent(QKeyEvent *event) override;
+	void keyReleaseEvent(QKeyEvent *event) override;
+	void geometryChanged(const QRectF &newGeometry, const QRectF &oldGeometry);
 
 private slots:
 	void process();

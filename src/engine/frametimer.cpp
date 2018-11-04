@@ -7,7 +7,7 @@ FrameTimer::FrameTimer()
 {
 	mSaved = mLast = elapsed();
 }
- 
+
 uint64_t FrameTimer::diff() const
 {
 	return elapsed() - mLast;

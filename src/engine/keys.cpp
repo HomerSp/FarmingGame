@@ -8,7 +8,7 @@ using namespace engine;
 KeyList::KeyList()
 	: std::list<Keys::Type>()
 {
-	
+
 }
 
 void KeyList::append(Keys::Type key) {

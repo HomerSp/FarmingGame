@@ -74,18 +74,18 @@ void Character::process(uint64_t frameDiff, Map* map) {
 		}
 	}
 
-    if(mVelocity.x != 0.0f || mVelocity.y != 0.0f) {
-    	Types::PointF dst(mVelocity.x * (frameDiff / 5.0f), mVelocity.y * (frameDiff / 5.0f));
-    	if(map != nullptr)
-    	{
-    		Types::PointF pos(mPos.x, mPos.y);
-    		Types::Dimension size(width(), height());
-    		map->checkCollision(pos, size, dst, mVelocity);
-    	}
+	if(mVelocity.x != 0.0f || mVelocity.y != 0.0f) {
+		Types::PointF dst(mVelocity.x * (frameDiff / 5.0f), mVelocity.y * (frameDiff / 5.0f));
+		if(map != nullptr)
+		{
+			Types::PointF pos(mPos.x, mPos.y);
+			Types::Dimension size(width(), height());
+			map->checkCollision(pos, size, dst, mVelocity);
+		}
 
-    	mPos.x += dst.x;
-    	mPos.y += dst.y;
-    }
+		mPos.x += dst.x;
+		mPos.y += dst.y;
+	}
 }
 
 void Character::reset() {

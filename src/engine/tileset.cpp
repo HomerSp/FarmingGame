@@ -274,7 +274,7 @@ TilesetNode* TilesetType::toNode(std::map<int, std::map<int, int> > &tiles, uint
 
 		break;
 	}
-	
+
 	return node;
 }
 

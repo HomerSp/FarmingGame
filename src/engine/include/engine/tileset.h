@@ -28,7 +28,6 @@ namespace engine {
 			End = Water,
 		} Type;
 	};
-	
 
 	class TilesetType {
 	public:

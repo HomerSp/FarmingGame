@@ -240,7 +240,7 @@ bool Map::isColliding(const Types::PointF& pos, const Types::Dimension& size, Ty
 	int startY = (size.height / 2);
 	Types::Quad foundDiff;
 	bool found = mCollisionMap->get(pos.x, pos.y + startY, size.width, startY, &foundDiff);
-	
+
 	// Check if we can move around the obstacle.
 	if(vertical) {
 		diff.first = foundDiff.y1;
@@ -271,7 +271,7 @@ bool Map::isColliding(const Types::PointF& pos, const Types::Dimension& size, Ty
 			rDiff = -1;
 		}
 	}
-	
+
 	return found;
 }
 

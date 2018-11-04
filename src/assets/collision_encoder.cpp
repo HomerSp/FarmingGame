@@ -17,13 +17,13 @@ int main(int argc, char** argv)
 
 	png::image<png::gray_pixel_1> out(image.get_width(), image.get_height());
 	for (size_t j = 0; j < image.get_height(); ++j)
-    {
-        for (size_t i = 0; i < image.get_width(); ++i)
-        {
-            int val = (image[j][i] != 255) ? 0 : 1;
-            out.set_pixel(i, j, png::gray_pixel_1(val));
-        }
-    }
+	{
+		for (size_t i = 0; i < image.get_width(); ++i)
+		{
+			int val = (image[j][i] != 255) ? 0 : 1;
+			out.set_pixel(i, j, png::gray_pixel_1(val));
+		}
+	}
 
 	out.write(argv[2]);
 

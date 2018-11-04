@@ -19,7 +19,7 @@ bool Utils::createParentDir(const std::string& filePath, mode_t mode)
 		path += "/";
 	}
 
-    return true;
+	return true;
 } 
 
 void Utils::splitString(const std::string &path, const std::string& delim, std::vector<std::string>& out) {

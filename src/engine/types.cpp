@@ -38,14 +38,14 @@ Types::Dimension::Dimension(int w, int h)
 	: width(w)
 	, height(h)
 {
-	
+
 }
 
 Types::Cells::Cells(int cols, int rows)
 	: cols(cols)
 	, rows(rows)
 {
-	
+
 }
 
 Types::Color::Color(uint8_t r, uint8_t g, uint8_t b, uint8_t a)
@@ -79,5 +79,5 @@ Types::Pair::Pair(int first, int second)
 	: first(first)
 	, second(second)
 {
-	
+
 }
