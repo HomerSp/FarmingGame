@@ -9,11 +9,11 @@
 
 using namespace engine;
 
-TilesetType::TilesetType(Types::Dimension& tileDimension, const std::string& tileType, const std::string& nodeType, int& x, int& y, int& typeHeight, int frames)
+TilesetType::TilesetType(Types::Dimension& tileDimension, const std::string& tileType, const std::unordered_map<TilesetAttribute::Type, bool>& attrs, int& x, int& y, int& typeHeight, int frames)
 	: mValid(false)
 	, mTileDimension(tileDimension)
 	, mTileType(TileTypeSingle)
-	, mNodeType(TileNodeTypeNone)
+	, mAttributes(attrs)
 	, mX(x)
 	, mY(y)
 	, mFrames(frames)
@@ -27,12 +27,6 @@ TilesetType::TilesetType(Types::Dimension& tileDimension, const std::string& til
 	} else {
 		eCritical() << "Invalid tileset node tile" << tileType;
 		return;
-	}
-
-	if(nodeType == "wall") {
-		mNodeType = TileNodeTypeWall;
-	} else if(nodeType == "water") {
-		mNodeType = TileNodeTypeWater;
 	}
 
 	switch(mTileType) {
@@ -284,12 +278,6 @@ TilesetNode* TilesetType::toNode(std::map<int, std::map<int, int> > &tiles, uint
 	return node;
 }
 
-bool TilesetType::isSolid() const
-{
-	return mNodeType == TileNodeTypeWall
-		|| mNodeType == TileNodeTypeWater;
-}
-
 Tileset::Tileset(const std::string& name)
 	: mValid(false)
 	, mTileDimension({32, 32})
@@ -339,18 +327,33 @@ Tileset::Tileset(const std::string& name)
 		}
 
 		int frames = 0;
-		if(nodeObj.isMember("animation") && nodeObj["animation"].asBool() && nodeObj.isMember("frames")) {
-			frames = nodeObj["frames"].asInt();
+		if(nodeObj.isMember("animation")) {
+			Json::Value animObj = nodeObj["animation"];
+			if(animObj.isMember("frames")) {
+				frames = animObj["frames"].asInt();
+			}
 		}
 
-		std::string nodeType = "";
-		if(nodeObj.isMember("type")) {
-			nodeType = nodeObj["type"].asString();
+		std::unordered_map<TilesetAttribute::Type, bool> attrs;
+		if(nodeObj.isMember("attributes")) {
+			Json::Value attrsObj = nodeObj["attributes"];
+			for(uint32_t i = 0; i < attrsObj.size(); i++)
+			{
+				std::string key = attrsObj[i].asString();
+				if(key == "water")
+				{
+					attrs[TilesetAttribute::Water] = true;
+				} else if(key == "row_above")
+				{
+					attrs[TilesetAttribute::RowAbove] = true;
+				} else {
+					eWarning() << "Unknown attribute" << key << "for tileset" << name;
+				}
+			}
 		}
 
-		TilesetType* type = new TilesetType(mTileDimension, nodeObj["tile"].asString(), nodeType, x, y, typeHeight, frames);
+		std::shared_ptr<TilesetType> type = std::shared_ptr<TilesetType>(new TilesetType(mTileDimension, nodeObj["tile"].asString(), attrs, x, y, typeHeight, frames));
 		if(!*type) {
-			delete type;
 			return;
 		}
 
@@ -360,7 +363,7 @@ Tileset::Tileset(const std::string& name)
 			typeHeight = mTileDimension.height;
 		}
 
-		mTypes[i] = std::shared_ptr<TilesetType>(type);
+		mTypes[i] = type;
 	}
 
 	if(y != mImage->height()) {
@@ -446,9 +449,4 @@ bool Tileset::updateTiles(std::map<int, std::map<int, int> > &table, std::map<in
 	}
 
 	return true;
-}
-
-bool Tileset::isSolid(int n) const 
-{
-	return n >= 0 && n < static_cast<int>(mTypes.size()) && mTypes.at(n)->isSolid();
 }

@@ -5,80 +5,96 @@
 	"nodes": [
 		{
 			"tile": "automatic",
-			"animation": true,
-			"frames": 3,
-			"type": "water"
+			"animation": {
+				"frames": 3
+			},
+			"attributes": [
+				"water"
+			]
 		},
 		{
 			"tile": "automatic"
 		},
 		{
 			"tile": "automatic",
-			"animation": true,
-			"frames": 3
+			"animation": {
+				"frames": 3
+			}
 		},
 		{
 			"tile": "automatic_horizontal",
-			"animation": true,
-			"frames": 3
+			"animation": {
+				"frames": 3
+			}
 		},
 		{
 			"tile": "automatic",
-			"animation": true,
-			"frames": 3
+			"animation": {
+				"frames": 3
+			}
 		},
 		{
 			"tile": "automatic"
 		},
 		{
 			"tile": "automatic",
-			"animation": true,
-			"frames": 3
+			"animation": {
+				"frames": 3
+			}
 		},
 		{
 			"tile": "automatic_horizontal",
-			"animation": true,
-			"frames": 3
+			"animation": {
+				"frames": 3
+			}
 		},
 		{
 			"tile": "automatic",
-			"animation": true,
-			"frames": 3
+			"animation": {
+				"frames": 3
+			}
 		},
 		{
 			"tile": "automatic_horizontal",
-			"animation": true,
-			"frames": 3
+			"animation": {
+				"frames": 3
+			}
 		},
 		{
 			"tile": "automatic",
-			"animation": true,
-			"frames": 3
+			"animation": {
+				"frames": 3
+			}
 		},
 		{
 			"tile": "automatic_horizontal",
-			"animation": true,
-			"frames": 3
+			"animation": {
+				"frames": 3
+			}
 		},
 		{
 			"tile": "automatic",
-			"animation": true,
-			"frames": 3
+			"animation": {
+				"frames": 3
+			}
 		},
 		{
 			"tile": "automatic_horizontal",
-			"animation": true,
-			"frames": 3
+			"animation": {
+				"frames": 3
+			}
 		},
 		{
 			"tile": "automatic",
-			"animation": true,
-			"frames": 3
+			"animation": {
+				"frames": 3
+			}
 		},
 		{
 			"tile": "automatic_horizontal",
-			"animation": true,
-			"frames": 3
+			"animation": {
+				"frames": 3
+			}
 		}
 	]
 }

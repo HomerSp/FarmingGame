@@ -1,5 +1,6 @@
 #pragma once
 
+#include <unordered_map>
 #include <memory>
 
 #include <png++/png.hpp>
@@ -15,13 +16,29 @@ namespace engine {
 		int current;
 	};
 
+	struct TilesetAttribute
+	{
+	public:
+		typedef enum
+		{
+			RowAbove = 0,
+			Water,
+
+			Start = RowAbove,
+			End = Water,
+		} Type;
+	};
+	
+
 	class TilesetType {
 	public:
-		TilesetType(Types::Dimension& tileDimension, const std::string& tileType, const std::string& nodeType, int& x, int& y, int& typeHeight, int frames);
+		TilesetType(Types::Dimension& tileDimension, const std::string& tileType, const std::unordered_map<TilesetAttribute::Type, bool>& attrs, int& x, int& y, int& typeHeight, int frames);
 
 		TilesetNode* toNode(std::map<int, std::map<int, int> > &tiles, uint32_t x, uint32_t y, uint32_t width, uint32_t height);
 
-		bool isSolid() const;
+		bool hasAttribute(TilesetAttribute::Type type) const {
+			return mAttributes.find(type) != mAttributes.end();
+		}
 
 		bool operator!() const {
 			return !mValid;
@@ -34,16 +51,10 @@ namespace engine {
 			TileTypeAutoHoriz,
 		};
 
-		enum TileNodeType {
-			TileNodeTypeNone = 0,
-			TileNodeTypeWall,
-			TileNodeTypeWater,
-		};
-
 		bool mValid;
 		Types::Dimension& mTileDimension;
 		TileType mTileType;
-		TileNodeType mNodeType;
+		std::unordered_map<TilesetAttribute::Type, bool> mAttributes;
 		int mX;
 		int mY;
 		int mFrames;
@@ -59,8 +70,6 @@ namespace engine {
 		Types::Dimension getTileDimension() const {
 			return mTileDimension;
 		}
-
-		bool isSolid(int n) const;
 
 		std::shared_ptr<CollisionMap> loadCollisionMap();
 

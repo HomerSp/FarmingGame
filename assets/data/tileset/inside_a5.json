@@ -82,12 +82,10 @@
 			"tile": "single"
 		},
 		{
-			"tile": "single",
-			"type": "wall"
+			"tile": "single"
 		},
 		{
-			"tile": "single",
-			"type": "wall"
+			"tile": "single"
 		},
 		{
 			"tile": "single"

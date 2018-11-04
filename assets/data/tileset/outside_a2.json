@@ -25,7 +25,10 @@
 			"tile": "automatic"
 		},
 		{
-			"tile": "automatic"
+			"tile": "automatic",
+			"attributes": [
+				"row_above"
+			]
 		},
 		{
 			"tile": "automatic"
