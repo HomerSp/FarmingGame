@@ -1,12 +1,12 @@
 cmake_minimum_required(VERSION 3.1.0)
 
 find_path(JsonCpp_INCLUDE_DIRS json/json.h
-	HINTS
-	PATH_SUFFIXES include/jsoncpp
+    HINTS
+    PATH_SUFFIXES include/jsoncpp
 )
 
 find_library(JsonCpp_LIBRARY
-	NAMES jsoncpp
+    NAMES jsoncpp
 )
 
 include(FindPackageHandleStandardArgs)

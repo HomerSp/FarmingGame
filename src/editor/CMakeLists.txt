@@ -17,19 +17,19 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
 include_directories(
-	include
-	../app/include
+    include
+    ../app/include
 )
 
 set(HEADERS
-	../app/include/ui/qtrenderer.h
-	include/ui/mapitemview.h
+    ../app/include/ui/qtrenderer.h
+    include/ui/mapitemview.h
 )
 
 set(SOURCES
-	main.cpp
-	../app/ui/qtrenderer.cpp
-	ui/mapitemview.cpp
+    main.cpp
+    ../app/ui/qtrenderer.cpp
+    ui/mapitemview.cpp
 )
 
 source_group("Header Files" FILES ${HEADERS})
@@ -38,8 +38,8 @@ source_group("Source Files" FILES ${SOURCES})
 add_executable(${PROJECT} ${HEADERS} ${SOURCES} ${QT_RESOURCES})
 
 target_link_libraries(${PROJECT}
-	Qt5::Widgets
-	Qt5::Qml
-	Qt5::Quick
-	${engine_LIBRARY}
+    Qt5::Widgets
+    Qt5::Qml
+    Qt5::Quick
+    ${engine_LIBRARY}
 )

@@ -1,106 +1,106 @@
 {
-	"image": "Outside_A2",
-	"dimen": [48, 48],
-	"collision": "Outside_A2",
-	"nodes": [
-		{
-			"tile": "automatic"
-		},
-		{
-			"tile": "automatic"
-		},
-		{
-			"tile": "automatic"
-		},
-		{
-			"tile": "automatic"
-		},
-		{
-			"tile": "automatic"
-		},
-		{
-			"tile": "automatic"
-		},
-		{
-			"tile": "automatic"
-		},
-		{
-			"tile": "automatic",
-			"attributes": [
-				"above_row"
-			]
-		},
-		{
-			"tile": "automatic"
-		},
-		{
-			"tile": "automatic"
-		},
-		{
-			"tile": "automatic"
-		},
-		{
-			"tile": "automatic"
-		},
-		{
-			"tile": "automatic"
-		},
-		{
-			"tile": "automatic"
-		},
-		{
-			"tile": "automatic"
-		},
-		{
-			"tile": "automatic"
-		},
-		{
-			"tile": "automatic"
-		},
-		{
-			"tile": "automatic"
-		},
-		{
-			"tile": "automatic"
-		},
-		{
-			"tile": "automatic"
-		},
-		{
-			"tile": "automatic"
-		},
-		{
-			"tile": "automatic"
-		},
-		{
-			"tile": "automatic"
-		},
-		{
-			"tile": "automatic"
-		},
-		{
-			"tile": "automatic"
-		},
-		{
-			"tile": "automatic"
-		},
-		{
-			"tile": "automatic"
-		},
-		{
-			"tile": "automatic"
-		},
-		{
-			"tile": "automatic"
-		},
-		{
-			"tile": "automatic"
-		},
-		{
-			"tile": "automatic"
-		},
-		{
-			"tile": "automatic"
-		}
-	]
+    "image": "Outside_A2",
+    "dimen": [48, 48],
+    "collision": "Outside_A2",
+    "nodes": [
+        {
+            "tile": "automatic"
+        },
+        {
+            "tile": "automatic"
+        },
+        {
+            "tile": "automatic"
+        },
+        {
+            "tile": "automatic"
+        },
+        {
+            "tile": "automatic"
+        },
+        {
+            "tile": "automatic"
+        },
+        {
+            "tile": "automatic"
+        },
+        {
+            "tile": "automatic",
+            "attributes": [
+                "above_row"
+            ]
+        },
+        {
+            "tile": "automatic"
+        },
+        {
+            "tile": "automatic"
+        },
+        {
+            "tile": "automatic"
+        },
+        {
+            "tile": "automatic"
+        },
+        {
+            "tile": "automatic"
+        },
+        {
+            "tile": "automatic"
+        },
+        {
+            "tile": "automatic"
+        },
+        {
+            "tile": "automatic"
+        },
+        {
+            "tile": "automatic"
+        },
+        {
+            "tile": "automatic"
+        },
+        {
+            "tile": "automatic"
+        },
+        {
+            "tile": "automatic"
+        },
+        {
+            "tile": "automatic"
+        },
+        {
+            "tile": "automatic"
+        },
+        {
+            "tile": "automatic"
+        },
+        {
+            "tile": "automatic"
+        },
+        {
+            "tile": "automatic"
+        },
+        {
+            "tile": "automatic"
+        },
+        {
+            "tile": "automatic"
+        },
+        {
+            "tile": "automatic"
+        },
+        {
+            "tile": "automatic"
+        },
+        {
+            "tile": "automatic"
+        },
+        {
+            "tile": "automatic"
+        },
+        {
+            "tile": "automatic"
+        }
+    ]
 }

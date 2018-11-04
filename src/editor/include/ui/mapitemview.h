@@ -3,30 +3,29 @@
 #include <memory>
 
 #include <QHoverEvent>
-#include <QQuickPaintedItem>
 #include <QPainter>
+#include <QQuickPaintedItem>
 
-#include <engine/types.h>
 #include <engine/map.h>
+#include <engine/types.h>
 
 #include <ui/qtrenderer.h>
 
-class MapItemView : public QQuickPaintedItem
-{
-	Q_OBJECT
+class MapItemView : public QQuickPaintedItem {
+    Q_OBJECT
 public:
-	MapItemView(QQuickItem* parent = 0);
+    MapItemView(QQuickItem* parent = 0);
 
-	void paint(QPainter *painter) override;
+    void paint(QPainter* painter) override;
 
 protected:
-	void hoverEnterEvent(QHoverEvent *event);
-	void hoverLeaveEvent(QHoverEvent *event);
-	void hoverMoveEvent(QHoverEvent *event);
+    void hoverEnterEvent(QHoverEvent* event);
+    void hoverLeaveEvent(QHoverEvent* event);
+    void hoverMoveEvent(QHoverEvent* event);
 
 private:
-	QtRenderer mRenderer;
-	std::shared_ptr<engine::Map> mMap;
+    QtRenderer mRenderer;
+    std::shared_ptr<engine::Map> mMap;
 
-	engine::Types::Rect mSquare;
+    engine::Types::Rect mSquare;
 };

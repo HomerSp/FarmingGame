@@ -8,59 +8,59 @@ import se.aqba.qt.farming 1.0
 
 ApplicationWindow
 {
-	id: mainWindow
-	visible: true
-	width: 1024
-	height: 768
-	x: 0
-	y: 0
-	visibility: ApplicationWindow.AutomaticVisibility
-	title: qsTr("Farming Editor")
+    id: mainWindow
+    visible: true
+    width: 1024
+    height: 768
+    x: 0
+    y: 0
+    visibility: ApplicationWindow.AutomaticVisibility
+    title: qsTr("Farming Editor")
 
-	menuBar: MenuBar
-	{
-		Menu
-		{
-			title: qsTr("&File")
+    menuBar: MenuBar
+    {
+        Menu
+        {
+            title: qsTr("&File")
 
-			Action
-			{
-				text: qsTr("Home")
-				onTriggered: webView.url = "https://youtube.com/"
-			}
+            Action
+            {
+                text: qsTr("Home")
+                onTriggered: webView.url = "https://youtube.com/"
+            }
 
-			Action
-			{
-				text: qsTr("&Quit")
-				onTriggered:
-				{
-					Qt.quit()
-				}
-			}
-		}
-	}
+            Action
+            {
+                text: qsTr("&Quit")
+                onTriggered:
+                {
+                    Qt.quit()
+                }
+            }
+        }
+    }
 
-	ScrollView
-	{
-		id: frame
-		anchors.fill: parent
-		clip: true
-		contentWidth: content.implicitWidth
-		contentHeight: content.implicitHeight
+    ScrollView
+    {
+        id: frame
+        anchors.fill: parent
+        clip: true
+        contentWidth: content.implicitWidth
+        contentHeight: content.implicitHeight
 
-		MapItemView
-		{
-			id: content
-		}
-	}
+        MapItemView
+        {
+            id: content
+        }
+    }
 
-	Settings
-	{
-		id: windowState
-		property alias x: mainWindow.x
-		property alias y: mainWindow.y
-		property alias width: mainWindow.width
-		property alias height: mainWindow.height
-		property alias visibility: mainWindow.visibility
-	}
+    Settings
+    {
+        id: windowState
+        property alias x: mainWindow.x
+        property alias y: mainWindow.y
+        property alias width: mainWindow.width
+        property alias height: mainWindow.height
+        property alias visibility: mainWindow.visibility
+    }
 }

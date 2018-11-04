@@ -1,3 +1,3 @@
-#include <engine/renderer.h> 
+#include <engine/renderer.h>
 
 using namespace engine;

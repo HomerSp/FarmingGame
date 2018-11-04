@@ -2,38 +2,34 @@
 
 using namespace engine;
 
-LoggerStream::LoggerStream(std::ostream &s, std::string type)
-	: mOut(s)
-	, mType(std::move(type))
+LoggerStream::LoggerStream(std::ostream& s, std::string type)
+    : mOut(s)
+    , mType(std::move(type))
 {
-
 }
 
 LoggerStream::~LoggerStream()
 {
-	mOut << mType << ": " << mStream.str() << std::endl << std::flush;
+    mOut << mType << ": " << mStream.str() << std::endl
+         << std::flush;
 }
 
 Logger::critical::critical()
-	: LoggerStream(std::cerr, "Critical")
+    : LoggerStream(std::cerr, "Critical")
 {
-
 }
 
 Logger::warning::warning()
-	: LoggerStream(std::cerr, "Warning")
+    : LoggerStream(std::cerr, "Warning")
 {
-
 }
 
 Logger::info::info()
-	: LoggerStream(std::cout, "Info")
+    : LoggerStream(std::cout, "Info")
 {
-
 }
 
 Logger::debug::debug()
-	: LoggerStream(std::cout, "Debug")
+    : LoggerStream(std::cout, "Debug")
 {
-
 }

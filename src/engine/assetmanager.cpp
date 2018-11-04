@@ -8,108 +8,101 @@ using namespace engine;
 std::shared_ptr<AssetManager> AssetManager::sInstance = nullptr;
 
 AssetManager::AssetManager()
-	: mBase("assets")
+    : mBase("assets")
 {
-
 }
 
 std::shared_ptr<AssetManager> AssetManager::get()
 {
-	if (!sInstance)
-	{
-		struct make_shared_enabler : public AssetManager {};
-		sInstance = std::make_shared<make_shared_enabler>();
-	}
+    if (!sInstance) {
+        struct make_shared_enabler : public AssetManager {
+        };
+        sInstance = std::make_shared<make_shared_enabler>();
+    }
 
-	return sInstance;
+    return sInstance;
 }
 
 std::shared_ptr<Json::Value> AssetManager::data(Type type, const std::string& name)
 {
-	std::shared_ptr<Json::Value> doc = std::make_shared<Json::Value>();
+    std::shared_ptr<Json::Value> doc = std::make_shared<Json::Value>();
 
-	std::string path = AssetManager::dataPath(type, name);
-	if (path.length() > 0)
-	{
-		std::ifstream file(path);
-		file >> *doc.get();
-	}
+    std::string path = AssetManager::dataPath(type, name);
+    if (path.length() > 0) {
+        std::ifstream file(path);
+        file >> *doc.get();
+    }
 
-	return doc;
+    return doc;
 }
 
 std::shared_ptr<engine::Image> AssetManager::image(Type type, const std::string& name)
 {
-	std::string path = AssetManager::imagePath(type, name);
-	if (path.length() > 0)
-	{
-		return std::make_shared<engine::Image>(path);
-	}
+    std::string path = AssetManager::imagePath(type, name);
+    if (path.length() > 0) {
+        return std::make_shared<engine::Image>(path);
+    }
 
-	return std::make_shared<engine::Image>();
+    return std::make_shared<engine::Image>();
 }
 
 std::shared_ptr<engine::CollisionMap> AssetManager::collision(Type type, const std::string& name)
 {
-	std::string path = AssetManager::collisionPath(type, name);
-	if (path.length() > 0)
-	{
-		return std::make_shared<engine::CollisionMap>(path);
-	}
+    std::string path = AssetManager::collisionPath(type, name);
+    if (path.length() > 0) {
+        return std::make_shared<engine::CollisionMap>(path);
+    }
 
-	return std::make_shared<engine::CollisionMap>();
+    return std::make_shared<engine::CollisionMap>();
 }
 
 std::string AssetManager::dataPath(Type type, const std::string& name)
 {
-	std::string ret = mBase + "/data/";
-	switch(type)
-{
-	case Character:
-		ret += "character";
-		break;
-	case Map:
-		ret += "map";
-		break;
-	case Charset:
-		ret += "charset";
-		break;
-	case Tileset:
-		ret += "tileset";
-		break;
-	default:
-		return "";
-	}
-	return ret + "/" + name + ".json";
+    std::string ret = mBase + "/data/";
+    switch (type) {
+    case Character:
+        ret += "character";
+        break;
+    case Map:
+        ret += "map";
+        break;
+    case Charset:
+        ret += "charset";
+        break;
+    case Tileset:
+        ret += "tileset";
+        break;
+    default:
+        return "";
+    }
+    return ret + "/" + name + ".json";
 }
 
 std::string AssetManager::imagePath(Type type, const std::string& name)
 {
-	std::string ret = mBase + "/image/";
-	switch(type)
-{
-	case Charset:
-		ret += "charset";
-		break;
-	case Tileset:
-		ret += "tileset";
-		break;
-	default:
-		return "";
-	}
-	return ret + "/" + name + ".png";
+    std::string ret = mBase + "/image/";
+    switch (type) {
+    case Charset:
+        ret += "charset";
+        break;
+    case Tileset:
+        ret += "tileset";
+        break;
+    default:
+        return "";
+    }
+    return ret + "/" + name + ".png";
 }
 
 std::string AssetManager::collisionPath(Type type, const std::string& name)
 {
-	std::string ret = mBase + "/collision/";
-	switch(type)
-{
-	case Tileset:
-		ret += "tileset";
-		break;
-	default:
-		return "";
-	}
-	return ret + "/" + name + ".png";
+    std::string ret = mBase + "/collision/";
+    switch (type) {
+    case Tileset:
+        ret += "tileset";
+        break;
+    default:
+        return "";
+    }
+    return ret + "/" + name + ".png";
 }

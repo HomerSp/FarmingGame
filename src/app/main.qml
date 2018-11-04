@@ -8,35 +8,35 @@ import se.aqba.qt.farming 1.0
 
 ApplicationWindow
 {
-	id: mainWindow
-	visible: true
-	width: 1024
-	height: 768
-	x: 0
-	y: 0
-	visibility: ApplicationWindow.AutomaticVisibility
-	title: qsTr("Farming")
+    id: mainWindow
+    visible: true
+    width: 1024
+    height: 768
+    x: 0
+    y: 0
+    visibility: ApplicationWindow.AutomaticVisibility
+    title: qsTr("Farming")
 
-	Rectangle
-	{
-		id: frame
-		anchors.fill: parent
-		clip: true
+    Rectangle
+    {
+        id: frame
+        anchors.fill: parent
+        clip: true
 
-		MapItemView
-		{
-			id: content
-			anchors.fill: parent
-		}
-	}
+        MapItemView
+        {
+            id: content
+            anchors.fill: parent
+        }
+    }
 
-	Settings
-	{
-		id: windowState
-		property alias x: mainWindow.x
-		property alias y: mainWindow.y
-		property alias width: mainWindow.width
-		property alias height: mainWindow.height
-		property alias visibility: mainWindow.visibility
-	}
+    Settings
+    {
+        id: windowState
+        property alias x: mainWindow.x
+        property alias y: mainWindow.y
+        property alias width: mainWindow.width
+        property alias height: mainWindow.height
+        property alias visibility: mainWindow.visibility
+    }
 }

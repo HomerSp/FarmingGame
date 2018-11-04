@@ -4,74 +4,73 @@
 #include <ui/mapitemview.h>
 
 MapItemView::MapItemView(QQuickItem* parent)
-	: QQuickPaintedItem(parent)
+    : QQuickPaintedItem(parent)
 {
-	setAcceptHoverEvents(true);
-	setFocus(true);
-	setClip(true);
+    setAcceptHoverEvents(true);
+    setFocus(true);
+    setClip(true);
 
-	mEngine = std::make_shared<engine::Engine>(width(), height());
-	mRenderer = std::make_shared<QtRenderer>();
+    mEngine = std::make_shared<engine::Engine>(width(), height());
+    mRenderer = std::make_shared<QtRenderer>();
 
-	setImplicitWidth(width() + mEngine->bufferWidth());
-	setImplicitHeight(height() + mEngine->bufferHeight());
+    setImplicitWidth(width() + mEngine->bufferWidth());
+    setImplicitHeight(height() + mEngine->bufferHeight());
 
-	std::unordered_map<int, engine::Keys::Type> keys;
-	keys[Qt::Key_Up] = engine::Keys::Up;
-	keys[Qt::Key_Down] = engine::Keys::Down;
-	keys[Qt::Key_Left] = engine::Keys::Left;
-	keys[Qt::Key_Right] = engine::Keys::Right;
-	keys[Qt::Key_Shift] = engine::Keys::Run;
-	keys[Qt::Key_Control] = engine::Keys::Walk;
-	keys[Qt::Key_Q] = engine::Keys::Friction;
-	keys[Qt::Key_S] = engine::Keys::Test;
+    std::unordered_map<int, engine::Keys::Type> keys;
+    keys[Qt::Key_Up] = engine::Keys::Up;
+    keys[Qt::Key_Down] = engine::Keys::Down;
+    keys[Qt::Key_Left] = engine::Keys::Left;
+    keys[Qt::Key_Right] = engine::Keys::Right;
+    keys[Qt::Key_Shift] = engine::Keys::Run;
+    keys[Qt::Key_Control] = engine::Keys::Walk;
+    keys[Qt::Key_Q] = engine::Keys::Friction;
+    keys[Qt::Key_S] = engine::Keys::Test;
 
-	mEngine->setKeyMap(keys);
+    mEngine->setKeyMap(keys);
 
-	connect(&mIdleTimer, &QTimer::timeout, this, &MapItemView::process);
-	mIdleTimer.start(0);
+    connect(&mIdleTimer, &QTimer::timeout, this, &MapItemView::process);
+    mIdleTimer.start(0);
 }
 
-void MapItemView::focusInEvent(QFocusEvent *event)
+void MapItemView::focusInEvent(QFocusEvent* event)
 {
-	Q_UNUSED(event);
-	mEngine->setFocus(true);
+    Q_UNUSED(event);
+    mEngine->setFocus(true);
 }
 
-void MapItemView::focusOutEvent(QFocusEvent *event)
+void MapItemView::focusOutEvent(QFocusEvent* event)
 {
-	Q_UNUSED(event);
-	mEngine->setFocus(false);
+    Q_UNUSED(event);
+    mEngine->setFocus(false);
 }
 
-void MapItemView::keyPressEvent(QKeyEvent *event)
+void MapItemView::keyPressEvent(QKeyEvent* event)
 {
-	mEngine->setKeyDown(event->key());
+    mEngine->setKeyDown(event->key());
 }
 
-void MapItemView::keyReleaseEvent(QKeyEvent *event)
+void MapItemView::keyReleaseEvent(QKeyEvent* event)
 {
-	mEngine->setKeyUp(event->key());
+    mEngine->setKeyUp(event->key());
 }
 
-void MapItemView::geometryChanged(const QRectF &newGeometry, const QRectF &oldGeometry)
+void MapItemView::geometryChanged(const QRectF& newGeometry, const QRectF& oldGeometry)
 {
-	QQuickItem::geometryChanged(newGeometry, oldGeometry);
+    QQuickItem::geometryChanged(newGeometry, oldGeometry);
 
-	mEngine->setSize(newGeometry.width(), newGeometry.height());
-	update();
+    mEngine->setSize(newGeometry.width(), newGeometry.height());
+    update();
 }
 
-void MapItemView::paint(QPainter *painter)
+void MapItemView::paint(QPainter* painter)
 {
-	mRenderer->setPainter(painter);
-	mEngine->paint(*mRenderer);
+    mRenderer->setPainter(painter);
+    mEngine->paint(*mRenderer);
 }
 
 void MapItemView::process()
 {
-	if (mEngine->process())
-	{
-		update();
-	}
+    if (mEngine->process()) {
+        update();
+    }
 }

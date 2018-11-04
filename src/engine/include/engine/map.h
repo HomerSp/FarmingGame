@@ -4,83 +4,80 @@
 #include <unordered_map>
 #include <unordered_set>
 
-#include <engine/types.h>
 #include <engine/renderer.h>
 #include <engine/tileset.h>
+#include <engine/types.h>
 
-namespace engine
-{
-	class MapLayer
-	{
-	public:
-		MapLayer(Types::Map2D data, std::shared_ptr<Tileset> tileset, uint32_t width, uint32_t height);
+namespace engine {
+class MapLayer {
+public:
+    MapLayer(Types::Map2D data, std::shared_ptr<Tileset> tileset, uint32_t width, uint32_t height);
 
-		void animate(uint64_t currentFrame);
-		void draw(Renderer& renderer, const Types::Rect& dst, bool clip);
+    void animate(uint64_t currentFrame);
+    void draw(Renderer& renderer, const Types::Rect& dst, bool clip);
 
-		bool updateCollisionMap(CollisionMap& map);
+    bool updateCollisionMap(CollisionMap& map);
 
-		bool operator!() const
-		{
-			return !mValid;
-		}
+    bool operator!() const
+    {
+        return !mValid;
+    }
 
-	private:
-		bool mValid;
-		Types::Map2D mData;
-		std::shared_ptr<Tileset> mTileset;
-		uint32_t mWidth;
-		uint32_t mHeight;
-		std::unordered_map<int, std::shared_ptr<TilesetNode> > mNodes;
-		uint64_t mCurrentFrames;
-	};
+private:
+    bool mValid;
+    Types::Map2D mData;
+    std::shared_ptr<Tileset> mTileset;
+    uint32_t mWidth;
+    uint32_t mHeight;
+    std::unordered_map<int, std::shared_ptr<TilesetNode>> mNodes;
+    uint64_t mCurrentFrames;
+};
 
-	class Map
-	{
-	public:
-		Map(const std::string& name);
+class Map {
+public:
+    Map(const std::string& name);
 
-		void animate(uint64_t currentFrame);
-		void draw(Renderer& renderer, const Types::Rect& dst, bool clip = true);
+    void animate(uint64_t currentFrame);
+    void draw(Renderer& renderer, const Types::Rect& dst, bool clip = true);
 
-		void checkCollision(const Types::PointF& pos, const Types::Dimension& size, Types::PointF& dst, Types::PointF& velocity) const;
+    void checkCollision(const Types::PointF& pos, const Types::Dimension& size, Types::PointF& dst, Types::PointF& velocity) const;
 
-		uint32_t width() const
-		{
-			return mWidth;
-		}
+    uint32_t width() const
+    {
+        return mWidth;
+    }
 
-		uint32_t pixelWidth() const
-		{
-			return mWidth * getTileDimension().width;
-		}
+    uint32_t pixelWidth() const
+    {
+        return mWidth * getTileDimension().width;
+    }
 
-		uint32_t height() const
-		{
-			return mHeight;
-		}
+    uint32_t height() const
+    {
+        return mHeight;
+    }
 
-		uint32_t pixelHeight() const
-		{
-			return mHeight * getTileDimension().height;
-		}
+    uint32_t pixelHeight() const
+    {
+        return mHeight * getTileDimension().height;
+    }
 
-		Types::Dimension getTileDimension() const;
+    Types::Dimension getTileDimension() const;
 
-		bool operator!() const
-		{
-			return !mValid;
-		}
+    bool operator!() const
+    {
+        return !mValid;
+    }
 
-	protected:
-		bool isColliding(const Types::PointF& pos, const Types::Dimension& size, Types::Pair& diff, int8_t& rDiff, bool vertical) const;
+protected:
+    bool isColliding(const Types::PointF& pos, const Types::Dimension& size, Types::Pair& diff, int8_t& rDiff, bool vertical) const;
 
-	private:
-		bool mValid;
-		std::unordered_map<std::string, std::shared_ptr<Tileset> > mTilesets;
-		std::vector<std::shared_ptr<MapLayer> > mLayers;
-		std::shared_ptr<CollisionMap> mCollisionMap;
-		uint32_t mWidth;
-		uint32_t mHeight;
-	};
+private:
+    bool mValid;
+    std::unordered_map<std::string, std::shared_ptr<Tileset>> mTilesets;
+    std::vector<std::shared_ptr<MapLayer>> mLayers;
+    std::shared_ptr<CollisionMap> mCollisionMap;
+    uint32_t mWidth;
+    uint32_t mHeight;
+};
 }

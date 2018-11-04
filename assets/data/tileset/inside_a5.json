@@ -1,391 +1,391 @@
 {
-	"image": "Inside_A5",
-	"dimen": [48, 48],
-	"collision": "Inside_A5",
-	"nodes": [
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		},
-		{
-			"tile": "single"
-		}
-	]
+    "image": "Inside_A5",
+    "dimen": [48, 48],
+    "collision": "Inside_A5",
+    "nodes": [
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        },
+        {
+            "tile": "single"
+        }
+    ]
 }

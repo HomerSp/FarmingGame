@@ -15,29 +15,27 @@
 
 #include <ui/qtrenderer.h>
 
-class MapItemView : public QQuickPaintedItem
-{
-	Q_OBJECT
+class MapItemView : public QQuickPaintedItem {
+    Q_OBJECT
 public:
-	MapItemView(QQuickItem* parent = 0);
+    MapItemView(QQuickItem* parent = 0);
 
-	void paint(QPainter *painter) override;
+    void paint(QPainter* painter) override;
 
 signals:
 
 protected:
-	void focusInEvent(QFocusEvent *event) override;
-	void focusOutEvent(QFocusEvent *event) override;
-	void keyPressEvent(QKeyEvent *event) override;
-	void keyReleaseEvent(QKeyEvent *event) override;
-	void geometryChanged(const QRectF &newGeometry, const QRectF &oldGeometry);
+    void focusInEvent(QFocusEvent* event) override;
+    void focusOutEvent(QFocusEvent* event) override;
+    void keyPressEvent(QKeyEvent* event) override;
+    void keyReleaseEvent(QKeyEvent* event) override;
+    void geometryChanged(const QRectF& newGeometry, const QRectF& oldGeometry);
 
 private slots:
-	void process();
+    void process();
 
 private:
-	std::shared_ptr<engine::Engine> mEngine;
-	std::shared_ptr<QtRenderer> mRenderer;
-	QTimer mIdleTimer;
-
+    std::shared_ptr<engine::Engine> mEngine;
+    std::shared_ptr<QtRenderer> mRenderer;
+    QTimer mIdleTimer;
 };

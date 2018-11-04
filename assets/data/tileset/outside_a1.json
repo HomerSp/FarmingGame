@@ -1,100 +1,100 @@
 {
-	"image": "Outside_A1",
-	"dimen": [48, 48],
-	"collision": "Outside_A1",
-	"nodes": [
-		{
-			"tile": "automatic",
-			"animation": {
-				"frames": 3
-			},
-			"attributes": [
-				"water"
-			]
-		},
-		{
-			"tile": "automatic"
-		},
-		{
-			"tile": "automatic",
-			"animation": {
-				"frames": 3
-			}
-		},
-		{
-			"tile": "automatic_horizontal",
-			"animation": {
-				"frames": 3
-			}
-		},
-		{
-			"tile": "automatic",
-			"animation": {
-				"frames": 3
-			}
-		},
-		{
-			"tile": "automatic"
-		},
-		{
-			"tile": "automatic",
-			"animation": {
-				"frames": 3
-			}
-		},
-		{
-			"tile": "automatic_horizontal",
-			"animation": {
-				"frames": 3
-			}
-		},
-		{
-			"tile": "automatic",
-			"animation": {
-				"frames": 3
-			}
-		},
-		{
-			"tile": "automatic_horizontal",
-			"animation": {
-				"frames": 3
-			}
-		},
-		{
-			"tile": "automatic",
-			"animation": {
-				"frames": 3
-			}
-		},
-		{
-			"tile": "automatic_horizontal",
-			"animation": {
-				"frames": 3
-			}
-		},
-		{
-			"tile": "automatic",
-			"animation": {
-				"frames": 3
-			}
-		},
-		{
-			"tile": "automatic_horizontal",
-			"animation": {
-				"frames": 3
-			}
-		},
-		{
-			"tile": "automatic",
-			"animation": {
-				"frames": 3
-			}
-		},
-		{
-			"tile": "automatic_horizontal",
-			"animation": {
-				"frames": 3
-			}
-		}
-	]
+    "image": "Outside_A1",
+    "dimen": [48, 48],
+    "collision": "Outside_A1",
+    "nodes": [
+        {
+            "tile": "automatic",
+            "animation": {
+                "frames": 3
+            },
+            "attributes": [
+                "water"
+            ]
+        },
+        {
+            "tile": "automatic"
+        },
+        {
+            "tile": "automatic",
+            "animation": {
+                "frames": 3
+            }
+        },
+        {
+            "tile": "automatic_horizontal",
+            "animation": {
+                "frames": 3
+            }
+        },
+        {
+            "tile": "automatic",
+            "animation": {
+                "frames": 3
+            }
+        },
+        {
+            "tile": "automatic"
+        },
+        {
+            "tile": "automatic",
+            "animation": {
+                "frames": 3
+            }
+        },
+        {
+            "tile": "automatic_horizontal",
+            "animation": {
+                "frames": 3
+            }
+        },
+        {
+            "tile": "automatic",
+            "animation": {
+                "frames": 3
+            }
+        },
+        {
+            "tile": "automatic_horizontal",
+            "animation": {
+                "frames": 3
+            }
+        },
+        {
+            "tile": "automatic",
+            "animation": {
+                "frames": 3
+            }
+        },
+        {
+            "tile": "automatic_horizontal",
+            "animation": {
+                "frames": 3
+            }
+        },
+        {
+            "tile": "automatic",
+            "animation": {
+                "frames": 3
+            }
+        },
+        {
+            "tile": "automatic_horizontal",
+            "animation": {
+                "frames": 3
+            }
+        },
+        {
+            "tile": "automatic",
+            "animation": {
+                "frames": 3
+            }
+        },
+        {
+            "tile": "automatic_horizontal",
+            "animation": {
+                "frames": 3
+            }
+        }
+    ]
 }
