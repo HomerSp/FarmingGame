@@ -14,8 +14,11 @@ public:
         Up,
         Run,
         Walk,
-        Friction,
-        Test,
+
+        // Just for testing
+        TestFriction,
+        TestSlowMode,
+        TestFastForward,
     } Type;
 };
 

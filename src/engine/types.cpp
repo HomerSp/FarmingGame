@@ -71,3 +71,23 @@ Types::Pair::Pair(int first, int second)
     , second(second)
 {
 }
+
+Types::TextAlign::TextAlign(std::initializer_list<Types::TextAlign::Type> types)
+{
+    for (auto t: types) {
+        bits[t] = true;
+    }
+
+    if (!bits[Left] && !bits[Right] && !bits[CentreH]) {
+        bits[Left] = true;
+    }
+
+    if (!bits[Top] && !bits[Bottom] && !bits[CentreV]) {
+        bits[Top] = true;
+    }
+}
+
+bool Types::TextAlign::is(Type t) const
+{
+    return bits[t];
+}

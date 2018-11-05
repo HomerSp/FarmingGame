@@ -23,8 +23,9 @@ MapItemView::MapItemView(QQuickItem* parent)
     keys[Qt::Key_Right] = engine::Keys::Right;
     keys[Qt::Key_Shift] = engine::Keys::Run;
     keys[Qt::Key_Control] = engine::Keys::Walk;
-    keys[Qt::Key_Q] = engine::Keys::Friction;
-    keys[Qt::Key_S] = engine::Keys::Test;
+    keys[Qt::Key_Q] = engine::Keys::TestFriction;
+    keys[Qt::Key_S] = engine::Keys::TestSlowMode;
+    keys[Qt::Key_T] = engine::Keys::TestFastForward;
 
     mEngine->setKeyMap(keys);
 

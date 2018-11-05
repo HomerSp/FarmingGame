@@ -1,4 +1,6 @@
 #include <cmath>
+#include <iomanip>
+#include <sstream>
 #include <thread>
 
 #include <engine/engine.h>
@@ -17,6 +19,7 @@ Engine::Engine(uint32_t width, uint32_t height)
 {
     Logger::debug() << "Creating Engine";
 
+    mTime = std::make_shared<engine::Time>();
     mMap = std::make_shared<engine::Map>("map");
     mHero = std::make_shared<engine::Character>("hero");
     mHero->setX(std::floor((mMap->pixelWidth() - mHero->width()) / 2));
@@ -38,6 +41,12 @@ bool Engine::process()
     bool needRepaint = true;
 
     mFrameTimer.start();
+
+    if (mDownKeys.contains(engine::Keys::TestFastForward)) {
+        mTime->fastForward(1.0f * (mFrameTimer.diff() / 50.0f));
+    }
+
+    mTime->process(mFrameTimer.diff());
 
     int8_t x = 0, y = 0;
     if (mHasFocus && !mDownKeys.empty()) {
@@ -89,7 +98,7 @@ bool Engine::process()
             }
         }
 
-        if (mDownKeys.contains(engine::Keys::Friction)) {
+        if (mDownKeys.contains(engine::Keys::TestFriction)) {
             mHero->setFriction(0.1f);
         } else {
             mHero->setFriction(1.0f);
@@ -140,7 +149,7 @@ bool Engine::process()
         mCameraY = mMap->pixelHeight() - mHeight;
     }
 
-    if (mDownKeys.contains(engine::Keys::Test)) {
+    if (mDownKeys.contains(engine::Keys::TestSlowMode)) {
         std::this_thread::sleep_for(std::chrono::milliseconds(50));
     }
 
@@ -186,6 +195,12 @@ void Engine::paint(Renderer& renderer)
     if (!drawnHero) {
         mHero->draw(renderer, Types::Point(mCameraX, mCameraY));
     }
+
+    mTime->draw(renderer);
+
+    std::stringstream str;
+    str << std::setw(2) << std::setfill('0') << mTime->hour() << ":" << std::setw(2) << std::setfill('0') << mTime->minute();
+    renderer.drawText({-10, 10}, str.str(), {0, 0, 0}, 24, Types::TextAlign({Types::TextAlign::Right}));
 }
 
 void Engine::setKeyMap(const std::unordered_map<int, Keys::Type>& keys)

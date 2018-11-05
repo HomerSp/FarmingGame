@@ -7,6 +7,7 @@
 #include <engine/frametimer.h>
 #include <engine/keys.h>
 #include <engine/map.h>
+#include <engine/time.h>
 
 namespace engine {
 class Engine {
@@ -39,6 +40,8 @@ private:
 
     engine::FrameTimer mFrameTimer;
     engine::KeyList mDownKeys;
+
+    std::shared_ptr<engine::Time> mTime;
     std::shared_ptr<engine::Map> mMap;
     std::shared_ptr<engine::Character> mHero;
 };

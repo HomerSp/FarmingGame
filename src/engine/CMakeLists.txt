@@ -23,6 +23,7 @@ set(HEADERS
     include/engine/charset.h
     include/engine/tileset.h
     include/engine/collisionmap.h
+    include/engine/time.h
 )
 
 set(SOURCES
@@ -39,6 +40,7 @@ set(SOURCES
     charset.cpp
     tileset.cpp
     collisionmap.cpp
+    time.cpp
 )
 
 source_group("Header Files" FILES ${HEADERS})

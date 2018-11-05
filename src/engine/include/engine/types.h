@@ -1,5 +1,6 @@
 #pragma once
 
+#include <bitset>
 #include <cstdint>
 #include <unordered_map>
 
@@ -83,6 +84,24 @@ public:
 
         int first;
         int second;
+    };
+
+    struct TextAlign {
+        typedef enum {
+            Left,
+            Right,
+            Top,
+            Bottom,
+            CentreV,
+            CentreH,
+            Last,
+        } Type;
+
+        TextAlign(std::initializer_list<Type> types = {});
+
+        bool is(Type t) const;
+
+        std::bitset<Type::Last> bits;
     };
 };
 }

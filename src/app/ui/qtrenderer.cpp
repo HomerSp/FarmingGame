@@ -57,6 +57,48 @@ void QtRenderer::drawImage(const engine::Image& img, const engine::Types::Rect& 
     mPainter->drawImage(srcRect, i, dstRect);
 }
 
+void QtRenderer::drawText(const engine::Types::Point& dst, const std::string& text, const engine::Types::Color& color, int size, engine::Types::TextAlign align)
+{
+    if (mPainter == nullptr) {
+        engine::Logger::critical() << "No painter set!!!";
+        return;
+    }
+
+    int flags = 0;
+    if(align.is(engine::Types::TextAlign::Left)) {
+        flags |= Qt::AlignLeft;
+    } else if(align.is(engine::Types::TextAlign::Right)) {
+        flags |= Qt::AlignRight;
+    } else if(align.is(engine::Types::TextAlign::CentreH)) {
+        flags |= Qt::AlignHCenter;
+    }
+
+    if(align.is(engine::Types::TextAlign::Top)) {
+        flags |= Qt::AlignTop;
+    } else if(align.is(engine::Types::TextAlign::Bottom)) {
+        flags |= Qt::AlignBottom;
+    } else if(align.is(engine::Types::TextAlign::CentreV)) {
+        flags |= Qt::AlignVCenter;
+    }
+
+    QString str = QString(text.c_str());
+
+    QFont font = mPainter->font();
+    int oldSize = font.pointSize();
+    if (size >= 0) {
+        font.setPointSize(size);
+        mPainter->setFont(font);
+    }
+
+    mPainter->setPen({color.r, color.g, color.b, color.a});
+    mPainter->drawText(QRect(dst.x, dst.y, width(), height()), flags, str);
+
+    if (size >= 0) {
+        font.setPointSize(oldSize);
+        mPainter->setFont(font);
+    }
+}
+
 void QtRenderer::translate(float x, float y)
 {
     if (mPainter == nullptr) {
