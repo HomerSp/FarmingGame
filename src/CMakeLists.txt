@@ -6,6 +6,7 @@ endif(LINT)
 
 if(DEBUG)
     set(CMAKE_BUILD_TYPE Debug)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DDEBUG")
 endif(DEBUG)
 
 set(PROJECT "src")

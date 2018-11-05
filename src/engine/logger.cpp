@@ -29,7 +29,9 @@ Logger::info::info()
 {
 }
 
+#ifdef DEBUG
 Logger::debug::debug()
     : LoggerStream(std::cout, "Debug")
 {
 }
+#endif

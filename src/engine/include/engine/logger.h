@@ -45,9 +45,22 @@ public:
         info();
     };
 
+#ifdef DEBUG
     class debug : public LoggerStream {
     public:
         debug();
     };
+#else
+    class debug {
+    public:
+        debug() = default;
+
+        template <class T>
+        debug& operator<<(const T& x)
+        {
+            return *this;
+        }
+    };
+#endif
 };
 }
