@@ -22,13 +22,13 @@
             "tile": "automatic"
         },
         {
-            "tile": "automatic"
-        },
-        {
             "tile": "automatic",
             "attributes": [
                 "above_row"
             ]
+        },
+        {
+            "tile": "automatic"
         },
         {
             "tile": "automatic"
