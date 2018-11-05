@@ -50,7 +50,7 @@ TilesetType::TilesetType(Types::Dimension& tileDimension, const std::string& til
     }
 
     if (!mAttributes[TilesetAttribute::AboveRow] && !mAttributes[TilesetAttribute::AboveAll]) {
-        mAttributes[TilesetAttribute::AboveNone] = 1;
+        mAttributes[TilesetAttribute::AboveNone] = true;
     }
 
     mValid = true;
@@ -434,16 +434,16 @@ bool Tileset::updateTiles(Types::Map2D& tiles, std::unordered_map<int, std::unor
     for (uint32_t x = 0; x < width; x++) {
         for (uint32_t y = 0; y < height; y++) {
             int n = tiles[x][y];
-            if (n == 0) {
-                continue;
-            } else if (static_cast<uint32_t>(n - 1) >= mTypes.size()) {
-                Logger::critical() << "Found an out of bounds node" << (n - 1) << ">" << mTypes.size();
-                return false;
-            };
+            if (n > 0) {
+                if (static_cast<uint32_t>(n - 1) >= mTypes.size()) {
+                    Logger::critical() << "Found an out of bounds node" << (n - 1) << ">" << mTypes.size();
+                    return false;
+                }
 
-            auto tileType = mTypes[n - 1];
-            if (tileType->hasAttribute(type)) {
-                map[y][x] = tileType->toNode(tiles, x, y, width, height);
+                auto tileType = mTypes[n - 1];
+                if (tileType->hasAttribute(type)) {
+                    map[y][x] = tileType->toNode(tiles, x, y, width, height);
+                }
             }
         }
     }
