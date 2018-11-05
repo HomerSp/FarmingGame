@@ -167,8 +167,25 @@ void Engine::paint(Renderer& renderer)
         renderer.translate(translateX, translateY);
     }
 
-    mMap->draw(renderer, Types::Rect(mCameraX, mCameraY, mWidth, mHeight));
-    mHero->draw(renderer, Types::Point(mCameraX, mCameraY));
+    Types::Rect dst(mCameraX, mCameraY, mWidth, mHeight);
+    mMap->draw(renderer, dst);
+
+    Types::Dimension d = mMap->getTileDimension();
+
+    int startY = std::ceil(mCameraY / d.height);
+    bool drawnHero = false;
+    for (int row = startY - 1; row <= startY + std::ceil(mHeight / d.height); row++) {
+        if (!drawnHero && row * d.height >= mHero->y()) {
+            mHero->draw(renderer, Types::Point(mCameraX, mCameraY));
+            drawnHero = true;
+        }
+
+        mMap->drawRow(renderer, dst, row, TilesetAttribute::AboveRow);
+    }
+
+    if (!drawnHero) {
+        mHero->draw(renderer, Types::Point(mCameraX, mCameraY));
+    }
 }
 
 void Engine::setKeyMap(const std::unordered_map<int, Keys::Type>& keys)

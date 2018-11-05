@@ -49,6 +49,10 @@ TilesetType::TilesetType(Types::Dimension& tileDimension, const std::string& til
         break;
     }
 
+    if (!mAttributes[TilesetAttribute::AboveRow] && !mAttributes[TilesetAttribute::AboveAll]) {
+        mAttributes[TilesetAttribute::AboveNone] = 1;
+    }
+
     mValid = true;
 }
 
@@ -425,7 +429,7 @@ void Tileset::updateCollisionMap(CollisionMap& tilesetMap, CollisionMap& map, Ti
     }
 }
 
-bool Tileset::updateTiles(Types::Map2D& tiles, std::unordered_map<int, std::shared_ptr<TilesetNode>>& map, uint32_t width, uint32_t height)
+bool Tileset::updateTiles(Types::Map2D& tiles, std::unordered_map<int, std::unordered_map<int, std::shared_ptr<TilesetNode>>>& map, uint32_t width, uint32_t height, TilesetAttribute::Type type)
 {
     for (uint32_t x = 0; x < width; x++) {
         for (uint32_t y = 0; y < height; y++) {
@@ -436,7 +440,11 @@ bool Tileset::updateTiles(Types::Map2D& tiles, std::unordered_map<int, std::shar
                 Logger::critical() << "Found an out of bounds node" << (n - 1) << ">" << mTypes.size();
                 return false;
             };
-            map[(y * width) + x] = mTypes[n - 1]->toNode(tiles, x, y, width, height);
+
+            auto tileType = mTypes[n - 1];
+            if (tileType->hasAttribute(type)) {
+                map[y][x] = tileType->toNode(tiles, x, y, width, height);
+            }
         }
     }
 

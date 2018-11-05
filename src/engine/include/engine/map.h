@@ -14,7 +14,9 @@ public:
     MapLayer(Types::Map2D data, std::shared_ptr<Tileset> tileset, uint32_t width, uint32_t height);
 
     void animate(uint64_t currentFrame);
+
     void draw(Renderer& renderer, const Types::Rect& dst, bool clip);
+    void drawRow(Renderer& renderer, const Types::Rect& dst, int row, TilesetAttribute::Type type, bool clip);
 
     bool updateCollisionMap(CollisionMap& map);
 
@@ -29,7 +31,11 @@ private:
     std::shared_ptr<Tileset> mTileset;
     uint32_t mWidth;
     uint32_t mHeight;
-    std::unordered_map<int, std::shared_ptr<TilesetNode>> mNodes;
+
+    std::unordered_map<int, std::unordered_map<int, std::shared_ptr<TilesetNode>>> mNodes;
+    std::unordered_map<int, std::unordered_map<int, std::shared_ptr<TilesetNode>>> mAboveRowNodes;
+    std::unordered_map<int, std::unordered_map<int, std::shared_ptr<TilesetNode>>> mAboveAllNodes;
+
     uint64_t mCurrentFrames;
 };
 
@@ -38,7 +44,9 @@ public:
     Map(const std::string& name);
 
     void animate(uint64_t currentFrame);
+
     void draw(Renderer& renderer, const Types::Rect& dst, bool clip = true);
+    void drawRow(Renderer& renderer, const Types::Rect& dst, int row, TilesetAttribute::Type type, bool clip = true);
 
     void checkCollision(const Types::PointF& pos, const Types::Dimension& size, Types::PointF& dst, Types::PointF& velocity) const;
 

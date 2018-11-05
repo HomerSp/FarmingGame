@@ -17,25 +17,66 @@ MapLayer::MapLayer(Types::Map2D data, std::shared_ptr<Tileset> tileset, uint32_t
     , mHeight(height)
     , mCurrentFrames(0)
 {
-    mValid = mTileset->updateTiles(mData, mNodes, mWidth, mHeight);
+    if (!mTileset->updateTiles(mData, mNodes, mWidth, mHeight, TilesetAttribute::AboveNone)) {
+        return;
+    }
+
+    if (!mTileset->updateTiles(mData, mAboveRowNodes, mWidth, mHeight, TilesetAttribute::AboveRow)) {
+        return;
+    }
+
+    if (!mTileset->updateTiles(mData, mAboveAllNodes, mWidth, mHeight, TilesetAttribute::AboveAll)) {
+        return;
+    }
+
+    mValid = true;
 }
 
 void MapLayer::animate(uint64_t currentFrame)
 {
-    for (auto node : mNodes) {
-        if (node.second->frames > 0) {
-            node.second->current = std::floor(currentFrame % (200 * node.second->frames) / 200);
+    for(auto nodeY: mNodes) {
+        for (auto nodeX: nodeY.second) {
+            if (nodeX.second->frames > 0) {
+                nodeX.second->current = std::floor(currentFrame % (200 * nodeX.second->frames) / 200);
+            }
         }
     }
 }
 
 void MapLayer::draw(Renderer& renderer, const Types::Rect& dst, bool clip)
 {
-    for (auto node : mNodes) {
-        int nx = node.first % mWidth;
-        int ny = std::floor(node.first / mWidth);
-        if (!clip || (clip && nx >= dst.x - 1 && ny >= dst.y - 1 && nx <= dst.x + dst.width + 1 && ny <= dst.y + dst.height + 1)) {
-            mTileset->draw(renderer, *node.second, { nx - dst.x, ny - dst.y });
+    for (auto nodeY: mNodes) {
+        if (nodeY.first >= dst.y - 1 && nodeY.first <= dst.y + dst.height + 1) {
+            drawRow(renderer, dst, nodeY.first, TilesetAttribute::AboveNone, clip);
+        }
+    }
+}
+
+void MapLayer::drawRow(Renderer& renderer, const Types::Rect& dst, int row, TilesetAttribute::Type type, bool clip)
+{
+    auto* nodes = &mNodes;
+    switch(type) {
+    case TilesetAttribute::AboveNone:
+        break;
+    case TilesetAttribute::AboveRow:
+        nodes = &mAboveRowNodes;
+        break;
+    case TilesetAttribute::AboveAll:
+        nodes = &mAboveAllNodes;
+        break;
+    default:
+        return;
+    }
+
+    // No nodes at this row, return.
+    if (nodes->find(row) == nodes->end()) {
+        return;
+    }
+
+    auto nodeRow = nodes->at(row);
+    for (auto node : nodeRow) {
+        if (!clip || (node.first >= dst.x - 1 && node.first <= dst.x + dst.width + 1)) {
+            mTileset->draw(renderer, *node.second, { node.first - dst.x, row - dst.y });
         }
     }
 }
@@ -47,10 +88,16 @@ bool MapLayer::updateCollisionMap(CollisionMap& map)
         return false;
     }
 
-    for (auto node : mNodes) {
-        uint32_t nx = node.first % mWidth;
-        uint32_t ny = std::floor(node.first / mWidth);
-        mTileset->updateCollisionMap(*tilesetCollisionMap, map, *(node.second), nx, ny);
+    for(auto nodeY: mNodes) {
+        for (auto nodeX: nodeY.second) {
+            mTileset->updateCollisionMap(*tilesetCollisionMap, map, *nodeX.second, nodeX.first, nodeY.first);
+        }
+    }
+
+    for(auto nodeY: mAboveRowNodes) {
+        for (auto nodeX: nodeY.second) {
+            mTileset->updateCollisionMap(*tilesetCollisionMap, map, *nodeX.second, nodeX.first, nodeY.first);
+        }
     }
 
     return true;
@@ -157,6 +204,22 @@ void Map::draw(Renderer& renderer, const Types::Rect& dst, bool clip)
     renderer.translate(-(dst.x % tileDimens.width), -(dst.y % tileDimens.height));
     for (const auto& layer : mLayers) {
         layer->draw(renderer, target, clip);
+    }
+    renderer.translate((dst.x % tileDimens.width), (dst.y % tileDimens.height));
+}
+
+void Map::drawRow(Renderer& renderer, const Types::Rect& dst, int row, TilesetAttribute::Type type, bool clip)
+{
+    Types::Dimension tileDimens = getTileDimension();
+    Types::Rect target;
+    target.x = std::ceil(dst.x / tileDimens.width);
+    target.y = std::ceil(dst.y / tileDimens.height);
+    target.width = std::ceil(dst.width / tileDimens.width);
+    target.height = std::ceil(dst.height / tileDimens.height);
+
+    renderer.translate(-(dst.x % tileDimens.width), -(dst.y % tileDimens.height));
+    for (const auto& layer : mLayers) {
+        layer->drawRow(renderer, target, row, type, clip);
     }
     renderer.translate((dst.x % tileDimens.width), (dst.y % tileDimens.height));
 }

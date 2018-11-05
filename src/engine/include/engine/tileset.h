@@ -23,7 +23,8 @@ public:
 struct TilesetAttribute {
 public:
     typedef enum {
-        AboveRow = 0,
+        AboveNone = 0,
+        AboveRow,
         AboveAll,
         Water,
         Last,
@@ -76,7 +77,7 @@ public:
     std::shared_ptr<CollisionMap> loadCollisionMap();
 
     void updateCollisionMap(CollisionMap& tilesetMap, CollisionMap& map, TilesetNode& node, uint32_t x, uint32_t y);
-    bool updateTiles(Types::Map2D& tiles, std::unordered_map<int, std::shared_ptr<TilesetNode>>& map, uint32_t width, uint32_t height);
+    bool updateTiles(Types::Map2D& tiles, std::unordered_map<int, std::unordered_map<int, std::shared_ptr<TilesetNode>>>& map, uint32_t width, uint32_t height, TilesetAttribute::Type type);
 
     bool operator!() const
     {
