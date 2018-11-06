@@ -35,6 +35,11 @@ public:
         critical();
     };
 
+    class error : public LoggerStream {
+    public:
+        error();
+    };
+
     class warning : public LoggerStream {
     public:
         warning();

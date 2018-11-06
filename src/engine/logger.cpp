@@ -19,6 +19,11 @@ Logger::critical::critical()
 {
 }
 
+Logger::error::error()
+    : LoggerStream(std::cerr, "Error")
+{
+}
+
 Logger::warning::warning()
     : LoggerStream(std::cerr, "Warning")
 {
