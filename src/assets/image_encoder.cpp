@@ -1,4 +1,7 @@
-#include <png++/png.hpp>
+#include <string>
+#include <vector>
+
+#include <lodepng.h>
 
 #include "include/utils.h"
 
@@ -8,30 +11,37 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    png::image<png::rgba_pixel> png(argv[1]);
-    if (png.get_width() == 0) {
-        return -1;
-    }
-
     Utils::createParentDir(argv[2]);
 
-    bool hasAlpha = false;
-    for (uint32_t y = 0; y < png.get_height(); y++) {
-        for (uint32_t x = 0; x < png.get_width(); x++) {
-            if (png[y][x].alpha != 255) {
-                hasAlpha = true;
-                break;
-            }
-        }
+    std::vector<unsigned char> imageData;
+    unsigned w, h;
+    std::vector<unsigned char> buffer;
+
+    lodepng::load_file(buffer, argv[1]);
+    if (lodepng::decode(imageData, w, h, buffer)) {
+        return false;
     }
 
-    if (hasAlpha) {
-        png::image<png::rgba_pixel, png::pixel_buffer<png::rgba_pixel>> out(argv[1]);
-        out.write(argv[2]);
-    } else {
-        png::image<png::rgb_pixel, png::solid_pixel_buffer<png::rgb_pixel>> out(argv[1]);
-        out.write(argv[2]);
+    buffer.clear();
+
+    lodepng::State state;
+    state.encoder.filter_palette_zero = 0;
+    state.encoder.add_id = false;
+    state.encoder.text_compression = 1;
+    state.encoder.zlibsettings.nicematch = 258;
+    state.encoder.zlibsettings.lazymatching = 1;
+    state.encoder.zlibsettings.windowsize = 32768;
+
+    std::vector<unsigned char> temp;
+    state.encoder.filter_strategy = LFS_ZERO;
+    state.encoder.zlibsettings.minmatch = 3;
+    state.encoder.zlibsettings.btype = 2;
+    state.encoder.auto_convert = 0;
+    if (lodepng::encode(buffer, imageData, w, h, state)) {
+        return false;
     }
+
+    lodepng::save_file(buffer, argv[2]);
 
     return 0;
 }

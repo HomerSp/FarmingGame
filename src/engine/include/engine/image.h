@@ -3,8 +3,6 @@
 #include <memory>
 #include <vector>
 
-#include <png++/png.hpp>
-
 namespace engine {
 class Image {
 public:

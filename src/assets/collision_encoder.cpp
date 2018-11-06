@@ -1,4 +1,5 @@
-#include <png++/png.hpp>
+#include <cstdlib>
+#include <lodepng.h>
 
 #include "include/utils.h"
 
@@ -8,22 +9,44 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    png::image<png::gray_pixel, png::pixel_buffer<png::gray_pixel>> image(argv[1]);
-    if (image.get_width() == 0) {
-        return -1;
-    }
-
     Utils::createParentDir(argv[2]);
 
-    png::image<png::gray_pixel_1> out(image.get_width(), image.get_height());
-    for (size_t j = 0; j < image.get_height(); ++j) {
-        for (size_t i = 0; i < image.get_width(); ++i) {
-            int val = (image[j][i] != 255) ? 0 : 1;
-            out.set_pixel(i, j, png::gray_pixel_1(val));
-        }
+    std::vector<unsigned char> imageData;
+    unsigned w, h;
+    std::vector<unsigned char> buffer;
+
+    lodepng::load_file(buffer, argv[1]);
+    if (lodepng::decode(imageData, w, h, buffer)) {
+        return false;
     }
 
-    out.write(argv[2]);
+    buffer.clear();
+
+    for (uint32_t i = 0; i < imageData.size(); i += 4) {
+        imageData[i] = (imageData[i] < 255 / 2) ? 0 : 255;
+        imageData[i + 1] = (imageData[i + 1] < 255 / 2) ? 0 : 255;
+        imageData[i + 2] = (imageData[i + 2] < 255 / 2) ? 0 : 255;
+        imageData[i + 3] = 255;
+    }
+
+    lodepng::State state;
+    state.encoder.filter_palette_zero = 0;
+    state.encoder.add_id = false;
+    state.encoder.text_compression = 1;
+    state.encoder.zlibsettings.nicematch = 258;
+    state.encoder.zlibsettings.lazymatching = 1;
+    state.encoder.zlibsettings.windowsize = 32768;
+
+    std::vector<unsigned char> temp;
+    state.encoder.filter_strategy = LFS_ZERO;
+    state.encoder.zlibsettings.minmatch = 3;
+    state.encoder.zlibsettings.btype = 2;
+    state.encoder.auto_convert = 1;
+    if (lodepng::encode(buffer, imageData, w, h, state)) {
+        return false;
+    }
+
+    lodepng::save_file(buffer, argv[2]);
 
     return 0;
 }

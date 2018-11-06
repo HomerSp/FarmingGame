@@ -1,3 +1,5 @@
+#include <lodepng.h>
+
 #include <engine/image.h>
 
 using namespace engine;
@@ -11,19 +13,17 @@ Image::Image()
 Image::Image(const std::string& path)
     : Image()
 {
-    png::image<png::rgba_pixel> png(path);
-    mWidth = png.get_width();
-    mHeight = png.get_height();
+    std::vector<unsigned char> data;
+    std::vector<unsigned char> buffer;
 
-    mData.reserve(mWidth * mHeight * 4);
-    for (uint32_t y = 0; y < mHeight; y++) {
-        auto row = png.get_row(y);
-        for (uint32_t x = 0; x < mWidth; x++) {
-            auto pixel = row[x];
-            mData.push_back(pixel.blue);
-            mData.push_back(pixel.green);
-            mData.push_back(pixel.red);
-            mData.push_back(pixel.alpha);
-        }
+    lodepng::load_file(buffer, path);
+    lodepng::decode(data, mWidth, mHeight, buffer);
+
+    mData.reserve(data.size());
+    for (uint32_t i = 0; i < data.size(); i += 4) {
+        mData.push_back(data.at(i + 2));    // Blue
+        mData.push_back(data.at(i + 1));    // Green
+        mData.push_back(data.at(i + 0));    // Red
+        mData.push_back(data.at(i + 3));    // Alpha
     }
 }

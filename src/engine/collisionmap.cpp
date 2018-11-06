@@ -1,6 +1,6 @@
 #include <cmath>
 
-#include <png++/png.hpp>
+#include <lodepng.h>
 
 #include <engine/assetmanager.h>
 #include <engine/collisionmap.h>
@@ -20,18 +20,18 @@ CollisionMap::CollisionMap(uint32_t width, uint32_t height)
 CollisionMap::CollisionMap(const std::string& path)
     : CollisionMap()
 {
-    png::image<png::gray_pixel> png(path);
-    if (png.get_width() == 0) {
+    std::vector<unsigned char> buffer;
+    std::vector<unsigned char> data;
+
+    lodepng::load_file(buffer, path);
+    if (lodepng::decode(data, mWidth, mHeight, buffer)) {
         return;
     }
 
-    mWidth = png.get_width();
-    mHeight = png.get_height();
-
     mSolid.resize(mWidth * mHeight);
-    for (uint32_t y = 0; y < png.get_height(); y++) {
-        for (uint32_t x = 0; x < png.get_width(); x++) {
-            mSolid[(y * mWidth) + x] = (png[y][x] != 255);
+    for (uint32_t y = 0; y < mHeight; y++) {
+        for (uint32_t x = 0; x < mWidth; x++) {
+            mSolid[(y * mWidth) + x] = data[((y * mWidth) + x) * 4] != 255;
         }
     }
 
@@ -136,12 +136,36 @@ void CollisionMap::set(uint32_t x, uint32_t y, bool b)
 
 void CollisionMap::save(const std::string& path)
 {
-    png::image<png::gray_pixel> out(mWidth, mHeight);
+    std::vector<unsigned char> buffer;
+    std::vector<unsigned char> data;
+    data.reserve(mWidth * mHeight * 4);
+
     for (uint32_t y = 0; y < mHeight; y++) {
         for (uint32_t x = 0; x < mWidth; x++) {
-            out[y][x] = png::gray_pixel(get(x, y) ? 0 : 255);
+            unsigned char c = get(x, y) ? 0 : 255;
+            data.push_back(c);
+            data.push_back(c);
+            data.push_back(c);
+            data.push_back(255);
         }
     }
 
-    out.write(path);
+    lodepng::State state;
+    state.encoder.filter_palette_zero = 0;
+    state.encoder.add_id = false;
+    state.encoder.text_compression = 1;
+    state.encoder.zlibsettings.nicematch = 258;
+    state.encoder.zlibsettings.lazymatching = 1;
+    state.encoder.zlibsettings.windowsize = 32768;
+
+    std::vector<unsigned char> temp;
+    state.encoder.filter_strategy = LFS_ZERO;
+    state.encoder.zlibsettings.minmatch = 3;
+    state.encoder.zlibsettings.btype = 2;
+    state.encoder.auto_convert = 0;
+    if (lodepng::encode(buffer, data, mWidth, mHeight, state)) {
+        return;
+    }
+
+    lodepng::save_file(buffer, path);
 }

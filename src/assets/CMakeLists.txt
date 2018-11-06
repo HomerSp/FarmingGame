@@ -21,8 +21,8 @@ ADD_CUSTOM_TARGET(assets_data ALL
    DEPENDS json_minify
 )
 
-find_package(JsonCpp REQUIRED)
-include_directories(${JsonCpp_INCLUDE_DIRS})
+include_directories(${src_DIR}/jsoncpp/include)
+link_directories(${src_DIR}/jsoncpp)
 
 set(SOURCES
     utils.cpp
@@ -30,7 +30,7 @@ set(SOURCES
 )
 
 add_executable(json_minify ${SOURCES})
-target_link_libraries(json_minify ${JsonCpp_LIBRARY} ${Pngpp_LIBRARY})
+target_link_libraries(json_minify jsoncpp_lib_static)
 
 # Image Files
 set(assets_out_IMAGES "")
@@ -50,8 +50,8 @@ ADD_CUSTOM_TARGET(assets_image ALL
    DEPENDS image_encoder
 )
 
-find_package(Pngpp REQUIRED)
-include_directories(${Pngpp_INCLUDE_DIRS})
+include_directories(${src_DIR}/lodepng/src)
+link_directories(${src_DIR}/lodepng)
 
 set(SOURCES
     utils.cpp
@@ -59,7 +59,7 @@ set(SOURCES
 )
 
 add_executable(image_encoder ${SOURCES})
-target_link_libraries(image_encoder ${Pngpp_LIBRARY})
+target_link_libraries(image_encoder lodepng)
 
 # Collision Files
 set(assets_out_COLLISION "")
@@ -79,8 +79,8 @@ ADD_CUSTOM_TARGET(assets_collision ALL
    DEPENDS collision_encoder
 )
 
-find_package(Pngpp REQUIRED)
-include_directories(${Pngpp_INCLUDE_DIRS})
+include_directories(${src_DIR}/lodepng/src)
+link_directories(${src_DIR}/lodepng)
 
 set(SOURCES
     utils.cpp
@@ -88,4 +88,4 @@ set(SOURCES
 )
 
 add_executable(collision_encoder ${SOURCES})
-target_link_libraries(collision_encoder ${Pngpp_LIBRARY})
+target_link_libraries(collision_encoder lodepng)

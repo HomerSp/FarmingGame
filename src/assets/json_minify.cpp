@@ -1,4 +1,5 @@
 #include <fstream>
+#include <memory>
 
 #include <json/json.h>
 #include <json/writer.h>
@@ -26,8 +27,11 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    Json::FastWriter writer;
-    output << writer.write(doc);
+    Json::StreamWriterBuilder builder;
+    builder["commentStyle"] = "None";
+    builder["indentation"] = "";
+    std::unique_ptr<Json::StreamWriter> writer(builder.newStreamWriter());
+    writer->write(doc, &output);
 
     return 0;
 }

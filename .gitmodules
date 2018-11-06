@@ -1,0 +1,6 @@
+[submodule "src/jsoncpp"]
+	path = src/jsoncpp
+	url = https://github.com/open-source-parsers/jsoncpp.git
+[submodule "src/lodepng/src"]
+	path = src/lodepng/src
+	url = https://github.com/lvandeve/lodepng.git
