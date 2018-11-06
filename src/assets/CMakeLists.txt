@@ -3,6 +3,8 @@ cmake_minimum_required(VERSION 3.1.0)
 set(PROJECT "assets")
 project(${PROJECT})
 
+include(${engine_INCLUDE_FILE})
+
 # JSON Files
 set(assets_out_JSON "")
 file(GLOB_RECURSE assets_JSON RELATIVE ${assets_ROOT} "${assets_ROOT}/assets/data/*.json")
@@ -21,16 +23,13 @@ ADD_CUSTOM_TARGET(assets_data ALL
    DEPENDS json_minify
 )
 
-include_directories(${src_DIR}/jsoncpp/include)
-link_directories(${src_DIR}/jsoncpp)
-
 set(SOURCES
     utils.cpp
     json_minify.cpp
 )
 
 add_executable(json_minify ${SOURCES})
-target_link_libraries(json_minify jsoncpp_lib_static)
+target_link_libraries(json_minify ${engine_EXTRA_LIBRARY})
 
 # Image Files
 set(assets_out_IMAGES "")
@@ -50,16 +49,13 @@ ADD_CUSTOM_TARGET(assets_image ALL
    DEPENDS image_encoder
 )
 
-include_directories(${src_DIR}/lodepng/src)
-link_directories(${src_DIR}/lodepng)
-
 set(SOURCES
     utils.cpp
     image_encoder.cpp
 )
 
 add_executable(image_encoder ${SOURCES})
-target_link_libraries(image_encoder lodepng)
+target_link_libraries(image_encoder ${engine_EXTRA_LIBRARY})
 
 # Collision Files
 set(assets_out_COLLISION "")
@@ -79,13 +75,10 @@ ADD_CUSTOM_TARGET(assets_collision ALL
    DEPENDS collision_encoder
 )
 
-include_directories(${src_DIR}/lodepng/src)
-link_directories(${src_DIR}/lodepng)
-
 set(SOURCES
     utils.cpp
     collision_encoder.cpp
 )
 
 add_executable(collision_encoder ${SOURCES})
-target_link_libraries(collision_encoder lodepng)
+target_link_libraries(collision_encoder ${engine_EXTRA_LIBRARY})
