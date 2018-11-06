@@ -19,6 +19,8 @@ set(CMAKE_MODULE_PATH "${src_DIR}/cmake" ${CMAKE_MODULE_PATH})
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror -std=c++14 -fstrict-aliasing -pedantic-errors -pedantic")
 
+add_subdirectory(angelscript)
+
 SET(JSONCPP_WITH_TESTS OFF CACHE BOOL "Compile JsonCpp without test")
 SET(JSONCPP_WITH_TESTS OFF CACHE BOOL "Compile JsonCpp without unittest")
 SET(JSONCPP_WITH_PKGCONFIG_SUPPORT OFF CACHE BOOL "Compile JsonCpp without pkgconfig")

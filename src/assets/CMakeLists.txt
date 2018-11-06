@@ -82,3 +82,29 @@ set(SOURCES
 
 add_executable(collision_encoder ${SOURCES})
 target_link_libraries(collision_encoder ${engine_EXTRA_LIBRARY})
+
+# Script Files
+set(assets_out_SCRIPT "")
+file(GLOB_RECURSE assets_SCRIPT RELATIVE ${assets_ROOT} "${assets_ROOT}/assets/script/*.as")
+foreach(script IN ITEMS ${assets_SCRIPT})
+    add_custom_command(OUTPUT "${CMAKE_BINARY_DIR}/${script}"
+        COMMAND ${CMAKE_CURRENT_BINARY_DIR}/script_encoder "${assets_ROOT}/${script}" "${CMAKE_BINARY_DIR}/${script}"
+        COMMENT "Generating script file ${script}..."
+        DEPENDS "${assets_ROOT}/${script}"
+    )
+
+    set(assets_out_SCRIPT ${assets_out_SCRIPT} "${CMAKE_BINARY_DIR}/${script}")
+endforeach(script)
+
+ADD_CUSTOM_TARGET(assets_script ALL
+   DEPENDS ${assets_out_SCRIPT}
+   DEPENDS script_encoder
+)
+
+set(SOURCES
+    utils.cpp
+    script_encoder.cpp
+)
+
+add_executable(script_encoder ${SOURCES})
+target_link_libraries(script_encoder)

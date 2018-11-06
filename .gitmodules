@@ -4,3 +4,6 @@
 [submodule "src/lodepng/src"]
 	path = src/lodepng/src
 	url = https://github.com/lvandeve/lodepng.git
+[submodule "src/angelscript/src"]
+	path = src/angelscript/src
+	url = https://github.com/IngwiePhoenix/AngelScript.git
