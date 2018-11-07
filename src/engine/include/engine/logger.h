@@ -67,5 +67,12 @@ public:
         }
     };
 #endif
+
+    class script : public LoggerStream {
+    public:
+        script();
+    };
+
+    static void scriptPrint(const std::string& str);
 };
 }

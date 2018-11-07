@@ -10,37 +10,39 @@ include_directories(
 )
 
 set(HEADERS
-    include/engine/types.h
-    include/engine/engine.h
-    include/engine/logger.h
-    include/engine/frametimer.h
-    include/engine/image.h
-    include/engine/renderer.h
-    include/engine/assetmanager.h
-    include/engine/character.h
-    include/engine/keys.h
-    include/engine/map.h
-    include/engine/charset.h
-    include/engine/tileset.h
-    include/engine/collisionmap.h
-    include/engine/time.h
+	include/engine/assetmanager.h
+	include/engine/character.h
+	include/engine/charset.h
+	include/engine/clock.h
+	include/engine/collisionmap.h
+	include/engine/engine.h
+	include/engine/frametimer.h
+	include/engine/image.h
+	include/engine/keys.h
+	include/engine/logger.h
+	include/engine/map.h
+	include/engine/scriptobject.h
+	include/engine/renderer.h
+	include/engine/tileset.h
+	include/engine/types.h
 )
 
 set(SOURCES
-    types.cpp
-    engine.cpp
+	assetmanager.cpp
+	character.cpp
+	charset.cpp
+	clock.cpp
+	collisionmap.cpp
+	engine.cpp
+	frametimer.cpp
+	image.cpp
+	keys.cpp
     logger.cpp
-    frametimer.cpp
-    image.cpp
-    renderer.cpp
-    assetmanager.cpp
-    character.cpp
-    keys.cpp
     map.cpp
-    charset.cpp
+    renderer.cpp
+    scriptobject.cpp
     tileset.cpp
-    collisionmap.cpp
-    time.cpp
+    types.cpp   
 )
 
 source_group("Header Files" FILES ${HEADERS})

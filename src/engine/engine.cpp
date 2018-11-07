@@ -3,6 +3,10 @@
 #include <sstream>
 #include <thread>
 
+#include <scripthandle/scripthandle.h>
+#include <scriptstdstring/scriptstdstring.h>
+#include <scriptbuilder/scriptbuilder.h>
+
 #include <engine/engine.h>
 #include <engine/logger.h>
 
@@ -16,14 +20,31 @@ Engine::Engine(uint32_t width, uint32_t height)
     , mCameraY(0)
     , mMap(nullptr)
     , mHero(nullptr)
+    , mScriptEngine(nullptr)
+    , mScriptContext(nullptr)
 {
     Logger::debug() << "Creating Engine";
 
-    mTime = std::make_shared<engine::Time>();
+    mClock = std::make_shared<engine::Clock>();
     mMap = std::make_shared<engine::Map>("map");
     mHero = std::make_shared<engine::Character>("hero");
     mHero->setX(std::floor((mMap->pixelWidth() - mHero->width()) / 2));
     mHero->setY(std::floor((mMap->pixelHeight() - mHero->height()) / 2));
+
+    mClock->setTime(8, 0);
+
+    registerScript();
+}
+
+Engine::~Engine()
+{
+    if(mScriptContext != nullptr) {
+        mScriptContext->Release();
+    }
+
+    if(mScriptEngine != nullptr) {
+        mScriptEngine->ShutDownAndRelease();
+    }
 }
 
 int Engine::bufferWidth() const
@@ -43,10 +64,10 @@ bool Engine::process()
     mFrameTimer.start();
 
     if (mDownKeys.contains(engine::Keys::TestFastForward)) {
-        mTime->fastForward(1.0f * (mFrameTimer.diff() / 50.0f));
+        mClock->fastForward(1.0f * (mFrameTimer.diff() / 50.0f));
     }
 
-    mTime->process(mFrameTimer.diff());
+    mClock->process(mFrameTimer.diff());
 
     int8_t x = 0, y = 0;
     if (mHasFocus && !mDownKeys.empty()) {
@@ -196,10 +217,10 @@ void Engine::paint(Renderer& renderer)
         mHero->draw(renderer, Types::Point(mCameraX, mCameraY));
     }
 
-    mTime->draw(renderer);
+    mClock->draw(renderer);
 
     std::stringstream str;
-    str << std::setw(2) << std::setfill('0') << mTime->hour() << ":" << std::setw(2) << std::setfill('0') << mTime->minute();
+    str << std::setw(2) << std::setfill('0') << mClock->hour() << ":" << std::setw(2) << std::setfill('0') << mClock->minute();
     renderer.drawText({-10, 10}, str.str(), {0, 0, 0}, 24, Types::TextAlign({Types::TextAlign::Right}));
 }
 
@@ -224,4 +245,76 @@ void Engine::setSize(int width, int height)
 {
     mWidth = width;
     mHeight = height;
+}
+
+void scriptMessageCallback(const asSMessageInfo *msg, void *param)
+{
+    std::stringstream stream;
+    stream << "["
+        << msg->section
+        << ":"
+        << msg->row
+        << ":"
+        << msg->col
+        << "]";
+
+    Logger::error() << stream.str() << msg->message;
+}
+
+bool Engine::registerScript()
+{
+    // Create the script engine
+    mScriptEngine = asCreateScriptEngine();
+    if (mScriptEngine->SetMessageCallback(asFUNCTION(scriptMessageCallback), 0, asCALL_CDECL)) {
+        Logger::error() << "Could not register message callback";
+        return false;
+    }
+
+    RegisterStdString(mScriptEngine);
+    RegisterScriptHandle(mScriptEngine);
+
+    mClock->registerObject(mScriptEngine);
+
+    mScriptEngine->RegisterGlobalFunction("void print(const string &in)", asFUNCTION(Logger::scriptPrint), asCALL_CDECL);
+
+    // The CScriptBuilder helper is an add-on that loads the file,
+    // performs a pre-processing pass if necessary, and then tells
+    // the engine to build a script module.
+    CScriptBuilder builder;
+    if (builder.StartNewModule(mScriptEngine, "MainModule")) {
+        Logger::error() << ("Unrecoverable error while starting a new module.");
+        return false;
+    }
+
+    if (builder.AddSectionFromFile("assets/script/main.as") < 0) {
+        Logger::error() << ("Please correct the errors in the script and try again.");
+        return false;
+    }
+
+    if (builder.BuildModule() < 0) {
+        Logger::error() << ("Please correct the errors in the script and try again.");
+        return false;
+    }
+
+    // Find the function that is to be called. 
+    asIScriptModule *mod = mScriptEngine->GetModule("MainModule");
+    asIScriptFunction *func = mod->GetFunctionByDecl("void main()");
+    if (!func) {
+        Logger::error() << ("The script must have the function 'void main()'. Please add it and try again.");
+        return false;
+    }
+
+    // Create our context, prepare it, and then execute
+    mScriptContext = mScriptEngine->CreateContext();
+    mScriptContext->Prepare(func);
+
+    mClock->registerContext(mScriptContext);
+    
+    int r = mScriptContext->Execute();
+    if (r == asEXECUTION_EXCEPTION) {
+        Logger::error() << "An exception" << mScriptContext->GetExceptionString() << "occurred. Please correct the code and try again.";
+        return false;
+    }
+
+    return (r == asEXECUTION_FINISHED);
 }

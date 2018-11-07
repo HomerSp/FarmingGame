@@ -40,3 +40,13 @@ Logger::debug::debug()
 {
 }
 #endif
+
+Logger::script::script()
+    : LoggerStream(std::cout, "Script")
+{
+}
+
+void Logger::scriptPrint(const std::string& str)
+{
+    script() << str;
+}

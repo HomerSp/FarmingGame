@@ -11,7 +11,9 @@
 template<typename ...Ts>
 class FunctionPtr {
 public:
-    static std::unique_ptr<FunctionPtr<Ts...>> get(const std::string& name);
+    static std::shared_ptr<FunctionPtr<Ts...>> get(const std::string& name);
+
+    static void registerFuncDef(asIScriptEngine& engine, const std::string& name);
 
     const std::string& name() const
     {
@@ -19,8 +21,6 @@ public:
     }
 
     bool call(asIScriptContext& ctx, Ts... args);
-
-    void registerFuncDef(asIScriptEngine& engine);
 
     void release();
 
@@ -97,20 +97,11 @@ bool FunctionPtr<Ts...>::call(asIScriptContext& ctx, Ts... args)
     FunctionPtrArgs functionArgs(ctx);
 
     using expand_type = int[];
-    expand_type{ (functionArgs << args, 0)... };
+    expand_type{0, (functionArgs << args, 0)... };
 
     ctx.Execute();
 
     return true;
-}
-
-template<typename ...Ts>
-void FunctionPtr<Ts...>::registerFuncDef(asIScriptEngine& engine)
-{
-    std::vector<std::type_index> types;
-    types.insert(types.end(), {typeid(Ts)...});
-    
-    FunctionPtrHelper::registerFuncDef(engine, mName, std::type_index(typeid(void)), types);
 }
 
 template<typename ...Ts>
@@ -129,7 +120,16 @@ void FunctionPtr<Ts...>::release()
 }
 
 template<typename ...Ts>
-std::unique_ptr<FunctionPtr<Ts...>> FunctionPtr<Ts...>::get(const std::string& name)
+std::shared_ptr<FunctionPtr<Ts...>> FunctionPtr<Ts...>::get(const std::string& name)
 {
-    return std::make_unique<FunctionPtrMaker<Ts...>>(name);
+    return std::make_shared<FunctionPtrMaker<Ts...>>(name);
+}
+
+template<typename ...Ts>
+void FunctionPtr<Ts...>::registerFuncDef(asIScriptEngine& engine, const std::string& name)
+{
+    std::vector<std::type_index> types;
+    types.insert(types.end(), {typeid(Ts)...});
+    
+    FunctionPtrHelper::registerFuncDef(engine, name, std::type_index(typeid(void)), types);
 }

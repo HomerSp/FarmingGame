@@ -3,16 +3,19 @@
 #include <memory>
 #include <string>
 
+#include <angelscript.h>
+
 #include <engine/character.h>
 #include <engine/frametimer.h>
 #include <engine/keys.h>
 #include <engine/map.h>
-#include <engine/time.h>
+#include <engine/clock.h>
 
 namespace engine {
 class Engine {
 public:
     Engine(uint32_t width, uint32_t height);
+    ~Engine();
 
     int bufferWidth() const;
     int bufferHeight() const;
@@ -31,6 +34,9 @@ public:
 
     void setSize(int width, int height);
 
+protected:
+	bool registerScript();
+
 private:
     bool mHasFocus;
     uint32_t mWidth;
@@ -41,8 +47,11 @@ private:
     engine::FrameTimer mFrameTimer;
     engine::KeyList mDownKeys;
 
-    std::shared_ptr<engine::Time> mTime;
+    std::shared_ptr<engine::Clock> mClock;
     std::shared_ptr<engine::Map> mMap;
     std::shared_ptr<engine::Character> mHero;
+
+    asIScriptEngine *mScriptEngine;
+    asIScriptContext *mScriptContext;
 };
 }
