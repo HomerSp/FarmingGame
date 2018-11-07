@@ -1,0 +1,123 @@
+#include <cmath>
+
+#include <engine/camera.h>
+#include <engine/logger.h>
+
+using namespace engine;
+
+Camera::Camera(uint32_t width, uint32_t height)
+    : mTarget(nullptr)
+    , mTargetPos({0.0f, 0.0f})
+    , mDimen(Types::Dimension(width, height))
+    , mPos({0.0f, 0.0f})
+{
+
+}
+
+float Camera::x() const
+{
+    return mPos.x;
+}
+
+float Camera::y() const
+{
+    return mPos.y;
+}
+
+void Camera::follow(Target* target, bool instant)
+{
+    mTarget = target;
+    if (instant && mTarget != nullptr) {
+        mPos.x = mPos.y = -1;
+    }
+}
+
+void Camera::moveTo(float dstX, float dstY, bool instant)
+{
+    mTarget = nullptr;
+    if (instant) {
+        mPos.x = dstX;
+        mPos.y = dstY;
+    } else {
+        mTargetPos.x = dstX;
+        mTargetPos.y = dstY;
+    }
+}
+
+void Camera::process(uint64_t frameDiff, Map* map)
+{
+    float targetX, targetY;
+    if (mTarget != nullptr) {
+        targetX = mTarget->x() - std::floor((mDimen.width / 2) + (mTarget->width() / 2));
+        targetY = mTarget->y() - std::floor((mDimen.height / 2) + (mTarget->height() / 2));
+    } else {
+        targetX = mTargetPos.x;
+        targetY = mTargetPos.y;
+        if (mPos.x == targetX && mPos.y == targetY) {
+            return;
+        }
+    }
+
+    if (mPos.x < 0 && mPos.y < 0) {
+        mPos.x = targetX;
+        mPos.y = targetY;
+    }
+
+    float val = 1.0f * (frameDiff / 2.0f);
+    if (mPos.x < targetX) {
+        if (mPos.x + val >= targetX) {
+            mPos.x = targetX;
+        } else {
+            mPos.x += val;
+        }
+    } else if (mPos.x > targetX) {
+        if (mPos.x - val <= targetX) {
+            mPos.x = targetX;
+        } else {
+            mPos.x -= val;
+        }
+    }
+
+    if (mPos.y < targetY) {
+        if (mPos.y + val >= targetY) {
+            mPos.y = targetY;
+        } else {
+            mPos.y += val;
+        }
+    } else if (mPos.y > targetY) {
+        if (mPos.y - val <= targetY) {
+            mPos.y = targetY;
+        } else {
+            mPos.y -= val;
+        }
+    }
+
+    if (mPos.x < 0) {
+        mPos.x = 0;
+    } else if (mPos.x > map->pixelWidth() - mDimen.width) {
+        mPos.x = map->pixelWidth() - mDimen.width;
+    }
+
+    if (mPos.y < 0) {
+        mPos.y = 0;
+    } else if (mPos.y > map->pixelHeight() - mDimen.height) {
+        mPos.y = map->pixelHeight() - mDimen.height;
+    }
+}
+
+void Camera::setViewport(const Types::Dimension& d)
+{
+    mDimen = d;
+}
+
+std::string Camera::className()
+{
+    return "Camera";
+}
+
+void Camera::registerClass()
+{
+    registerMethod(FunctionPtrHelper::functionString<float>("x"), asMETHOD(Camera, x));
+    registerMethod(FunctionPtrHelper::functionString<float>("y"), asMETHOD(Camera, y));
+    registerMethod(FunctionPtrHelper::functionString<void, float, float, bool>("moveTo"), asMETHOD(Camera, moveTo));
+}

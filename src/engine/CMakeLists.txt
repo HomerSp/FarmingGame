@@ -11,6 +11,7 @@ include_directories(
 
 set(HEADERS
 	include/engine/assetmanager.h
+	include/engine/camera.h
 	include/engine/character.h
 	include/engine/charset.h
 	include/engine/clock.h
@@ -29,6 +30,7 @@ set(HEADERS
 
 set(SOURCES
 	assetmanager.cpp
+	camera.cpp
 	character.cpp
 	charset.cpp
 	clock.cpp

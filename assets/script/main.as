@@ -1,8 +1,9 @@
 void main() {
     Clock@ clock = @engine.clock();
-    clock.on("change", "2wd", function() {
+    clock.on("change", "15m", function() {
+        Camera@ camera = @engine.camera();
         Clock@ clock = @engine.clock();
-        print("TRIGGERED");
-        print("Time " + clock.year() + "-" + clock.month() + "-" + clock.day() + " " + clock.hour() + ":" + clock.minute());
+        print("Camera " + camera.x() + " " + camera.y());
+        print("Clock " + clock.year() + "-" + clock.month() + "-" + clock.day() + " " + clock.hour() + ":" + clock.minute());
     });
 }

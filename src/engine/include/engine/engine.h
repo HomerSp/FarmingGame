@@ -5,6 +5,7 @@
 
 #include <angelscript.h>
 
+#include <engine/camera.h>
 #include <engine/character.h>
 #include <engine/clock.h>
 #include <engine/frametimer.h>
@@ -36,6 +37,7 @@ public:
     void setSize(int width, int height);
 
     // Scripting
+    engine::Camera* camera();
     engine::Clock* clock();
 
 protected:
@@ -54,6 +56,7 @@ private:
     engine::FrameTimer mFrameTimer;
     engine::KeyList mDownKeys;
 
+    std::shared_ptr<engine::Camera> mCamera;
     std::shared_ptr<engine::Clock> mClock;
     std::shared_ptr<engine::Map> mMap;
     std::shared_ptr<engine::Character> mHero;

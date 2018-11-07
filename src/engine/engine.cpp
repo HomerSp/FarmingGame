@@ -16,8 +16,6 @@ Engine::Engine(uint32_t width, uint32_t height)
     : mHasFocus(true)
     , mWidth(width)
     , mHeight(height)
-    , mCameraX(0)
-    , mCameraY(0)
     , mMap(nullptr)
     , mHero(nullptr)
     , mScriptEngine(nullptr)
@@ -25,12 +23,14 @@ Engine::Engine(uint32_t width, uint32_t height)
 {
     Logger::debug() << "Creating Engine";
 
+    mCamera = std::make_shared<engine::Camera>(mWidth, mHeight);
     mClock = std::make_shared<engine::Clock>();
     mMap = std::make_shared<engine::Map>("map");
     mHero = std::make_shared<engine::Character>("hero");
     mHero->setX(std::floor((mMap->pixelWidth() - mHero->width()) / 2));
     mHero->setY(std::floor((mMap->pixelHeight() - mHero->height()) / 2));
 
+    mCamera->follow(mHero.get(), true);
     mClock->setTime(8, 0);
 
     registerScript();
@@ -152,25 +152,7 @@ bool Engine::process()
 
     mMap->animate(mFrameTimer.elapsed());
 
-    int cameraX = mHero->x() - std::floor((mWidth / 2) + (mHero->width() / 2));
-    if (cameraX < 0) {
-        cameraX = 0;
-    }
-
-    mCameraX = cameraX;
-    if (mCameraX >= mMap->pixelWidth() - mWidth) {
-        mCameraX = mMap->pixelWidth() - mWidth;
-    }
-
-    int cameraY = mHero->y() - std::floor((mHeight / 2) + (mHero->height() / 2));
-    if (cameraY < 0) {
-        cameraY = 0;
-    }
-
-    mCameraY = cameraY;
-    if (mCameraY >= mMap->pixelHeight() - mHeight) {
-        mCameraY = mMap->pixelHeight() - mHeight;
-    }
+    mCamera->process(mFrameTimer.diff(), mMap.get());
 
     if (mDownKeys.contains(engine::Keys::TestSlowMode)) {
         std::this_thread::sleep_for(std::chrono::milliseconds(50));
@@ -199,16 +181,16 @@ void Engine::paint(Renderer& renderer)
         renderer.translate(translateX, translateY);
     }
 
-    Types::Rect dst(mCameraX, mCameraY, mWidth, mHeight);
+    Types::Rect dst(mCamera->x(), mCamera->y(), mWidth, mHeight);
     mMap->draw(renderer, dst);
 
     Types::Dimension d = mMap->getTileDimension();
 
-    int startY = std::ceil(mCameraY / d.height);
+    int startY = std::ceil(mCamera->y() / d.height);
     bool drawnHero = false;
     for (int row = startY - 1; row <= startY + std::ceil(mHeight / d.height); row++) {
         if (!drawnHero && row * d.height >= mHero->y()) {
-            mHero->draw(renderer, Types::Point(mCameraX, mCameraY));
+            mHero->draw(renderer, Types::Point(mCamera->x(), mCamera->y()));
             drawnHero = true;
         }
 
@@ -216,7 +198,7 @@ void Engine::paint(Renderer& renderer)
     }
 
     if (!drawnHero) {
-        mHero->draw(renderer, Types::Point(mCameraX, mCameraY));
+        mHero->draw(renderer, Types::Point(mCamera->x(), mCamera->y()));
     }
 
     mClock->draw(renderer);
@@ -247,6 +229,7 @@ void Engine::setSize(int width, int height)
 {
     mWidth = width;
     mHeight = height;
+    mCamera->setViewport(Types::Dimension(mWidth, mHeight));
 }
 
 void scriptMessageCallback(const asSMessageInfo *msg, void *param)
@@ -277,7 +260,10 @@ bool Engine::registerScript()
     RegisterStdString(mScriptEngine);
     RegisterScriptHandle(mScriptEngine);
 
+    mCamera->registerReference(mScriptEngine);
     mClock->registerReference(mScriptEngine);
+
+    // This needs to be done after all other types have been registered.
     registerReference(mScriptEngine);
 
     mScriptEngine->RegisterGlobalFunction("void print(const string &in)", asFUNCTION(Logger::scriptPrint), asCALL_CDECL);
@@ -331,8 +317,14 @@ std::string Engine::className()
 
 void Engine::registerClass()
 {
+    registerMethod("Camera &camera()", asMETHOD(Engine, camera));
     registerMethod("Clock &clock()", asMETHOD(Engine, clock));
     registerInstance("engine");
+}
+
+engine::Camera* Engine::camera()
+{
+    return mCamera.get();
 }
 
 engine::Clock* Engine::clock()

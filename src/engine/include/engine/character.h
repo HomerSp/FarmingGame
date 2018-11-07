@@ -4,13 +4,14 @@
 
 #include <png++/png.hpp>
 
+#include <engine/camera.h>
 #include <engine/charset.h>
 #include <engine/image.h>
 #include <engine/map.h>
 #include <engine/renderer.h>
 
 namespace engine {
-class Character {
+class Character : public Camera::Target {
 public:
     struct Direction {
         typedef enum {
@@ -30,22 +31,22 @@ public:
     void reset();
     void velocity(uint64_t frameDiff, int8_t x, int8_t y);
 
-    float x() const
+    virtual float x() const
     {
         return mPos.x;
     }
 
-    float y() const
+    virtual float y() const
     {
         return mPos.y;
     }
 
-    int width() const
+    virtual int width() const
     {
         return mCharset->width(mCharsetType);
     }
 
-    int height() const
+    virtual int height() const
     {
         return mCharset->height(mCharsetType);
     }
