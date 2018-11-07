@@ -1,84 +1,121 @@
+#include <cstdlib>
+
 #include <engine/logger.h>
 #include <engine/clock.h>
 
 using namespace engine;
 
-ClockListenerArg::ClockListenerArg()
-    : triggered(false)
-    , year(-1)
-    , month(-1)
-    , day(-1)
-    , hour(-1)
-    , minute(-1)
+ClockListenerArg::ClockListenerArg(const std::string& format)
+    : mTriggered(false)
+    , mYear(-1)
+    , mMonth(-1)
+    , mDay(-1)
+    , mWeek(-1)
+    , mWeekDay(-1)
+    , mHour(-1)
+    , mMinute(-1)
 {
+    size_t start = 0;
+    if(format.find(',') != std::string::npos) {
+        size_t end = 0;
+        while((end = format.find(',', end)) != std::string::npos)
+        {
+            parseBlock(format.substr(start, end));
+            end++;
+            start = end;
+        }
+    }
+
+    if (start != std::string::npos) {
+        parseBlock(format.substr(start));
+    }
 }
 
 bool ClockListenerArg::operator==(double val)
 {
-    if (year != -1) {
-        int v = static_cast<int>(std::floor(val / 60 / 24 / 30 / 4));
-        if (year != v) {
-            triggered = false;
+    if (mYear != -1) {
+        int v = static_cast<int>(std::floor(val / 60 / 24 / 28 / 4));
+        if (mYear != v + 1) {
+            mTriggered = false;
             return false;
         }
     }
 
-    if (month != -1) {
-        int v = static_cast<int>(std::floor(val / 60 / 24 / 30)) % 4;
-        if (month != v) {
-            triggered = false;
+    if (mMonth != -1) {
+        int v = static_cast<int>(std::floor(val / 60 / 24 / 28)) % 4;
+        if (mMonth != v + 1) {
+            mTriggered = false;
             return false;
         }
     }
 
-    if (day != -1) {
-        int v = static_cast<int>(std::floor(val / 60 / 24)) % 30;
-        if (day != v) {
-            triggered = false;
+    if (mDay != -1) {
+        int v = static_cast<int>(std::floor(val / 60 / 24)) % 28;
+        if (mDay != v + 1) {
+            mTriggered = false;
             return false;
         }
     }
 
-    if (hour != -1) {
+    if (mWeek != -1) {
+        int v = static_cast<int>(std::floor(val / 60 / 24 / 7)) % 4;
+        if (mWeek != v + 1) {
+            mTriggered = false;
+            return false;
+        }
+    }
+
+    if (mWeekDay != -1) {
+        int v = static_cast<int>(std::floor(val / 60 / 24)) % 7;
+        if (mWeekDay != v + 1) {
+            mTriggered = false;
+            return false;
+        }
+    }
+
+    if (mHour != -1) {
         int v = static_cast<int>(std::floor(val / 60)) % 24;
-        if (hour != v) {
-            triggered = false;
+        if (mHour != v) {
+            mTriggered = false;
             return false;
         }
     }
 
-    if (minute != -1) {
+    if (mMinute != -1) {
         int v = static_cast<int>(std::floor(val)) % 60;
-        if (minute != v) {
-            triggered = false;
+        if (mMinute != v) {
+            mTriggered = false;
             return false;
         }
     }
 
-    triggered = true;
-    return true;
+    bool t = mTriggered;
+    mTriggered = true;
+    return !t;
 }
 
-void ClockListenerArg::construct(void* memory)
+void ClockListenerArg::parseBlock(const std::string& block)
 {
-    new(memory) ClockListenerArg();
-}
-
-void ClockListenerArg::destruct(void* memory)
-{
-    ((ClockListenerArg*) memory)->~ClockListenerArg();
-}
-
-std::string ClockListenerArg::className()
-{
-    return "ClockListenerArg";
-}
-
-void ClockListenerArg::registerClass()
-{
-    ScriptObject::registerClass(sizeof(ClockListenerArg), asFUNCTION(ClockListenerArg::construct), asFUNCTION(ClockListenerArg::destruct));
-    registerProperty("int hour", asOFFSET(ClockListenerArg, hour));
-    registerProperty("int minute", asOFFSET(ClockListenerArg, minute));
+    char* end;
+    int v = strtol(block.data(), &end, 10);
+    if (end[0] != '\0') {
+        std::string type(end);
+        if(type == "y") {
+            mYear = v;
+        } else if(type == "mon") {
+            mMonth = v;
+        } else if(type == "d") {
+            mDay = v;
+        } else if(type == "w") {
+            mWeek = v;
+        } else if(type == "wd") {
+            mWeekDay = v;
+        } else if(type == "h") {
+            mHour = v;
+        } else if(type == "m") {
+            mMinute = v;
+        }
+    }
 }
 
 Clock::Clock()
@@ -90,11 +127,13 @@ Clock::Clock()
 {
 }
 
-Clock::~Clock()
+void Clock::release()
 {
     for(auto p: mChangeListeners) {
         p.second->release();
     }
+
+    mChangeListeners.clear();
 }
 
 uint32_t Clock::year() const
@@ -110,6 +149,16 @@ uint32_t Clock::month() const
 uint32_t Clock::day() const
 {
     return 1 + static_cast<uint32_t>(std::floor(mCurrent / 60 / 24)) % 30;
+}
+
+uint32_t Clock::week() const
+{
+    return 1 + static_cast<uint32_t>(std::floor(mCurrent / 60 / 24 / 7)) % 4;
+}
+
+uint32_t Clock::weekDay() const
+{
+    return 1 + static_cast<uint32_t>(std::floor(mCurrent / 60 / 24)) % 7;
 }
 
 uint32_t Clock::hour() const
@@ -176,12 +225,10 @@ void Clock::setTime(int h, int m)
     mCurrent += (v - c);
 }
 
-void Clock::addListener(const std::string& type, ClockListenerArg& arg, asIScriptFunction* func)
+void Clock::addListener(const std::string& type, const std::string& format, asIScriptFunction* func)
 {
-    auto ptr = FunctionPtr<>::get("ClockChangeListener");
-    (*ptr) = func;
-
-    mChangeListeners.push_back(std::make_pair(arg, std::move(ptr)));
+    auto ptr = FunctionPtr<>::get<ClockChangeListener>(func);
+    mChangeListeners.push_back(std::make_pair(format, ptr));
 }
 
 std::string Clock::className()
@@ -189,22 +236,16 @@ std::string Clock::className()
     return "Clock";
 }
 
-std::string Clock::globalInstance()
-{
-    return "clock";
-}
-
 void Clock::registerClass()
 {
-    registerMethod("uint year()", asMETHOD(Clock, year));
-    registerMethod("uint month()", asMETHOD(Clock, month));
-    registerMethod("uint day()", asMETHOD(Clock, day));
-    registerMethod("uint hour()", asMETHOD(Clock, hour));
-    registerMethod("uint minute()", asMETHOD(Clock, minute));
+    registerMethod(FunctionPtrHelper::functionString<uint>("year"), asMETHOD(Clock, year));
+    registerMethod(FunctionPtrHelper::functionString<uint>("month"), asMETHOD(Clock, month));
+    registerMethod(FunctionPtrHelper::functionString<uint>("day"), asMETHOD(Clock, day));
+    registerMethod(FunctionPtrHelper::functionString<uint>("week"), asMETHOD(Clock, week));
+    registerMethod(FunctionPtrHelper::functionString<uint>("weekDay"), asMETHOD(Clock, weekDay));
+    registerMethod(FunctionPtrHelper::functionString<uint>("hour"), asMETHOD(Clock, hour));
+    registerMethod(FunctionPtrHelper::functionString<uint>("minute"), asMETHOD(Clock, minute));
 
-    ClockListenerArg a;
-    registerType(a);
-
-    registerCallback<>("ClockChangeListener");
-    registerMethod("void on(const string &in, const ClockListenerArg &in, ClockChangeListener @cb)", asMETHOD(Clock, addListener));
+    registerCallback<ClockChangeListener>();
+    registerMethod(FunctionPtrHelper::functionString<void, const std::string&, const std::string&, ClockChangeListener&>("on"), asMETHOD(Clock, addListener));
 }

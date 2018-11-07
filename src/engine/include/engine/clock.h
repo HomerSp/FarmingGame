@@ -8,33 +8,42 @@
 #include <engine/types.h>
 
 namespace engine {
-struct ClockListenerArg : public ScriptObject {
-    ClockListenerArg();
+struct ClockChangeListener : public FunctionPtrCallback {
+    static std::string name()
+    {
+        return "ClockChangeListener";
+    }
+};
+
+class ClockListenerArg {
+public:
+    ClockListenerArg(const std::string& format);
 
     bool operator==(double val);
 
-    static void construct(void* memory);
-    static void destruct(void* memory);
+protected:
+    void parseBlock(const std::string& block);
 
-    bool triggered;
-    int year;
-    int month;
-    int day;
-    int hour;
-    int minute;
-
-    virtual std::string className();
-    virtual void registerClass();
+private:
+    bool mTriggered;
+    int mYear;
+    int mMonth;
+    int mDay;
+    int mWeek;
+    int mWeekDay;
+    int mHour;
+    int mMinute;
 };
 
 class Clock : public ScriptObject {
 public:
     Clock();
-    ~Clock();
 
     uint32_t year() const;
     uint32_t month() const;
     uint32_t day() const;
+    uint32_t week() const;
+    uint32_t weekDay() const;
     uint32_t hour() const;
     uint32_t minute() const;
 
@@ -48,10 +57,12 @@ public:
     void setTime(int h, int m);
 
     // Scripting
-    void addListener(const std::string& type, ClockListenerArg& arg, asIScriptFunction* func);
+    virtual void release();
 
+    void addListener(const std::string& type, const std::string& format, asIScriptFunction* func);
+
+protected:
     virtual std::string className();
-    virtual std::string globalInstance();
     virtual void registerClass();
 
 private:

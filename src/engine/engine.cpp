@@ -38,6 +38,8 @@ Engine::Engine(uint32_t width, uint32_t height)
 
 Engine::~Engine()
 {
+    mClock->release();
+
     if(mScriptContext != nullptr) {
         mScriptContext->Release();
     }
@@ -263,6 +265,8 @@ void scriptMessageCallback(const asSMessageInfo *msg, void *param)
 
 bool Engine::registerScript()
 {
+    FunctionPtrHelper::init();
+
     // Create the script engine
     mScriptEngine = asCreateScriptEngine();
     if (mScriptEngine->SetMessageCallback(asFUNCTION(scriptMessageCallback), 0, asCALL_CDECL)) {
@@ -273,7 +277,8 @@ bool Engine::registerScript()
     RegisterStdString(mScriptEngine);
     RegisterScriptHandle(mScriptEngine);
 
-    mClock->registerObject(mScriptEngine);
+    mClock->registerReference(mScriptEngine);
+    registerReference(mScriptEngine);
 
     mScriptEngine->RegisterGlobalFunction("void print(const string &in)", asFUNCTION(Logger::scriptPrint), asCALL_CDECL);
 
@@ -317,4 +322,20 @@ bool Engine::registerScript()
     }
 
     return (r == asEXECUTION_FINISHED);
+}
+
+std::string Engine::className()
+{
+    return "Engine";
+}
+
+void Engine::registerClass()
+{
+    registerMethod("Clock &clock()", asMETHOD(Engine, clock));
+    registerInstance("engine");
+}
+
+engine::Clock* Engine::clock()
+{
+    return mClock.get();
 }

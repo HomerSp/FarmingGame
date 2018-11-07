@@ -6,13 +6,14 @@
 #include <angelscript.h>
 
 #include <engine/character.h>
+#include <engine/clock.h>
 #include <engine/frametimer.h>
 #include <engine/keys.h>
 #include <engine/map.h>
-#include <engine/clock.h>
+#include <engine/scriptobject.h>
 
 namespace engine {
-class Engine {
+class Engine : public ScriptObject {
 public:
     Engine(uint32_t width, uint32_t height);
     ~Engine();
@@ -34,8 +35,14 @@ public:
 
     void setSize(int width, int height);
 
+    // Scripting
+    engine::Clock* clock();
+
 protected:
 	bool registerScript();
+
+	virtual std::string className();
+    virtual void registerClass();
 
 private:
     bool mHasFocus;
@@ -51,7 +58,7 @@ private:
     std::shared_ptr<engine::Map> mMap;
     std::shared_ptr<engine::Character> mHero;
 
-    asIScriptEngine *mScriptEngine;
-    asIScriptContext *mScriptContext;
+    asIScriptEngine* mScriptEngine;
+    asIScriptContext* mScriptContext;
 };
 }

@@ -1,6 +1,5 @@
 #pragma once
 
-#include <iostream>
 #include <sstream>
 #include <memory>
 #include <typeindex>
@@ -8,12 +7,17 @@
 
 #include <angelscript.h>
 
+struct FunctionPtrCallback {
+    virtual ~FunctionPtrCallback() = default;
+};
+
 template<typename ...Ts>
 class FunctionPtr {
 public:
-    static std::shared_ptr<FunctionPtr<Ts...>> get(const std::string& name);
+    template<typename T2>
+    static std::shared_ptr<FunctionPtr<Ts...>> get(asIScriptFunction* fun);
 
-    static void registerFuncDef(asIScriptEngine& engine, const std::string& name);
+    static void registerFuncDef(asIScriptEngine& engine, const std::string& name, const std::type_index& type);
 
     const std::string& name() const
     {
@@ -24,23 +28,20 @@ public:
 
     void release();
 
-    FunctionPtr<Ts...>& operator=(asIScriptFunction* fun);
-
 protected:
-    FunctionPtr(const std::string& name);
+    FunctionPtr(const std::string& name, asIScriptFunction* fun);
 
 private:
     asIScriptFunction* mFunction;
     std::string mName;
-    std::string mFuncDef;
 };
 
 namespace
 {
     template<typename ...Ts>
     struct FunctionPtrMaker: public FunctionPtr<Ts...> {
-    FunctionPtrMaker(const std::string& name)
-        : FunctionPtr<Ts...>(name)
+    FunctionPtrMaker(const std::string& name, asIScriptFunction* fun)
+        : FunctionPtr<Ts...>(name, fun)
         {
         }
     };
@@ -48,9 +49,18 @@ namespace
 
 class FunctionPtrHelper {
 public:
+    static void init();
+
+    template<class R, typename ...Ts>
+    static std::string functionString(const std::string& name);
+
     static void registerFuncDef(asIScriptEngine& engine, const std::string& name, const std::type_index& ret, const std::vector<std::type_index>& params);
+    static void registerType(const std::string &name, const std::type_index& type);
 
     static std::string typeToName(const std::type_index& id);
+
+private:
+    static std::vector<std::pair<std::string, std::type_index>> sTypes;
 };
 
 class FunctionPtrArgs {
@@ -77,10 +87,9 @@ private:
 };
 
 template<typename ...Ts>
-FunctionPtr<Ts...>::FunctionPtr(const std::string& name)
-    : mFunction(nullptr)
-    , mName("cb__" + name)
-    , mFuncDef("")
+FunctionPtr<Ts...>::FunctionPtr(const std::string& name, asIScriptFunction* fun)
+    : mFunction(fun)
+    , mName(name)
 {
     // void CALLBACK(const string &in)
 }
@@ -105,13 +114,6 @@ bool FunctionPtr<Ts...>::call(asIScriptContext& ctx, Ts... args)
 }
 
 template<typename ...Ts>
-FunctionPtr<Ts...>& FunctionPtr<Ts...>::operator=(asIScriptFunction* fun)
-{
-    mFunction = fun;
-    return *this;
-}
-
-template<typename ...Ts>
 void FunctionPtr<Ts...>::release()
 {
     if(mFunction != nullptr) {
@@ -120,16 +122,44 @@ void FunctionPtr<Ts...>::release()
 }
 
 template<typename ...Ts>
-std::shared_ptr<FunctionPtr<Ts...>> FunctionPtr<Ts...>::get(const std::string& name)
+template<typename T2>
+std::shared_ptr<FunctionPtr<Ts...>> FunctionPtr<Ts...>::get(asIScriptFunction* fun)
 {
-    return std::make_shared<FunctionPtrMaker<Ts...>>(name);
+    std::string name(T2::name());
+    return std::make_shared<FunctionPtrMaker<Ts...>>(name, fun);
 }
 
 template<typename ...Ts>
-void FunctionPtr<Ts...>::registerFuncDef(asIScriptEngine& engine, const std::string& name)
+void FunctionPtr<Ts...>::registerFuncDef(asIScriptEngine& engine, const std::string& name, const std::type_index& type)
 {
     std::vector<std::type_index> types;
     types.insert(types.end(), {typeid(Ts)...});
     
-    FunctionPtrHelper::registerFuncDef(engine, name, std::type_index(typeid(void)), types);
+    FunctionPtrHelper::registerType(name, type);
+    FunctionPtrHelper::registerFuncDef(engine, name, typeid(void), types);
+}
+
+template<class R, typename ...Ts>
+std::string FunctionPtrHelper::functionString(const std::string& name)
+{
+    std::vector<std::type_index> types;
+    types.insert(types.end(), {typeid(Ts)...});
+    
+    std::stringstream params;
+    params << "(";
+    for (auto &i: types) {
+        if (params.tellp() > 1) {
+            params << ", ";
+        }
+        params << FunctionPtrHelper::typeToName(i);
+    }
+    params << ")";
+
+    std::stringstream ret;
+    ret << typeToName(typeid(R))
+        << " "
+        << name
+        << params.str();
+    
+    return ret.str();
 }
