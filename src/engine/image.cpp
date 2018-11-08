@@ -16,11 +16,11 @@ Image::Image(const std::string& path)
     std::vector<unsigned char> data;
     std::vector<unsigned char> buffer;
 
-    if (lodepng::load_file(buffer, path) == 0) {
+    if (lodepng::load_file(buffer, path) != 0) {
         return;
     }
 
-    if (lodepng::decode(data, mWidth, mHeight, buffer) == 0) {
+    if (lodepng::decode(data, mWidth, mHeight, buffer) != 0) {
         return;
     }
 
