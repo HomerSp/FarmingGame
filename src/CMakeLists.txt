@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.1.0)
 
 if(LINT)
-    set(CMAKE_CXX_CLANG_TIDY "/usr/bin/clang-tidy-6.0;-checks=*,-fuchsia-default-arguments,-google-build-using-namespace")
+    set(CMAKE_CXX_CLANG_TIDY "/usr/bin/clang-tidy-6.0;-checks=*,-fuchsia-default-arguments,-google-build-using-namespace,-cppcoreguidelines-pro-type-reinterpret-cast,-fuchsia-overloaded-operator")
 endif(LINT)
 
 if(DEBUG)

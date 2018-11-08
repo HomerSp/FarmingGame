@@ -4,19 +4,19 @@ std::vector<std::pair<std::string, std::type_index>> FunctionPtrHelper::sTypes;
 
 void FunctionPtrHelper::init()
 {
-    sTypes.push_back(std::make_pair<std::string, std::type_index>("void", typeid(void)));
-    sTypes.push_back(std::make_pair<std::string, std::type_index>("bool", typeid(bool)));
-    sTypes.push_back(std::make_pair<std::string, std::type_index>("int8", typeid(int8_t)));
-    sTypes.push_back(std::make_pair<std::string, std::type_index>("int16", typeid(int16_t)));
-    sTypes.push_back(std::make_pair<std::string, std::type_index>("int", typeid(int)));
-    sTypes.push_back(std::make_pair<std::string, std::type_index>("int64", typeid(int64_t)));
-    sTypes.push_back(std::make_pair<std::string, std::type_index>("uint8", typeid(uint8_t)));
-    sTypes.push_back(std::make_pair<std::string, std::type_index>("uint16", typeid(uint16_t)));
-    sTypes.push_back(std::make_pair<std::string, std::type_index>("uint", typeid(uint)));
-    sTypes.push_back(std::make_pair<std::string, std::type_index>("uint64", typeid(uint64_t)));
-    sTypes.push_back(std::make_pair<std::string, std::type_index>("float", typeid(float)));
-    sTypes.push_back(std::make_pair<std::string, std::type_index>("double", typeid(double)));
-    sTypes.push_back(std::make_pair<std::string, std::type_index>("string", typeid(std::string)));
+    sTypes.emplace_back(std::make_pair("void", std::type_index(typeid(void))));
+    sTypes.emplace_back(std::make_pair("bool", std::type_index(typeid(bool))));
+    sTypes.emplace_back(std::make_pair("int8", std::type_index(typeid(int8_t))));
+    sTypes.emplace_back(std::make_pair("int16", std::type_index(typeid(int16_t))));
+    sTypes.emplace_back(std::make_pair("int", std::type_index(typeid(int))));
+    sTypes.emplace_back(std::make_pair("int64", std::type_index(typeid(int64_t))));
+    sTypes.emplace_back(std::make_pair("uint8", std::type_index(typeid(uint8_t))));
+    sTypes.emplace_back(std::make_pair("uint16", std::type_index(typeid(uint16_t))));
+    sTypes.emplace_back(std::make_pair("uint", std::type_index(typeid(uint))));
+    sTypes.emplace_back(std::make_pair("uint64", std::type_index(typeid(uint64_t))));
+    sTypes.emplace_back(std::make_pair("float", std::type_index(typeid(float))));
+    sTypes.emplace_back(std::make_pair("double", std::type_index(typeid(double))));
+    sTypes.emplace_back(std::make_pair("string", std::type_index(typeid(std::string))));
 }
 
 void FunctionPtrHelper::registerFuncDef(asIScriptEngine& engine, const std::string& name, const std::string& ret, const std::vector<std::string>& params)
@@ -39,14 +39,14 @@ void FunctionPtrHelper::registerFuncDef(asIScriptEngine& engine, const std::stri
 
 void FunctionPtrHelper::registerType(const std::string &name, const std::type_index& type)
 {
-    sTypes.push_back(std::make_pair<std::string, std::type_index>(std::string(name), std::type_index(type)));
+    sTypes.emplace_back(std::make_pair(std::string(name), std::type_index(type)));
 }
 
 std::string FunctionPtrHelper::typeToName(const std::type_index& id, bool c, bool l, bool r)
 {
     for (auto i: sTypes) {
         if (i.second == id) {
-            std::string ret = "";
+            std::string ret;
             if (c) {
                 ret += "const ";
             }
@@ -78,7 +78,7 @@ FunctionPtrArgs::FunctionPtrArgs(asIScriptContext& ctx)
 
 FunctionPtrArgs& FunctionPtrArgs::operator<<(bool val)
 {
-    mContext.SetArgByte(mCurrent++, val);
+    mContext.SetArgByte(mCurrent++, (val) ? 1 : 0);
     return *this;
 }
 

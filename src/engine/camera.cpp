@@ -45,14 +45,14 @@ void Camera::moveTo(int dstX, int dstY, asIScriptFunction* fun)
 void Camera::process(uint64_t frameDiff, Map* map)
 {
     if (mTarget != nullptr && mTargetPos.x == -1 && mTargetPos.y == -1) {
-        mPos.x =  mTarget->x() + (mTarget->width() / 2) - (mDimen.width / 2);
-        mPos.y = mTarget->y() + (mTarget->height() * 0.75f) - (mDimen.height / 2);
+        mPos.x =  mTarget->x() + std::floor(mTarget->width() / 2) - std::floor(mDimen.width / 2);
+        mPos.y = mTarget->y() + std::floor(mTarget->height() * 0.75f) - std::floor(mDimen.height / 2);
     } else {
         float targetX = 0;
         float targetY = 0;
         if (mTarget != nullptr) {
-            targetX = mTarget->x() + (mTarget->width() / 2) - (mDimen.width / 2);
-            targetY = mTarget->y() + (mTarget->height() * 0.75f) - (mDimen.height / 2);
+            targetX = mTarget->x() + std::floor(mTarget->width() / 2) - std::floor(mDimen.width / 2);
+            targetY = mTarget->y() + std::floor(mTarget->height() * 0.75f) - std::floor(mDimen.height / 2);
         } else {
             targetX = mTargetPos.x;
             targetY = mTargetPos.y;

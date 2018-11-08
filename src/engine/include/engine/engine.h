@@ -53,8 +53,6 @@ private:
     bool mHasFocus;
     uint32_t mWidth;
     uint32_t mHeight;
-    uint32_t mCameraX;
-    uint32_t mCameraY;
 
     engine::FrameTimer mFrameTimer;
     engine::KeyList mDownKeys;

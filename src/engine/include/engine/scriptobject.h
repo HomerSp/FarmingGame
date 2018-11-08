@@ -6,9 +6,11 @@
 #include <angelscript.h>
 #include <functionptr.h>
 
+#define SCRIPT_METHOD(c, m) asSMethodPtr<sizeof(void (c::*)())>::Convert(reinterpret_cast<void (c::*)()>(&c::m))
+
 // Class, return type, function name, parameter types ...
-#define REGISTER_FUNC(e, c, r, n) ScriptObject::registerMethod<c>(e, FunctionPtrHelper::functionString<r>(#n), asMETHOD(c, n))
-#define REGISTER_FUNC_ARGS(e, c, r, n, ...) ScriptObject::registerMethod<c>(e, FunctionPtrHelper::functionString<r, __VA_ARGS__>(#n), asMETHOD(c, n))
+#define REGISTER_FUNC(e, c, r, n) ScriptObject::registerMethod<c>(e, FunctionPtrHelper::functionString<r>(#n), SCRIPT_METHOD(c, n))
+#define REGISTER_FUNC_ARGS(e, c, r, n, ...) ScriptObject::registerMethod<c>(e, FunctionPtrHelper::functionString<r, __VA_ARGS__>(#n), SCRIPT_METHOD(c, n))
 
 namespace engine {
 class ScriptObject {
@@ -49,7 +51,6 @@ protected:
 private:
     static void registerReference(asIScriptEngine* engine, const std::string& name);
 
-    asIScriptEngine* mEngine;
     asIScriptContext* mContext;
     int mRefs;
 };

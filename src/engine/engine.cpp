@@ -239,6 +239,8 @@ void Engine::setSize(int width, int height)
 
 void scriptMessageCallback(const asSMessageInfo *msg, void *param)
 {
+    ((void) param);
+
     std::stringstream stream;
     stream << "["
         << msg->section

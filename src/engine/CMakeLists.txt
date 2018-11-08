@@ -26,6 +26,7 @@ set(HEADERS
 	include/engine/scriptobject.h
 	include/engine/renderer.h
 	include/engine/tileset.h
+	include/engine/time.h
 	include/engine/types.h
 )
 
@@ -46,6 +47,7 @@ set(SOURCES
     renderer.cpp
     scriptobject.cpp
     tileset.cpp
+    time.cpp
     types.cpp   
 )
 

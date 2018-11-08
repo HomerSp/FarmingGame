@@ -16,8 +16,13 @@ Image::Image(const std::string& path)
     std::vector<unsigned char> data;
     std::vector<unsigned char> buffer;
 
-    lodepng::load_file(buffer, path);
-    lodepng::decode(data, mWidth, mHeight, buffer);
+    if (lodepng::load_file(buffer, path) == 0) {
+        return;
+    }
+
+    if (lodepng::decode(data, mWidth, mHeight, buffer) == 0) {
+        return;
+    }
 
     mData.reserve(data.size());
     for (uint32_t i = 0; i < data.size(); i += 4) {
