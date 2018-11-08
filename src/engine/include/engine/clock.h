@@ -13,19 +13,14 @@ class Clock : public ScriptObject {
 private:
     class ChangeListener : public Listeners::Listener {
     public:
-        ChangeListener(asIScriptFunction* fun, const std::string& format, bool once = false);
+        ChangeListener(asIScriptFunction* fun, const std::string& format);
 
         bool check(asIScriptContext& ctx, uint64_t val);
-
-        bool once() const {
-            return mOnce;
-        }
 
     protected:
         void parseBlock(const std::string& block);
 
     private:
-        bool mOnce;
         bool mTriggered;
         int mYear;
         int mMonth;

@@ -1,7 +1,8 @@
 #include <cstdlib>
 
-#include <engine/logger.h>
 #include <engine/clock.h>
+#include <engine/logger.h>
+#include <engine/time.h>
 
 using namespace engine;
 
@@ -84,13 +85,8 @@ void Clock::process(uint64_t frameDiff)
     mCurrent += 1.0f * (frameDiff / 500.0f);
 
     if (std::floor(mCurrent) != val) {
-        auto it = mChangeListeners.begin();
-        while (it != mChangeListeners.end()) {
-            if ((*it)->check(scriptContext(), mCurrent) && (*it)->once()) {
-                it = mChangeListeners.erase(it);
-            } else {
-                it++;
-            }
+        for(auto& i: mChangeListeners) {
+            i->check(scriptContext(), mCurrent);
         }
     }
 }
@@ -133,9 +129,8 @@ void Clock::registerClass(asIScriptEngine* engine)
     REGISTER_FUNC_ARGS(engine, Clock, void, on, const std::string, const std::string, ScriptCallback&&);
 }
 
-Clock::ChangeListener::ChangeListener(asIScriptFunction* fun, const std::string& format, bool once)
+Clock::ChangeListener::ChangeListener(asIScriptFunction* fun, const std::string& format)
     : Listener(fun)
-    , mOnce(once)
     , mTriggered(false)
     , mYear(-1)
     , mMonth(-1)
@@ -145,26 +140,22 @@ Clock::ChangeListener::ChangeListener(asIScriptFunction* fun, const std::string&
     , mHour(-1)
     , mMinute(-1)
 {
-    size_t start = 0;
-    if(format.find(',') != std::string::npos) {
-        size_t end = 0;
-        while((end = format.find(',', end)) != std::string::npos)
-        {
-            parseBlock(format.substr(start, end));
-            end++;
-            start = end;
-        }
-    }
+    std::unordered_map<Time::Type, int> data;
+    Time::parseString(format, data);
 
-    if (start != std::string::npos) {
-        parseBlock(format.substr(start));
-    }
+    mYear = (data.find(Time::Year) != data.end()) ? data.find(Time::Year)->second : -1;
+    mMonth = (data.find(Time::Month) != data.end()) ? data.find(Time::Month)->second : -1;
+    mDay = (data.find(Time::Day) != data.end()) ? data.find(Time::Day)->second : -1;
+    mWeek = (data.find(Time::Week) != data.end()) ? data.find(Time::Week)->second : -1;
+    mWeekDay = (data.find(Time::WeekDay) != data.end()) ? data.find(Time::WeekDay)->second : -1;
+    mHour = (data.find(Time::Hour) != data.end()) ? data.find(Time::Hour)->second : -1;
+    mMinute = (data.find(Time::Minute) != data.end()) ? data.find(Time::Minute)->second : -1;
 }
 
 bool Clock::ChangeListener::check(asIScriptContext& ctx, uint64_t val)
 {
     if (mYear != -1) {
-        int v = static_cast<int>(std::floor(val / 60 / 24 / 28 / 4));
+        auto v = static_cast<int>(std::floor(val / 60 / 24 / 28 / 4));
         if (mYear != v + 1) {
             mTriggered = false;
             return false;
@@ -172,7 +163,7 @@ bool Clock::ChangeListener::check(asIScriptContext& ctx, uint64_t val)
     }
 
     if (mMonth != -1) {
-        int v = static_cast<int>(std::floor(val / 60 / 24 / 28)) % 4;
+        auto v = static_cast<int>(std::floor(val / 60 / 24 / 28)) % 4;
         if (mMonth != v + 1) {
             mTriggered = false;
             return false;
@@ -180,7 +171,7 @@ bool Clock::ChangeListener::check(asIScriptContext& ctx, uint64_t val)
     }
 
     if (mDay != -1) {
-        int v = static_cast<int>(std::floor(val / 60 / 24)) % 28;
+        auto v = static_cast<int>(std::floor(val / 60 / 24)) % 28;
         if (mDay != v + 1) {
             mTriggered = false;
             return false;
@@ -188,7 +179,7 @@ bool Clock::ChangeListener::check(asIScriptContext& ctx, uint64_t val)
     }
 
     if (mWeek != -1) {
-        int v = static_cast<int>(std::floor(val / 60 / 24 / 7)) % 4;
+        auto v = static_cast<int>(std::floor(val / 60 / 24 / 7)) % 4;
         if (mWeek != v + 1) {
             mTriggered = false;
             return false;
@@ -196,7 +187,7 @@ bool Clock::ChangeListener::check(asIScriptContext& ctx, uint64_t val)
     }
 
     if (mWeekDay != -1) {
-        int v = static_cast<int>(std::floor(val / 60 / 24)) % 7;
+        auto v = static_cast<int>(std::floor(val / 60 / 24)) % 7;
         if (mWeekDay != v + 1) {
             mTriggered = false;
             return false;
@@ -204,7 +195,7 @@ bool Clock::ChangeListener::check(asIScriptContext& ctx, uint64_t val)
     }
 
     if (mHour != -1) {
-        int v = static_cast<int>(std::floor(val / 60)) % 24;
+        auto v = static_cast<int>(std::floor(val / 60)) % 24;
         if (mHour != v) {
             mTriggered = false;
             return false;
@@ -212,7 +203,7 @@ bool Clock::ChangeListener::check(asIScriptContext& ctx, uint64_t val)
     }
 
     if (mMinute != -1) {
-        int v = static_cast<int>(std::floor(val)) % 60;
+        auto v = static_cast<int>(std::floor(val)) % 60;
         if (mMinute != v) {
             mTriggered = false;
             return false;
@@ -226,28 +217,4 @@ bool Clock::ChangeListener::check(asIScriptContext& ctx, uint64_t val)
 
     mTriggered = true;
     return !t;
-}
-
-void Clock::ChangeListener::parseBlock(const std::string& block)
-{
-    char* end;
-    int v = strtol(block.data(), &end, 10);
-    if (end[0] != '\0') {
-        std::string type(end);
-        if(type == "y") {
-            mYear = v;
-        } else if(type == "mon") {
-            mMonth = v;
-        } else if(type == "d") {
-            mDay = v;
-        } else if(type == "w") {
-            mWeek = v;
-        } else if(type == "wd") {
-            mWeekDay = v;
-        } else if(type == "h") {
-            mHour = v;
-        } else if(type == "m") {
-            mMinute = v;
-        }
-    }
 }
