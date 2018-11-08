@@ -12,7 +12,9 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    std::ifstream input(argv[1]);
+    PtrCompat<char*, 3> args(argv, argc);
+
+    std::ifstream input(args[1]);
     if (!input) {
         return -1;
     }
@@ -20,9 +22,9 @@ int main(int argc, char* argv[])
     Json::Value doc;
     input >> doc;
 
-    Utils::createParentDir(argv[2]);
+    Utils::createParentDir(args[2]);
 
-    std::ofstream output(argv[2], std::ofstream::out);
+    std::ofstream output(args[2], std::ofstream::out);
     if (!output) {
         return -1;
     }

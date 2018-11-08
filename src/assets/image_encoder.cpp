@@ -11,13 +11,15 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    Utils::createParentDir(argv[2]);
+    PtrCompat<char*, 3> args(argv, argc);
+
+    Utils::createParentDir(args[2]);
 
     std::vector<unsigned char> imageData;
     unsigned w, h;
     std::vector<unsigned char> buffer;
 
-    lodepng::load_file(buffer, argv[1]);
+    lodepng::load_file(buffer, args[1]);
     if (lodepng::decode(imageData, w, h, buffer) != 0) {
         return -1;
     }
@@ -41,7 +43,7 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    lodepng::save_file(buffer, argv[2]);
+    lodepng::save_file(buffer, args[2]);
 
     return 0;
 }
