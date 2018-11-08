@@ -7,11 +7,17 @@
 #include <engine/camera.h>
 #include <engine/charset.h>
 #include <engine/image.h>
+#include <engine/listeners.h>
 #include <engine/map.h>
 #include <engine/renderer.h>
+#include <engine/scriptobject.h>
 
 namespace engine {
-class Character : public Camera::Target {
+class Character : public Camera::Target, public ScriptObject {
+private:
+    class MoveListener {
+
+    };
 public:
     struct Direction {
         typedef enum {
@@ -31,50 +37,21 @@ public:
     void reset();
     void velocity(uint64_t frameDiff, int8_t x, int8_t y);
 
-    virtual float x() const
-    {
-        return mPos.x;
-    }
-
-    virtual float y() const
-    {
-        return mPos.y;
-    }
-
-    virtual int width() const
-    {
-        return mCharset->width(mCharsetType);
-    }
-
-    virtual int height() const
-    {
-        return mCharset->height(mCharsetType);
-    }
+    virtual float x() const;
+    virtual float y() const;
+    virtual int width() const;
+    virtual int height() const;
 
     bool isMoving() const;
 
+    void moveTo(int x, int y, asIScriptFunction* fun = nullptr);
     void turnTo(Direction::Type direction);
 
     void setDirection(Direction::Type direction);
-    void setSpeed(float speed)
-    {
-        mSpeed = speed;
-    }
-
-    void setFriction(float friction)
-    {
-        mFriction = friction;
-    }
-
-    void setX(float x)
-    {
-        mPos.x = x;
-    }
-
-    void setY(float y)
-    {
-        mPos.y = y;
-    }
+    void setSpeed(float speed);
+    void setFriction(float friction);
+    void setX(float x);
+    void setY(float y);
 
     bool operator!() const
     {
@@ -82,7 +59,10 @@ public:
     }
 
 protected:
-    void updateVelocity(float& velocity, int8_t direction, float val);
+    void updateVelocity(float& velocity, int8_t direction, float val, bool hasTarget);
+
+    virtual std::string className();
+    virtual void registerClass();
 
 private:
     bool mValid;
@@ -99,6 +79,9 @@ private:
     float mSpeed;
     Types::PointF mPos;
     Types::PointF mVelocity;
+    Types::Point mTarget;
     float mFriction;
+
+    std::vector<std::shared_ptr<Listeners::MoveListener>> mMoveListeners;
 };
 }

@@ -39,6 +39,7 @@ public:
     // Scripting
     engine::Camera* camera();
     engine::Clock* clock();
+    engine::Character* hero();
 
 protected:
 	bool registerScript();

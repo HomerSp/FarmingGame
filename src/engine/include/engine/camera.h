@@ -1,5 +1,6 @@
 #pragma once
 
+#include <engine/listeners.h>
 #include <engine/map.h>
 #include <engine/scriptobject.h>
 #include <engine/types.h>
@@ -30,11 +31,13 @@ public:
     float x() const;
     float y() const;
 
-    void follow(Target* target, bool instant);
-    void moveTo(float dstX, float dstY, bool instant);
+    void follow(Target* target);
+    void moveTo(int dstX, int dstY, asIScriptFunction* fun = nullptr);
 
     void process(uint64_t frameDiff, Map* map);
 
+    void setPosition(int x, int y);
+    void setTarget(Target* target);
     void setViewport(const Types::Dimension& d);
 
 protected:
@@ -46,5 +49,7 @@ private:
     Types::PointF mTargetPos;
     Types::Dimension mDimen;
     Types::PointF mPos;
+
+    std::vector<std::shared_ptr<Listeners::MoveListener>> mMoveListeners;
 };
 }

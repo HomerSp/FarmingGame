@@ -10,11 +10,6 @@ ScriptObject::ScriptObject()
 {
 }
 
-ScriptObject::~ScriptObject()
-{
-    release();
-}
-
 void ScriptObject::registerContext(asIScriptContext* context)
 {
     mContext = context;
@@ -24,20 +19,6 @@ void ScriptObject::registerObject(asIScriptEngine* engine)
 {
     mEngine = engine;
     registerClass();
-}
-
-void ScriptObject::registerReference(asIScriptEngine* engine)
-{
-    mEngine = engine;
-    mEngine->RegisterObjectType(className().c_str(), 0, asOBJ_REF);
-    mEngine->RegisterObjectBehaviour(className().c_str(), asBEHAVE_ADDREF, "void f()", asMETHOD(ScriptObject, AddRef), asCALL_THISCALL);
-    mEngine->RegisterObjectBehaviour(className().c_str(), asBEHAVE_RELEASE, "void f()", asMETHOD(ScriptObject, ReleaseRef), asCALL_THISCALL);
-
-    registerClass();
-}
-
-void ScriptObject::release()
-{
 }
 
 asIScriptContext& ScriptObject::scriptContext()
@@ -72,6 +53,16 @@ void ScriptObject::registerType(ScriptObject& o)
     o.registerObject(mEngine);
 }
 
+void ScriptObject::registerReference(asIScriptEngine* engine, const std::string& name)
+{
+    mEngine = engine;
+    mEngine->RegisterObjectType(name.c_str(), 0, asOBJ_REF);
+    mEngine->RegisterObjectBehaviour(name.c_str(), asBEHAVE_ADDREF, "void f()", asMETHOD(ScriptObject, AddRef), asCALL_THISCALL);
+    mEngine->RegisterObjectBehaviour(name.c_str(), asBEHAVE_RELEASE, "void f()", asMETHOD(ScriptObject, ReleaseRef), asCALL_THISCALL);
+
+    registerClass();
+}
+
 void ScriptObject::AddRef()
 {
     mRefs++;
@@ -79,7 +70,5 @@ void ScriptObject::AddRef()
 
 void ScriptObject::ReleaseRef()
 {
-    if (mRefs-- <= 0) {
-        delete this;
-    }
+    mRefs--;
 }

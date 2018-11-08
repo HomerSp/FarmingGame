@@ -16,10 +16,10 @@ void FunctionPtrHelper::init()
     sTypes.push_back(std::make_pair<std::string, std::type_index>("uint64", typeid(uint64_t)));
     sTypes.push_back(std::make_pair<std::string, std::type_index>("float", typeid(float)));
     sTypes.push_back(std::make_pair<std::string, std::type_index>("double", typeid(double)));
-    sTypes.push_back(std::make_pair<std::string, std::type_index>("const string &in", typeid(std::string)));
+    sTypes.push_back(std::make_pair<std::string, std::type_index>("string", typeid(std::string)));
 }
 
-void FunctionPtrHelper::registerFuncDef(asIScriptEngine& engine, const std::string& name, const std::type_index& ret, const std::vector<std::type_index>& params)
+void FunctionPtrHelper::registerFuncDef(asIScriptEngine& engine, const std::string& name, const std::string& ret, const std::vector<std::string>& params)
 {
     std::stringstream paramStr;
     paramStr << "(";
@@ -28,25 +28,41 @@ void FunctionPtrHelper::registerFuncDef(asIScriptEngine& engine, const std::stri
             paramStr << ",";
         }
 
-        paramStr << FunctionPtrHelper::typeToName(i);
+        paramStr << i;
     }
 
     paramStr << ")";
 
-    std::string funcDef = FunctionPtrHelper::typeToName(ret) + " " + name + paramStr.str();
+    std::string funcDef = ret + " " + name + paramStr.str();
     engine.RegisterFuncdef(funcDef.c_str());
 }
 
 void FunctionPtrHelper::registerType(const std::string &name, const std::type_index& type)
 {
-    sTypes.push_back(std::make_pair<std::string, std::type_index>(std::string(name + "@"), std::type_index(type)));
+    sTypes.push_back(std::make_pair<std::string, std::type_index>(std::string(name), std::type_index(type)));
 }
 
-std::string FunctionPtrHelper::typeToName(const std::type_index& id)
+std::string FunctionPtrHelper::typeToName(const std::type_index& id, bool c, bool l, bool r)
 {
     for (auto i: sTypes) {
         if (i.second == id) {
-            return i.first;
+            std::string ret = "";
+            if (c) {
+                ret += "const ";
+            }
+
+            ret += i.first;
+            if (r) {
+                ret += "@";
+            } else if (l || c) {
+                ret += "&";
+            }
+
+            if (c) {
+                ret += "in";
+            }
+
+            return ret;
         }
     }
 

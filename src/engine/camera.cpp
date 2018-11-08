@@ -11,7 +11,6 @@ Camera::Camera(uint32_t width, uint32_t height)
     , mDimen(Types::Dimension(width, height))
     , mPos({0.0f, 0.0f})
 {
-
 }
 
 float Camera::x() const
@@ -24,71 +23,72 @@ float Camera::y() const
     return mPos.y;
 }
 
-void Camera::follow(Target* target, bool instant)
+void Camera::follow(Camera::Target* target)
 {
     mTarget = target;
-    if (instant && mTarget != nullptr) {
-        mPos.x = mPos.y = -1;
-    }
+    mTargetPos.x = 0;
+    mTargetPos.y = 0;
 }
 
-void Camera::moveTo(float dstX, float dstY, bool instant)
+void Camera::moveTo(int dstX, int dstY, asIScriptFunction* fun)
 {
-    mTarget = nullptr;
-    if (instant) {
-        mPos.x = dstX;
-        mPos.y = dstY;
-    } else {
-        mTargetPos.x = dstX;
-        mTargetPos.y = dstY;
+    if (fun != nullptr) {
+        mMoveListeners.push_back(std::make_shared<Listeners::MoveListener>(fun, dstX, dstY));
     }
+
+    mTarget = nullptr;
+    mTargetPos.x = dstX;
+    mTargetPos.y = dstY;
 }
 
 void Camera::process(uint64_t frameDiff, Map* map)
 {
-    float targetX, targetY;
-    if (mTarget != nullptr) {
-        targetX = mTarget->x() - std::floor((mDimen.width / 2) + (mTarget->width() / 2));
-        targetY = mTarget->y() - std::floor((mDimen.height / 2) + (mTarget->height() / 2));
+    if (mTarget != nullptr && mTargetPos.x == -1 && mTargetPos.y == -1) {
+        mPos.x = mTarget->x() - std::floor((mDimen.width / 2) + (mTarget->width() / 2));
+        mPos.y = mTarget->y() - std::floor((mDimen.height / 2) + (mTarget->height() / 2));
     } else {
-        targetX = mTargetPos.x;
-        targetY = mTargetPos.y;
-        if (mPos.x == targetX && mPos.y == targetY) {
-            return;
+        float targetX = 0;
+        float targetY = 0;
+        if (mTarget != nullptr) {
+            targetX = mTarget->x() - std::floor((mDimen.width / 2) + (mTarget->width() / 2));
+            targetY = mTarget->y() - std::floor((mDimen.height / 2) + (mTarget->height() / 2));
+        } else {
+            targetX = mTargetPos.x;
+            targetY = mTargetPos.y;
         }
-    }
 
-    if (mPos.x < 0 && mPos.y < 0) {
-        mPos.x = targetX;
-        mPos.y = targetY;
-    }
-
-    float val = 1.0f * (frameDiff / 2.0f);
-    if (mPos.x < targetX) {
-        if (mPos.x + val >= targetX) {
+        if (mPos.x < 0 && mPos.y < 0) {
             mPos.x = targetX;
-        } else {
-            mPos.x += val;
+            mPos.y = targetY;
         }
-    } else if (mPos.x > targetX) {
-        if (mPos.x - val <= targetX) {
-            mPos.x = targetX;
-        } else {
-            mPos.x -= val;
-        }
-    }
 
-    if (mPos.y < targetY) {
-        if (mPos.y + val >= targetY) {
-            mPos.y = targetY;
-        } else {
-            mPos.y += val;
+        float val = 1.0f * (frameDiff / 20.0f);
+        if (mPos.x < targetX) {
+            if (mPos.x + val >= targetX) {
+                mPos.x = targetX;
+            } else {
+                mPos.x += val;
+            }
+        } else if (mPos.x > targetX) {
+            if (mPos.x - val <= targetX) {
+                mPos.x = targetX;
+            } else {
+                mPos.x -= val;
+            }
         }
-    } else if (mPos.y > targetY) {
-        if (mPos.y - val <= targetY) {
-            mPos.y = targetY;
-        } else {
-            mPos.y -= val;
+
+        if (mPos.y < targetY) {
+            if (mPos.y + val >= targetY) {
+                mPos.y = targetY;
+            } else {
+                mPos.y += val;
+            }
+        } else if (mPos.y > targetY) {
+            if (mPos.y - val <= targetY) {
+                mPos.y = targetY;
+            } else {
+                mPos.y -= val;
+            }
         }
     }
 
@@ -102,6 +102,35 @@ void Camera::process(uint64_t frameDiff, Map* map)
         mPos.y = 0;
     } else if (mPos.y > map->pixelHeight() - mDimen.height) {
         mPos.y = map->pixelHeight() - mDimen.height;
+    }
+
+    auto it = mMoveListeners.begin();
+    while(it != mMoveListeners.end()) {
+        if ((*it)->check(scriptContext(), mPos.x, mPos.y)) {
+            it = mMoveListeners.erase(it);
+        } else {
+            it++;
+        }
+    }
+}
+
+void Camera::setPosition(int x, int y)
+{
+    mTarget = nullptr;
+    mTargetPos.x = -1;
+    mTargetPos.y = -1;
+    mPos.x = x;
+    mPos.y = y;
+}
+
+void Camera::setTarget(Camera::Target* target)
+{
+    mTarget = target;
+    mTargetPos.x = -1;
+    mTargetPos.y = -1;
+    if (mTarget != nullptr) {
+        mPos.x = -1;
+        mPos.y = -1;
     }
 }
 
@@ -117,7 +146,8 @@ std::string Camera::className()
 
 void Camera::registerClass()
 {
-    registerMethod(FunctionPtrHelper::functionString<float>("x"), asMETHOD(Camera, x));
-    registerMethod(FunctionPtrHelper::functionString<float>("y"), asMETHOD(Camera, y));
-    registerMethod(FunctionPtrHelper::functionString<void, float, float, bool>("moveTo"), asMETHOD(Camera, moveTo));
+    registerMethod(SCRIPT_FUNC(Camera, float, x));
+    registerMethod(SCRIPT_FUNC(Camera, float, y));
+    registerMethod(SCRIPT_FUNC_ARGS(Camera, void, moveTo, int, int));
+    registerMethod(SCRIPT_FUNC_ARGS(Camera, void, moveTo, int, int, ScriptCallback&&));
 }

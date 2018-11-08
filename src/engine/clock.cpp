@@ -5,119 +5,6 @@
 
 using namespace engine;
 
-ClockListenerArg::ClockListenerArg(const std::string& format)
-    : mTriggered(false)
-    , mYear(-1)
-    , mMonth(-1)
-    , mDay(-1)
-    , mWeek(-1)
-    , mWeekDay(-1)
-    , mHour(-1)
-    , mMinute(-1)
-{
-    size_t start = 0;
-    if(format.find(',') != std::string::npos) {
-        size_t end = 0;
-        while((end = format.find(',', end)) != std::string::npos)
-        {
-            parseBlock(format.substr(start, end));
-            end++;
-            start = end;
-        }
-    }
-
-    if (start != std::string::npos) {
-        parseBlock(format.substr(start));
-    }
-}
-
-bool ClockListenerArg::operator==(double val)
-{
-    if (mYear != -1) {
-        int v = static_cast<int>(std::floor(val / 60 / 24 / 28 / 4));
-        if (mYear != v + 1) {
-            mTriggered = false;
-            return false;
-        }
-    }
-
-    if (mMonth != -1) {
-        int v = static_cast<int>(std::floor(val / 60 / 24 / 28)) % 4;
-        if (mMonth != v + 1) {
-            mTriggered = false;
-            return false;
-        }
-    }
-
-    if (mDay != -1) {
-        int v = static_cast<int>(std::floor(val / 60 / 24)) % 28;
-        if (mDay != v + 1) {
-            mTriggered = false;
-            return false;
-        }
-    }
-
-    if (mWeek != -1) {
-        int v = static_cast<int>(std::floor(val / 60 / 24 / 7)) % 4;
-        if (mWeek != v + 1) {
-            mTriggered = false;
-            return false;
-        }
-    }
-
-    if (mWeekDay != -1) {
-        int v = static_cast<int>(std::floor(val / 60 / 24)) % 7;
-        if (mWeekDay != v + 1) {
-            mTriggered = false;
-            return false;
-        }
-    }
-
-    if (mHour != -1) {
-        int v = static_cast<int>(std::floor(val / 60)) % 24;
-        if (mHour != v) {
-            mTriggered = false;
-            return false;
-        }
-    }
-
-    if (mMinute != -1) {
-        int v = static_cast<int>(std::floor(val)) % 60;
-        if (mMinute != v) {
-            mTriggered = false;
-            return false;
-        }
-    }
-
-    bool t = mTriggered;
-    mTriggered = true;
-    return !t;
-}
-
-void ClockListenerArg::parseBlock(const std::string& block)
-{
-    char* end;
-    int v = strtol(block.data(), &end, 10);
-    if (end[0] != '\0') {
-        std::string type(end);
-        if(type == "y") {
-            mYear = v;
-        } else if(type == "mon") {
-            mMonth = v;
-        } else if(type == "d") {
-            mDay = v;
-        } else if(type == "w") {
-            mWeek = v;
-        } else if(type == "wd") {
-            mWeekDay = v;
-        } else if(type == "h") {
-            mHour = v;
-        } else if(type == "m") {
-            mMinute = v;
-        }
-    }
-}
-
 Clock::Clock()
     : mCurrent(0.0f)
     , mDawn(6)
@@ -125,15 +12,6 @@ Clock::Clock()
     , mSunset(18)
     , mDusk(20)
 {
-}
-
-void Clock::release()
-{
-    for(auto p: mChangeListeners) {
-        p.second->release();
-    }
-
-    mChangeListeners.clear();
 }
 
 uint32_t Clock::year() const
@@ -206,9 +84,12 @@ void Clock::process(uint64_t frameDiff)
     mCurrent += 1.0f * (frameDiff / 500.0f);
 
     if (std::floor(mCurrent) != val) {
-        for (auto &p: mChangeListeners) {
-            if (p.first == mCurrent) {
-                p.second->call(scriptContext());
+        auto it = mChangeListeners.begin();
+        while (it != mChangeListeners.end()) {
+            if ((*it)->check(scriptContext(), mCurrent) && (*it)->once()) {
+                it = mChangeListeners.erase(it);
+            } else {
+                it++;
             }
         }
     }
@@ -225,10 +106,13 @@ void Clock::setTime(int h, int m)
     mCurrent += (v - c);
 }
 
-void Clock::addListener(const std::string& type, const std::string& format, asIScriptFunction* func)
+void Clock::on(const std::string& type, const std::string& format, asIScriptFunction* func)
 {
-    auto ptr = FunctionPtr<>::get<ClockChangeListener>(func);
-    mChangeListeners.push_back(std::make_pair(format, ptr));
+    if (type == "change") {
+        mChangeListeners.push_back(std::make_shared<ChangeListener>(func, format));
+    } else {
+        Logger::warning() << "Clock on unknown trigger" << type;
+    }
 }
 
 std::string Clock::className()
@@ -238,14 +122,131 @@ std::string Clock::className()
 
 void Clock::registerClass()
 {
-    registerMethod(FunctionPtrHelper::functionString<uint>("year"), asMETHOD(Clock, year));
-    registerMethod(FunctionPtrHelper::functionString<uint>("month"), asMETHOD(Clock, month));
-    registerMethod(FunctionPtrHelper::functionString<uint>("day"), asMETHOD(Clock, day));
-    registerMethod(FunctionPtrHelper::functionString<uint>("week"), asMETHOD(Clock, week));
-    registerMethod(FunctionPtrHelper::functionString<uint>("weekDay"), asMETHOD(Clock, weekDay));
-    registerMethod(FunctionPtrHelper::functionString<uint>("hour"), asMETHOD(Clock, hour));
-    registerMethod(FunctionPtrHelper::functionString<uint>("minute"), asMETHOD(Clock, minute));
+    registerMethod(SCRIPT_FUNC(Clock, uint, year));
+    registerMethod(SCRIPT_FUNC(Clock, uint, month));
+    registerMethod(SCRIPT_FUNC(Clock, uint, day));
+    registerMethod(SCRIPT_FUNC(Clock, uint, week));
+    registerMethod(SCRIPT_FUNC(Clock, uint, weekDay));
+    registerMethod(SCRIPT_FUNC(Clock, uint, hour));
+    registerMethod(SCRIPT_FUNC(Clock, uint, minute));
+    registerMethod(SCRIPT_FUNC_ARGS(Clock, void, on, const std::string, const std::string, ScriptCallback&&));
+}
 
-    registerCallback<ClockChangeListener>();
-    registerMethod(FunctionPtrHelper::functionString<void, const std::string&, const std::string&, ClockChangeListener&>("on"), asMETHOD(Clock, addListener));
+Clock::ChangeListener::ChangeListener(asIScriptFunction* fun, const std::string& format, bool once)
+    : Listener(fun)
+    , mOnce(once)
+    , mTriggered(false)
+    , mYear(-1)
+    , mMonth(-1)
+    , mDay(-1)
+    , mWeek(-1)
+    , mWeekDay(-1)
+    , mHour(-1)
+    , mMinute(-1)
+{
+    size_t start = 0;
+    if(format.find(',') != std::string::npos) {
+        size_t end = 0;
+        while((end = format.find(',', end)) != std::string::npos)
+        {
+            parseBlock(format.substr(start, end));
+            end++;
+            start = end;
+        }
+    }
+
+    if (start != std::string::npos) {
+        parseBlock(format.substr(start));
+    }
+}
+
+bool Clock::ChangeListener::check(asIScriptContext& ctx, uint64_t val)
+{
+    if (mYear != -1) {
+        int v = static_cast<int>(std::floor(val / 60 / 24 / 28 / 4));
+        if (mYear != v + 1) {
+            mTriggered = false;
+            return false;
+        }
+    }
+
+    if (mMonth != -1) {
+        int v = static_cast<int>(std::floor(val / 60 / 24 / 28)) % 4;
+        if (mMonth != v + 1) {
+            mTriggered = false;
+            return false;
+        }
+    }
+
+    if (mDay != -1) {
+        int v = static_cast<int>(std::floor(val / 60 / 24)) % 28;
+        if (mDay != v + 1) {
+            mTriggered = false;
+            return false;
+        }
+    }
+
+    if (mWeek != -1) {
+        int v = static_cast<int>(std::floor(val / 60 / 24 / 7)) % 4;
+        if (mWeek != v + 1) {
+            mTriggered = false;
+            return false;
+        }
+    }
+
+    if (mWeekDay != -1) {
+        int v = static_cast<int>(std::floor(val / 60 / 24)) % 7;
+        if (mWeekDay != v + 1) {
+            mTriggered = false;
+            return false;
+        }
+    }
+
+    if (mHour != -1) {
+        int v = static_cast<int>(std::floor(val / 60)) % 24;
+        if (mHour != v) {
+            mTriggered = false;
+            return false;
+        }
+    }
+
+    if (mMinute != -1) {
+        int v = static_cast<int>(std::floor(val)) % 60;
+        if (mMinute != v) {
+            mTriggered = false;
+            return false;
+        }
+    }
+
+    bool t = mTriggered;
+    if (!t) {
+        call(ctx);
+    }
+
+    mTriggered = true;
+    return !t;
+}
+
+void Clock::ChangeListener::parseBlock(const std::string& block)
+{
+    char* end;
+    int v = strtol(block.data(), &end, 10);
+    if (end[0] != '\0') {
+        std::string type(end);
+        if(type == "y") {
+            mYear = v;
+        } else if(type == "mon") {
+            mMonth = v;
+        } else if(type == "d") {
+            mDay = v;
+        } else if(type == "w") {
+            mWeek = v;
+        } else if(type == "wd") {
+            mWeekDay = v;
+        } else if(type == "h") {
+            mHour = v;
+        } else if(type == "m") {
+            mMinute = v;
+        }
+    }
 }

@@ -20,6 +20,7 @@ set(HEADERS
 	include/engine/frametimer.h
 	include/engine/image.h
 	include/engine/keys.h
+	include/engine/listeners.h
 	include/engine/logger.h
 	include/engine/map.h
 	include/engine/scriptobject.h
@@ -39,6 +40,7 @@ set(SOURCES
 	frametimer.cpp
 	image.cpp
 	keys.cpp
+	listeners.cpp
     logger.cpp
     map.cpp
     renderer.cpp

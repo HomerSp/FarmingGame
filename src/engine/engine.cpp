@@ -30,7 +30,7 @@ Engine::Engine(uint32_t width, uint32_t height)
     mHero->setX(std::floor((mMap->pixelWidth() - mHero->width()) / 2));
     mHero->setY(std::floor((mMap->pixelHeight() - mHero->height()) / 2));
 
-    mCamera->follow(mHero.get(), true);
+    mCamera->setTarget(mHero.get());
     mClock->setTime(8, 0);
 
     registerScript();
@@ -38,15 +38,20 @@ Engine::Engine(uint32_t width, uint32_t height)
 
 Engine::~Engine()
 {
-    mClock->release();
-
+    Logger::debug() << "~Engine";
     if(mScriptContext != nullptr) {
         mScriptContext->Release();
     }
 
+    mCamera.reset();
+    mClock.reset();
+    mHero.reset();
+
     if(mScriptEngine != nullptr) {
         mScriptEngine->ShutDownAndRelease();
     }
+
+    Logger::debug() << "~Engine done";
 }
 
 int Engine::bufferWidth() const
@@ -260,11 +265,14 @@ bool Engine::registerScript()
     RegisterStdString(mScriptEngine);
     RegisterScriptHandle(mScriptEngine);
 
-    mCamera->registerReference(mScriptEngine);
-    mClock->registerReference(mScriptEngine);
+    registerCallback<ScriptCallback>(mScriptEngine);
+
+    mCamera->registerReference<Camera>(mScriptEngine);
+    mClock->registerReference<Clock>(mScriptEngine);
+    mHero->registerReference<Character>(mScriptEngine);
 
     // This needs to be done after all other types have been registered.
-    registerReference(mScriptEngine);
+    registerReference<Engine>(mScriptEngine);
 
     mScriptEngine->RegisterGlobalFunction("void print(const string &in)", asFUNCTION(Logger::scriptPrint), asCALL_CDECL);
 
@@ -299,7 +307,9 @@ bool Engine::registerScript()
     mScriptContext = mScriptEngine->CreateContext();
     mScriptContext->Prepare(func);
 
+    mCamera->registerContext(mScriptContext);
     mClock->registerContext(mScriptContext);
+    mHero->registerContext(mScriptContext);
     
     int r = mScriptContext->Execute();
     if (r == asEXECUTION_EXCEPTION) {
@@ -317,8 +327,9 @@ std::string Engine::className()
 
 void Engine::registerClass()
 {
-    registerMethod("Camera &camera()", asMETHOD(Engine, camera));
-    registerMethod("Clock &clock()", asMETHOD(Engine, clock));
+    registerMethod(SCRIPT_FUNC(Engine, Camera&, camera));
+    registerMethod(SCRIPT_FUNC(Engine, Clock&, clock));
+    registerMethod(SCRIPT_FUNC(Engine, Character&, hero));
     registerInstance("engine");
 }
 
@@ -330,4 +341,9 @@ engine::Camera* Engine::camera()
 engine::Clock* Engine::clock()
 {
     return mClock.get();
+}
+
+engine::Character* Engine::hero()
+{
+    return mHero.get();
 }

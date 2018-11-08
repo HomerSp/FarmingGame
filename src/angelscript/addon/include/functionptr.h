@@ -1,5 +1,6 @@
 #pragma once
 
+#include <functional>
 #include <sstream>
 #include <memory>
 #include <typeindex>
@@ -14,11 +15,6 @@ struct FunctionPtrCallback {
 template<typename ...Ts>
 class FunctionPtr {
 public:
-    template<typename T2>
-    static std::shared_ptr<FunctionPtr<Ts...>> get(asIScriptFunction* fun);
-
-    static void registerFuncDef(asIScriptEngine& engine, const std::string& name, const std::type_index& type);
-
     const std::string& name() const
     {
         return mName;
@@ -51,15 +47,26 @@ class FunctionPtrHelper {
 public:
     static void init();
 
+    template<typename T2, typename ...Ts>
+    static std::shared_ptr<FunctionPtr<Ts...>> get(asIScriptFunction* fun);
+
     template<class R, typename ...Ts>
     static std::string functionString(const std::string& name);
 
-    static void registerFuncDef(asIScriptEngine& engine, const std::string& name, const std::type_index& ret, const std::vector<std::type_index>& params);
+    template<typename ...T>
+    static void registerFuncDef(asIScriptEngine& engine, const std::string& name, const std::type_index& type);
+    static void registerFuncDef(asIScriptEngine& engine, const std::string& name, const std::string& ret, const std::vector<std::string>& params);
     static void registerType(const std::string &name, const std::type_index& type);
 
-    static std::string typeToName(const std::type_index& id);
+    template<typename ...Ts>
+    static void typesToNames(std::vector<std::string>& out);
+
+    template<class T>
+    static std::string typeToName();
 
 private:
+    static std::string typeToName(const std::type_index& id, bool c, bool l, bool r);
+
     static std::vector<std::pair<std::string, std::type_index>> sTypes;
 };
 
@@ -121,29 +128,32 @@ void FunctionPtr<Ts...>::release()
     }
 }
 
-template<typename ...Ts>
-template<typename T2>
-std::shared_ptr<FunctionPtr<Ts...>> FunctionPtr<Ts...>::get(asIScriptFunction* fun)
+template<typename T2, typename ...Ts>
+std::shared_ptr<FunctionPtr<Ts...>> FunctionPtrHelper::get(asIScriptFunction* fun)
 {
-    std::string name(T2::name());
+    std::string name(T2::className());
     return std::make_shared<FunctionPtrMaker<Ts...>>(name, fun);
 }
 
 template<typename ...Ts>
-void FunctionPtr<Ts...>::registerFuncDef(asIScriptEngine& engine, const std::string& name, const std::type_index& type)
+void FunctionPtrHelper::registerFuncDef(asIScriptEngine& engine, const std::string& name, const std::type_index& type)
 {
-    std::vector<std::type_index> types;
-    types.insert(types.end(), {typeid(Ts)...});
+    std::vector<std::string> types;
+    FunctionPtrHelper::typesToNames<Ts...>(types);
+
+    std::string ret = FunctionPtrHelper::typeToName<void>();
     
     FunctionPtrHelper::registerType(name, type);
-    FunctionPtrHelper::registerFuncDef(engine, name, typeid(void), types);
+    FunctionPtrHelper::registerFuncDef(engine, name, ret, types);
 }
 
 template<class R, typename ...Ts>
 std::string FunctionPtrHelper::functionString(const std::string& name)
 {
-    std::vector<std::type_index> types;
-    types.insert(types.end(), {typeid(Ts)...});
+    std::string r = FunctionPtrHelper::typeToName<R>();
+
+    std::vector<std::string> types;
+    FunctionPtrHelper::typesToNames<Ts...>(types);
     
     std::stringstream params;
     params << "(";
@@ -151,15 +161,37 @@ std::string FunctionPtrHelper::functionString(const std::string& name)
         if (params.tellp() > 1) {
             params << ", ";
         }
-        params << FunctionPtrHelper::typeToName(i);
+        params << i;
     }
     params << ")";
 
     std::stringstream ret;
-    ret << typeToName(typeid(R))
+    ret << r
         << " "
         << name
         << params.str();
     
     return ret.str();
+}
+
+template<typename ...Ts>
+void FunctionPtrHelper::typesToNames(std::vector<std::string>& out)
+{
+    std::vector<std::type_index> types;
+    types.insert(types.end(), {typeid(Ts)...});
+
+    std::vector<bool> cs, ls, rs;
+    cs.insert(cs.end(), {std::is_const<Ts>::value...});
+    ls.insert(ls.end(), {std::is_lvalue_reference<Ts>::value...});
+    rs.insert(rs.end(), {std::is_rvalue_reference<Ts>::value...});
+
+    for(uint32_t i = 0; i < types.size(); i++) {
+        out.push_back(typeToName(types[i], cs[i], ls[i], rs[i]));
+    }
+}
+
+template<class T>
+std::string FunctionPtrHelper::typeToName()
+{
+    return typeToName(typeid(T), std::is_const<T>::value, std::is_lvalue_reference<T>::value, std::is_rvalue_reference<T>::value);
 }
