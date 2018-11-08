@@ -59,9 +59,8 @@ public:
     // Scripting
     void on(const std::string& type, const std::string& format, asIScriptFunction* func);
 
-protected:
-    virtual std::string className();
-    virtual void registerClass();
+    void registerClass(asIScriptEngine* engine);
+    static std::string className();
 
 private:
     double mCurrent;

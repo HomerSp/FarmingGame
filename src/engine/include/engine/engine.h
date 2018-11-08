@@ -41,11 +41,13 @@ public:
     engine::Clock* clock();
     engine::Character* hero();
 
+    static std::string className();
+
 protected:
 	bool registerScript();
-
-	virtual std::string className();
-    virtual void registerClass();
+	void registerGeneric();
+	void registerClass();
+	void registerContext();
 
 private:
     bool mHasFocus;

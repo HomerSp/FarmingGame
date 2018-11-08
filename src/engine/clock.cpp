@@ -120,16 +120,17 @@ std::string Clock::className()
     return "Clock";
 }
 
-void Clock::registerClass()
+void Clock::registerClass(asIScriptEngine* engine)
 {
-    registerMethod(SCRIPT_FUNC(Clock, uint, year));
-    registerMethod(SCRIPT_FUNC(Clock, uint, month));
-    registerMethod(SCRIPT_FUNC(Clock, uint, day));
-    registerMethod(SCRIPT_FUNC(Clock, uint, week));
-    registerMethod(SCRIPT_FUNC(Clock, uint, weekDay));
-    registerMethod(SCRIPT_FUNC(Clock, uint, hour));
-    registerMethod(SCRIPT_FUNC(Clock, uint, minute));
-    registerMethod(SCRIPT_FUNC_ARGS(Clock, void, on, const std::string, const std::string, ScriptCallback&&));
+    registerReference<Clock>(engine);
+    REGISTER_FUNC(engine, Clock, uint, year);
+    REGISTER_FUNC(engine, Clock, uint, month);
+    REGISTER_FUNC(engine, Clock, uint, day);
+    REGISTER_FUNC(engine, Clock, uint, week);
+    REGISTER_FUNC(engine, Clock, uint, weekDay);
+    REGISTER_FUNC(engine, Clock, uint, hour);
+    REGISTER_FUNC(engine, Clock, uint, minute);
+    REGISTER_FUNC_ARGS(engine, Clock, void, on, const std::string, const std::string, ScriptCallback&&);
 }
 
 Clock::ChangeListener::ChangeListener(asIScriptFunction* fun, const std::string& format, bool once)

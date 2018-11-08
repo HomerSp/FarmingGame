@@ -281,10 +281,11 @@ std::string Character::className()
     return "Character";
 }
 
-void Character::registerClass()
+void Character::registerClass(asIScriptEngine* engine)
 {
-    registerMethod(SCRIPT_FUNC(Character, float, x));
-    registerMethod(SCRIPT_FUNC(Character, float, y));
-    registerMethod(SCRIPT_FUNC_ARGS(Character, void, moveTo, int, int));
-    registerMethod(SCRIPT_FUNC_ARGS(Character, void, moveTo, int, int, ScriptCallback&&));
+    registerReference<Character>(engine);
+    REGISTER_FUNC(engine, Character, float, x);
+    REGISTER_FUNC(engine, Character, float, y);
+    REGISTER_FUNC_ARGS(engine, Character, void, moveTo, int, int);
+    REGISTER_FUNC_ARGS(engine, Character, void, moveTo, int, int, ScriptCallback&&);
 }

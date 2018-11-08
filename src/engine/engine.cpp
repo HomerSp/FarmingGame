@@ -265,14 +265,13 @@ bool Engine::registerScript()
     RegisterStdString(mScriptEngine);
     RegisterScriptHandle(mScriptEngine);
 
-    registerCallback<ScriptCallback>(mScriptEngine);
-
-    mCamera->registerReference<Camera>(mScriptEngine);
-    mClock->registerReference<Clock>(mScriptEngine);
-    mHero->registerReference<Character>(mScriptEngine);
+    registerGeneric();
+    mClock->registerClass(mScriptEngine);
+    mHero->registerClass(mScriptEngine);
+    mCamera->registerClass(mScriptEngine);
 
     // This needs to be done after all other types have been registered.
-    registerReference<Engine>(mScriptEngine);
+    registerClass();
 
     mScriptEngine->RegisterGlobalFunction("void print(const string &in)", asFUNCTION(Logger::scriptPrint), asCALL_CDECL);
 
@@ -306,11 +305,8 @@ bool Engine::registerScript()
     // Create our context, prepare it, and then execute
     mScriptContext = mScriptEngine->CreateContext();
     mScriptContext->Prepare(func);
+    registerContext();
 
-    mCamera->registerContext(mScriptContext);
-    mClock->registerContext(mScriptContext);
-    mHero->registerContext(mScriptContext);
-    
     int r = mScriptContext->Execute();
     if (r == asEXECUTION_EXCEPTION) {
         Logger::error() << "An exception" << mScriptContext->GetExceptionString() << "occurred. Please correct the code and try again.";
@@ -325,12 +321,25 @@ std::string Engine::className()
     return "Engine";
 }
 
+void Engine::registerGeneric()
+{
+    ScriptObject::registerCallback<ScriptCallback>(mScriptEngine);
+}
+
 void Engine::registerClass()
 {
-    registerMethod(SCRIPT_FUNC(Engine, Camera&, camera));
-    registerMethod(SCRIPT_FUNC(Engine, Clock&, clock));
-    registerMethod(SCRIPT_FUNC(Engine, Character&, hero));
-    registerInstance("engine");
+    registerReference<Engine>(mScriptEngine);
+    REGISTER_FUNC(mScriptEngine, Engine, Camera&, camera);
+    REGISTER_FUNC(mScriptEngine, Engine, Clock&, clock);
+    REGISTER_FUNC(mScriptEngine, Engine, Character&, hero);
+    registerInstance<Engine>(mScriptEngine, "engine", this);
+}
+
+void Engine::registerContext()
+{
+    mCamera->setContext(mScriptContext);
+    mClock->setContext(mScriptContext);
+    mHero->setContext(mScriptContext);
 }
 
 engine::Camera* Engine::camera()

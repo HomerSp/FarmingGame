@@ -24,6 +24,11 @@ public:
         {
             return 0;
         }
+
+        static std::string className()
+        {
+            return "CameraTarget";
+        }
     };
 
     Camera(uint32_t width, uint32_t height);
@@ -40,9 +45,8 @@ public:
     void setTarget(Target* target);
     void setViewport(const Types::Dimension& d);
 
-protected:
-    virtual std::string className();
-    virtual void registerClass();
+    void registerClass(asIScriptEngine* engine);
+    static std::string className();
 
 private:
     Target* mTarget;

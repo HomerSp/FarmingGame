@@ -58,11 +58,11 @@ public:
         return !mValid;
     }
 
+    void registerClass(asIScriptEngine* engine);
+    static std::string className();
+
 protected:
     void updateVelocity(float& velocity, int8_t direction, float val, bool hasTarget);
-
-    virtual std::string className();
-    virtual void registerClass();
 
 private:
     bool mValid;

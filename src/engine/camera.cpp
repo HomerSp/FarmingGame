@@ -1,6 +1,7 @@
 #include <cmath>
 
 #include <engine/camera.h>
+#include <engine/character.h>
 #include <engine/logger.h>
 
 using namespace engine;
@@ -44,14 +45,14 @@ void Camera::moveTo(int dstX, int dstY, asIScriptFunction* fun)
 void Camera::process(uint64_t frameDiff, Map* map)
 {
     if (mTarget != nullptr && mTargetPos.x == -1 && mTargetPos.y == -1) {
-        mPos.x = mTarget->x() - std::floor((mDimen.width / 2) + (mTarget->width() / 2));
-        mPos.y = mTarget->y() - std::floor((mDimen.height / 2) + (mTarget->height() / 2));
+        mPos.x =  mTarget->x() + (mTarget->width() / 2) - (mDimen.width / 2);
+        mPos.y = mTarget->y() + (mTarget->height() * 0.75f) - (mDimen.height / 2);
     } else {
         float targetX = 0;
         float targetY = 0;
         if (mTarget != nullptr) {
-            targetX = mTarget->x() - std::floor((mDimen.width / 2) + (mTarget->width() / 2));
-            targetY = mTarget->y() - std::floor((mDimen.height / 2) + (mTarget->height() / 2));
+            targetX = mTarget->x() + (mTarget->width() / 2) - (mDimen.width / 2);
+            targetY = mTarget->y() + (mTarget->height() * 0.75f) - (mDimen.height / 2);
         } else {
             targetX = mTargetPos.x;
             targetY = mTargetPos.y;
@@ -90,18 +91,27 @@ void Camera::process(uint64_t frameDiff, Map* map)
                 mPos.y -= val;
             }
         }
+
+        if (mPos.x == targetX && mPos.y == targetY) {
+            mTargetPos.x = -1;
+            mTargetPos.y = -1;
+        }
     }
 
     if (mPos.x < 0) {
         mPos.x = 0;
+        mTargetPos.x = -1;
     } else if (mPos.x > map->pixelWidth() - mDimen.width) {
         mPos.x = map->pixelWidth() - mDimen.width;
+        mTargetPos.x = -1;
     }
 
     if (mPos.y < 0) {
         mPos.y = 0;
+        mTargetPos.y = -1;
     } else if (mPos.y > map->pixelHeight() - mDimen.height) {
         mPos.y = map->pixelHeight() - mDimen.height;
+        mTargetPos.y = -1;
     }
 
     auto it = mMoveListeners.begin();
@@ -144,10 +154,14 @@ std::string Camera::className()
     return "Camera";
 }
 
-void Camera::registerClass()
+void Camera::registerClass(asIScriptEngine* engine)
 {
-    registerMethod(SCRIPT_FUNC(Camera, float, x));
-    registerMethod(SCRIPT_FUNC(Camera, float, y));
-    registerMethod(SCRIPT_FUNC_ARGS(Camera, void, moveTo, int, int));
-    registerMethod(SCRIPT_FUNC_ARGS(Camera, void, moveTo, int, int, ScriptCallback&&));
+    registerReference<Camera>(engine);
+    registerType<Camera::Target>(engine);
+    REGISTER_FUNC(engine, Camera, float, x);
+    REGISTER_FUNC(engine, Camera, float, y);
+    REGISTER_FUNC_ARGS(engine, Camera, void, moveTo, int, int);
+    REGISTER_FUNC_ARGS(engine, Camera, void, moveTo, int, int, ScriptCallback&&);
+    REGISTER_FUNC_ARGS(engine, Camera, void, follow, Camera::Target&&);
+    REGISTER_FUNC_ARGS(engine, Camera, void, follow, Character&&);
 }

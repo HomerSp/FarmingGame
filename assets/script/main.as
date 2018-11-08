@@ -10,7 +10,9 @@ void main() {
         print("Clock " + clock.year() + "-" + clock.month() + "-" + clock.day() + " " + clock.hour() + ":" + clock.minute());
         print("Hero " + hero.x() + " " + hero.y());
 
-        hero.moveTo(290, 290, function() {
+        camera.moveTo(290, 290, function() {
+            Camera@ camera = engine.camera();
+            camera.follow(engine.hero());
             print("hero finished");
         });
     });
