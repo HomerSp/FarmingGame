@@ -112,8 +112,10 @@ bool FunctionPtr<Ts...>::call(asIScriptContext& ctx, Ts... args)
 
     FunctionPtrArgs functionArgs(ctx);
 
-    using expand_type = int[];
-    expand_type{0, (functionArgs << args, 0)... };
+    int dummy[] = {0, (functionArgs << args, 0)... };
+
+    // Avoid unused variable warning
+    (void) dummy;
 
     ctx.Execute();
 

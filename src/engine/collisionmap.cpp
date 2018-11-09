@@ -24,7 +24,7 @@ CollisionMap::CollisionMap(const std::string& path)
     std::vector<unsigned char> data;
 
     lodepng::load_file(buffer, path);
-    if (lodepng::decode(data, mWidth, mHeight, buffer)) {
+    if (lodepng::decode(data, mWidth, mHeight, buffer) != 0) {
         return;
     }
 
@@ -152,7 +152,7 @@ void CollisionMap::save(const std::string& path)
 
     lodepng::State state;
     state.encoder.filter_palette_zero = 0;
-    state.encoder.add_id = false;
+    state.encoder.add_id = 0;
     state.encoder.text_compression = 1;
     state.encoder.zlibsettings.nicematch = 258;
     state.encoder.zlibsettings.lazymatching = 1;
@@ -163,7 +163,7 @@ void CollisionMap::save(const std::string& path)
     state.encoder.zlibsettings.minmatch = 3;
     state.encoder.zlibsettings.btype = 2;
     state.encoder.auto_convert = 0;
-    if (lodepng::encode(buffer, data, mWidth, mHeight, state)) {
+    if (lodepng::encode(buffer, data, mWidth, mHeight, state) != 0) {
         return;
     }
 

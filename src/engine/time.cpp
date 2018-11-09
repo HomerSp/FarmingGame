@@ -23,10 +23,10 @@ void Time::parseString(const std::string& format, std::unordered_map<Type, int>&
 
 void Time::parseBlock(const std::string& block, std::unordered_map<Type, int>& out)
 {
-    char* end;
-    int v = strtol(block.data(), &end, 10);
-    if (end[0] != '\0') {
-        std::string type(end);
+    size_t end = 0;
+    int v = std::stoi(block, &end, 10);
+    if (end < block.size()) {
+        std::string type = block.substr(end);
         if(type == "y") {
             out[Year] = v;
         } else if(type == "mon") {
