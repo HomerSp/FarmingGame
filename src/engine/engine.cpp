@@ -215,7 +215,7 @@ void Engine::paint(Renderer& renderer)
     Types::Rect<> dst(mCamera->x(), mCamera->y(), mWidth, mHeight);
     mMap->draw(renderer, dst);
 
-    Types::Dimension d = mMap->getTileDimension();
+    Types::Dimension<> d = mMap->getTileDimension();
 
     int startY = std::ceil(mCamera->y() / d.height);
     bool drawnHero = false;
@@ -259,11 +259,11 @@ void Engine::setKeyUp(int key)
     mDownKeys.remove(key);
 }
 
-void Engine::setSize(int width, int height)
+void Engine::setSize(uint32_t width, uint32_t height)
 {
     mWidth = width;
     mHeight = height;
-    mCamera->setViewport(Types::Dimension(mWidth, mHeight));
+    mCamera->setViewport({mWidth, mHeight});
 }
 
 void scriptMessageCallback(const asSMessageInfo *msg, void *param)

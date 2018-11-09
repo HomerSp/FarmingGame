@@ -20,22 +20,24 @@ public:
         T width, height;
     };
 
-    template<typename T = int>
+    template<typename T = int, typename R = T>
     struct Point {
     public:
-        Point(T x = 0, T y = 0)
+        Point(R x = 0, R y = 0)
             : x(x), y(y)
         {}
 
         T x, y;
     };
 
+    template<typename T = int>
     struct Dimension {
     public:
-        Dimension(int w = 0, int h = 0);
+        Dimension(T w = 0, T h = 0)
+            : width(w), height(h)
+        {}
 
-        int width;
-        int height;
+        T width, height;
     };
 
     struct Cells {

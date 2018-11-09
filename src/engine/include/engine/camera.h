@@ -46,7 +46,7 @@ public:
 
     void setPosition(int x, int y);
     void setTarget(Target* target);
-    void setViewport(const Types::Dimension& d);
+    void setViewport(const Types::Dimension<uint32_t>& d);
 
     void registerClass(asIScriptEngine* engine);
     static std::string className();
@@ -55,7 +55,7 @@ private:
     std::mutex mTargetMutex;
     Target const* mTarget;
 
-    Types::Dimension mDimen;
+    Types::Dimension<uint32_t> mDimen;
     std::atomic<float> mPosX, mPosY;
     std::atomic<float> mTargetPosX, mTargetPosY;
 

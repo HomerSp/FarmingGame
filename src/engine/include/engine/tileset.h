@@ -34,7 +34,7 @@ public:
 
 class TilesetType {
 public:
-    TilesetType(Types::Dimension& tileDimension, const std::string& tileType, const std::bitset<TilesetAttribute::Last>& attrs, uint32_t& x, uint32_t& y, uint32_t& typeHeight, int frames);
+    TilesetType(Types::Dimension<>& tileDimension, const std::string& tileType, const std::bitset<TilesetAttribute::Last>& attrs, uint32_t& x, uint32_t& y, uint32_t& typeHeight, int frames);
 
     std::shared_ptr<TilesetNode> toNode(Types::Map2D& tiles, uint32_t x, uint32_t y, uint32_t width, uint32_t height);
 
@@ -56,7 +56,7 @@ private:
     };
 
     bool mValid;
-    Types::Dimension& mTileDimension;
+    Types::Dimension<>& mTileDimension;
     TileType mTileType;
     std::bitset<TilesetAttribute::Last> mAttributes;
     uint32_t mX;
@@ -70,7 +70,7 @@ public:
 
     void draw(Renderer& renderer, TilesetNode& node, const Types::Point<>& pos);
 
-    Types::Dimension getTileDimension() const
+    Types::Dimension<> getTileDimension() const
     {
         return mTileDimension;
     }
@@ -87,7 +87,7 @@ public:
 
 private:
     bool mValid;
-    Types::Dimension mTileDimension;
+    Types::Dimension<> mTileDimension;
     std::unordered_map<int, std::shared_ptr<TilesetType>> mTypes;
     std::shared_ptr<engine::Image> mImage;
     std::string mCollisionMap;

@@ -18,12 +18,9 @@ Character::Character(const std::string& name)
     , mDirectionTo(Direction::Down)
     , mDirection(Direction::Down)
     , mSpeed(1.0f)
-    , mPosX(0)
-    , mPosY(0)
-    , mVelocityX(0)
-    , mVelocityY(0)
-    , mTargetX(-1)
-    , mTargetY(-1)
+    , mPos(0, 0)
+    , mVelocity(0, 0)
+    , mTarget(-1, -1)
     , mFriction(1.0f)
 {
     Logger::debug() << "Character" << name;
@@ -43,12 +40,12 @@ Character::Character(const std::string& name)
 
 float Character::x() const
 {
-    return mPosX;
+    return mPos.x;
 }
 
 float Character::y() const
 {
-    return mPosY;
+    return mPos.y;
 }
 
 int Character::width() const
@@ -63,7 +60,7 @@ int Character::height() const
 
 void Character::draw(Renderer& renderer, const Types::Point<>& camera)
 {
-    Types::Point<> pos(mPosX - camera.x, mPosY - camera.y);
+    Types::Point<> pos(mPos.x - camera.x, mPos.y - camera.y);
     mCharset->draw(renderer, pos, mCharsetType, mDirection, mFrame);
 }
 
@@ -87,9 +84,9 @@ bool Character::animate(double currentFrame, bool reset)
 
 bool Character::processAsync(float frameDiff, Map* map)
 {
-    float posX = mPosX, posY = mPosY;
-    float velocityX = mVelocityX, velocityY = mVelocityY;
-    float targetX = mTargetX, targetY = mTargetY;
+    float posX = mPos.x, posY = mPos.y;
+    float velocityX = mVelocity.x, velocityY = mVelocity.y;
+    float targetX = mTarget.x, targetY = mTarget.y;
 
     if (targetX != -1 || targetY != -1) {
         float val = frameDiff * 5.0f;
@@ -149,7 +146,7 @@ bool Character::processAsync(float frameDiff, Map* map)
         Types::Point<float> dst(velocityX * (frameDiff * 200.0f), velocityY * (frameDiff * 200.0f));
         if (map != nullptr) {
             Types::Point<float> pos(posX, posY);
-            Types::Dimension size(width(), height());
+            Types::Dimension<> size(width(), height());
             map->checkCollision(pos, size, dst, velocityX, velocityY);
         }
 
@@ -178,18 +175,18 @@ bool Character::processAsync(float frameDiff, Map* map)
         }
     }
 
-    bool changed = mPosX != posX || mPosY != posY;
-    mPosX = posX;
-    mPosY = posY;
-    mTargetX = targetX;
-    mTargetY = targetY;
-    mVelocityX = velocityX;
-    mVelocityY = velocityY;
+    bool changed = mPos.x != posX || mPos.y != posY;
+    mPos.x = posX;
+    mPos.y = posY;
+    mTarget.x = targetX;
+    mTarget.y = targetY;
+    mVelocity.x = velocityX;
+    mVelocity.y = velocityY;
 
-    if (mVelocityX != 0.0f || mVelocityY != 0.0f) {
+    if (mVelocity.x != 0.0f || mVelocity.y != 0.0f) {
         std::lock_guard<std::mutex> lock(mMoveMutex);
         for(auto& i: mMoveListeners) {
-            i->check(mPosX, mPosY);
+            i->check(mPos.x, mPos.y);
         }
     }
 
@@ -224,19 +221,19 @@ void Character::processListeners()
 
 void Character::velocity(float frameDiff, int8_t x, int8_t y)
 {
-    float velocityX = mVelocityX, velocityY = mVelocityY;
+    float velocityX = mVelocity.x, velocityY = mVelocity.y;
 
     float val = frameDiff * 5.0f;
-    updateVelocity(velocityX, x, val, mTargetX != -1);
-    updateVelocity(velocityY, y, val, mTargetY != -1);
+    updateVelocity(velocityX, x, val, mTarget.x != -1);
+    updateVelocity(velocityY, y, val, mTarget.y != -1);
 
-    mVelocityX = velocityX;
-    mVelocityY = velocityY;
+    mVelocity.x = velocityX;
+    mVelocity.y = velocityY;
 }
 
 bool Character::isMoving() const
 {
-    return mVelocityX != 0.0f || mVelocityY != 0.0f;
+    return mVelocity.x != 0.0f || mVelocity.y != 0.0f;
 }
 
 void Character::moveTo(int x, int y, asIScriptFunction* fun)
@@ -246,8 +243,8 @@ void Character::moveTo(int x, int y, asIScriptFunction* fun)
         mMoveListeners.push_back(std::make_shared<Listeners::MoveListener>(fun, x, y));
     }
 
-    mTargetX = x;
-    mTargetY = y;
+    mTarget.x = x;
+    mTarget.y = y;
 }
 
 void Character::turnTo(Direction::Type direction)
@@ -276,12 +273,12 @@ void Character::setFriction(float friction)
 
 void Character::setX(float x)
 {
-    mPosX = x;
+    mPos.x = x;
 }
 
 void Character::setY(float y)
 {
-    mPosY = y;
+    mPos.y = y;
 }
 
 void Character::updateVelocity(float& velocity, int8_t direction, float val, bool hasTarget)

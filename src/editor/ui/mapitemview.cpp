@@ -13,7 +13,7 @@ MapItemView::MapItemView(QQuickItem* parent)
     setImplicitWidth(mMap->pixelWidth());
     setImplicitHeight(mMap->pixelHeight());
 
-    engine::Types::Dimension squareDimen = mMap->getTileDimension();
+    engine::Types::Dimension<> squareDimen = mMap->getTileDimension();
     mSquare.width = squareDimen.width;
     mSquare.height = squareDimen.height;
 }

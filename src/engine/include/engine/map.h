@@ -29,8 +29,7 @@ private:
     bool mValid;
     Types::Map2D mData;
     std::shared_ptr<Tileset> mTileset;
-    uint32_t mWidth;
-    uint32_t mHeight;
+    Types::Dimension<uint32_t> mDimensions;
 
     std::unordered_map<int, std::unordered_map<int, std::shared_ptr<TilesetNode>>> mNodes;
     std::unordered_map<int, std::unordered_map<int, std::shared_ptr<TilesetNode>>> mAboveRowNodes;
@@ -46,29 +45,29 @@ public:
     void draw(Renderer& renderer, const Types::Rect<>& dst, bool clip = true);
     void drawRow(Renderer& renderer, const Types::Rect<>& dst, int row, TilesetAttribute::Type type, bool clip = true);
 
-    void checkCollision(const Types::Point<float>& pos, const Types::Dimension& size, Types::Point<float>& dst, float& velocityX, float& velocityY) const;
+    void checkCollision(const Types::Point<float>& pos, const Types::Dimension<>& size, Types::Point<float>& dst, float& velocityX, float& velocityY) const;
 
     uint32_t width() const
     {
-        return mWidth;
+        return mDimensions.width;
     }
 
     uint32_t pixelWidth() const
     {
-        return mWidth * getTileDimension().width;
+        return mDimensions.width * getTileDimension().width;
     }
 
     uint32_t height() const
     {
-        return mHeight;
+        return mDimensions.height;
     }
 
     uint32_t pixelHeight() const
     {
-        return mHeight * getTileDimension().height;
+        return mDimensions.height * getTileDimension().height;
     }
 
-    Types::Dimension getTileDimension() const;
+    Types::Dimension<> getTileDimension() const;
 
     bool operator!() const
     {
@@ -76,14 +75,13 @@ public:
     }
 
 protected:
-    bool isColliding(const Types::Point<float>& pos, const Types::Dimension& size, Types::Pair& diff, int8_t& rDiff, bool vertical) const;
+    bool isColliding(const Types::Point<float>& pos, const Types::Dimension<>& size, Types::Pair& diff, int8_t& rDiff, bool vertical) const;
 
 private:
     bool mValid;
     std::unordered_map<std::string, std::shared_ptr<Tileset>> mTilesets;
     std::vector<std::shared_ptr<MapLayer>> mLayers;
     std::shared_ptr<CollisionMap> mCollisionMap;
-    uint32_t mWidth;
-    uint32_t mHeight;
+    Types::Dimension<uint32_t> mDimensions;
 };
 }

@@ -9,7 +9,7 @@
 
 using namespace engine;
 
-TilesetType::TilesetType(Types::Dimension& tileDimension, const std::string& tileType, const std::bitset<TilesetAttribute::Last>& attrs, uint32_t& x, uint32_t& y, uint32_t& typeHeight, int frames)
+TilesetType::TilesetType(Types::Dimension<>& tileDimension, const std::string& tileType, const std::bitset<TilesetAttribute::Last>& attrs, uint32_t& x, uint32_t& y, uint32_t& typeHeight, int frames)
     : mValid(false)
     , mTileDimension(tileDimension)
     , mTileType(TileTypeSingle)
@@ -407,7 +407,7 @@ std::shared_ptr<CollisionMap> Tileset::loadCollisionMap()
 
 void Tileset::updateCollisionMap(CollisionMap& tilesetMap, CollisionMap& map, TilesetNode& node, uint32_t x, uint32_t y)
 {
-    Types::Dimension dimen(mTileDimension.width / 2, mTileDimension.height / 2);
+    Types::Dimension<> dimen(mTileDimension.width / 2, mTileDimension.height / 2);
 
     uint32_t dx = 0, dy = 0;
     for (auto& po : node.pos) {

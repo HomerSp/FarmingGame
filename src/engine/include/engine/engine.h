@@ -36,7 +36,7 @@ public:
         mHasFocus = focus;
     }
 
-    void setSize(int width, int height);
+    void setSize(uint32_t width, uint32_t height);
 
     // Scripting
     engine::Camera* camera();

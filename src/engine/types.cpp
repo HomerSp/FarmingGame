@@ -2,12 +2,6 @@
 
 using namespace engine;
 
-Types::Dimension::Dimension(int w, int h)
-    : width(w)
-    , height(h)
-{
-}
-
 Types::Cells::Cells(int cols, int rows)
     : cols(cols)
     , rows(rows)

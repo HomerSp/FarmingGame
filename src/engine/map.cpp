@@ -13,18 +13,17 @@ MapLayer::MapLayer(Types::Map2D data, std::shared_ptr<Tileset> tileset, uint32_t
     : mValid(false)
     , mData(std::move(data))
     , mTileset(std::move(tileset))
-    , mWidth(width)
-    , mHeight(height)
+    , mDimensions(width, height)
 {
-    if (!mTileset->updateTiles(mData, mNodes, mWidth, mHeight, TilesetAttribute::AboveNone)) {
+    if (!mTileset->updateTiles(mData, mNodes, mDimensions.width, mDimensions.height, TilesetAttribute::AboveNone)) {
         return;
     }
 
-    if (!mTileset->updateTiles(mData, mAboveRowNodes, mWidth, mHeight, TilesetAttribute::AboveRow)) {
+    if (!mTileset->updateTiles(mData, mAboveRowNodes, mDimensions.width, mDimensions.height, TilesetAttribute::AboveRow)) {
         return;
     }
 
-    if (!mTileset->updateTiles(mData, mAboveAllNodes, mWidth, mHeight, TilesetAttribute::AboveAll)) {
+    if (!mTileset->updateTiles(mData, mAboveAllNodes, mDimensions.width, mDimensions.height, TilesetAttribute::AboveAll)) {
         return;
     }
 
@@ -110,8 +109,7 @@ bool MapLayer::updateCollisionMap(CollisionMap& map)
 
 Map::Map(const std::string& name)
     : mValid(false)
-    , mWidth(0)
-    , mHeight(0)
+    , mDimensions(0, 0)
 {
     Logger::debug() << "Loading Map" << name;
 
@@ -127,8 +125,8 @@ Map::Map(const std::string& name)
         return;
     }
 
-    mWidth = doc["width"].asInt();
-    mHeight = doc["height"].asInt();
+    mDimensions.width = doc["width"].asInt();
+    mDimensions.height = doc["height"].asInt();
 
     Json::Value layers = doc["layers"];
     for (auto layerObj : layers) {
@@ -163,13 +161,13 @@ Map::Map(const std::string& name)
 
         std::unordered_map<int, std::unordered_map<int, int>> data;
         Json::Value dataObj = layerObj["data"];
-        for (uint32_t x = 0; x < mWidth; x++) {
-            for (uint32_t y = 0; y < mHeight; y++) {
-                data[x][y] = dataObj[x + (y * mWidth)].asInt();
+        for (uint32_t x = 0; x < mDimensions.width; x++) {
+            for (uint32_t y = 0; y < mDimensions.height; y++) {
+                data[x][y] = dataObj[x + (y * mDimensions.width)].asInt();
             }
         }
 
-        std::shared_ptr<MapLayer> layer = std::make_shared<MapLayer>(data, mTilesets.find(name)->second, mWidth, mHeight);
+        std::shared_ptr<MapLayer> layer = std::make_shared<MapLayer>(data, mTilesets.find(name)->second, mDimensions.width, mDimensions.height);
         if (!*layer) {
             Logger::critical() << "Could not load layer for" << name;
             return;
@@ -203,7 +201,7 @@ bool Map::animate(double currentFrame)
 
 void Map::draw(Renderer& renderer, const Types::Rect<>& dst, bool clip)
 {
-    Types::Dimension tileDimens = getTileDimension();
+    Types::Dimension<> tileDimens = getTileDimension();
     Types::Rect<> target;
     target.x = std::ceil(dst.x / tileDimens.width);
     target.y = std::ceil(dst.y / tileDimens.height);
@@ -219,7 +217,7 @@ void Map::draw(Renderer& renderer, const Types::Rect<>& dst, bool clip)
 
 void Map::drawRow(Renderer& renderer, const Types::Rect<>& dst, int row, TilesetAttribute::Type type, bool clip)
 {
-    Types::Dimension tileDimens = getTileDimension();
+    Types::Dimension<> tileDimens = getTileDimension();
     Types::Rect<> target;
     target.x = std::ceil(dst.x / tileDimens.width);
     target.y = std::ceil(dst.y / tileDimens.height);
@@ -233,7 +231,7 @@ void Map::drawRow(Renderer& renderer, const Types::Rect<>& dst, int row, Tileset
     renderer.translate((dst.x % tileDimens.width), (dst.y % tileDimens.height));
 }
 
-void Map::checkCollision(const Types::Point<float>& pos, const Types::Dimension& size, Types::Point<float>& dst, float& velocityX, float& velocityY) const
+void Map::checkCollision(const Types::Point<float>& pos, const Types::Dimension<>& size, Types::Point<float>& dst, float& velocityX, float& velocityY) const
 {
     if (pos.x + dst.x < 0.0f) {
         dst.x = 0.0f;
@@ -293,7 +291,7 @@ void Map::checkCollision(const Types::Point<float>& pos, const Types::Dimension&
     }
 }
 
-bool Map::isColliding(const Types::Point<float>& pos, const Types::Dimension& size, Types::Pair& diff, int8_t& rDiff, bool vertical) const
+bool Map::isColliding(const Types::Point<float>& pos, const Types::Dimension<>& size, Types::Pair& diff, int8_t& rDiff, bool vertical) const
 {
     rDiff = 0;
 
@@ -327,7 +325,7 @@ bool Map::isColliding(const Types::Point<float>& pos, const Types::Dimension& si
     return found;
 }
 
-Types::Dimension Map::getTileDimension() const
+Types::Dimension<> Map::getTileDimension() const
 {
     for (auto tileset : mTilesets) {
         return tileset.second->getTileDimension();

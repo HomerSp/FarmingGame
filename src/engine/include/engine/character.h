@@ -76,9 +76,9 @@ private:
     std::atomic<Direction::Type> mDirection;
 
     std::atomic<float> mSpeed;
-    std::atomic<float> mPosX, mPosY;
-    std::atomic<float> mVelocityX, mVelocityY;
-    std::atomic<int> mTargetX, mTargetY;
+    Types::Point<std::atomic<float>, float> mPos;
+    Types::Point<std::atomic<float>, float> mVelocity;
+    Types::Point<std::atomic<int>, int> mTarget;
     std::atomic<float> mFriction;
 
     std::mutex mMoveMutex;

@@ -8,7 +8,7 @@ using namespace engine;
 
 Camera::Camera(uint32_t width, uint32_t height)
     : mTarget(nullptr)
-    , mDimen(Types::Dimension(width, height))
+    , mDimen(width, height)
     , mPosX(0.0f)
     , mPosY(0.0f)
     , mTargetPosX(0.0f)
@@ -193,7 +193,7 @@ void Camera::setTarget(Camera::Target* target)
     }
 }
 
-void Camera::setViewport(const Types::Dimension& d)
+void Camera::setViewport(const Types::Dimension<uint32_t>& d)
 {
     mDimen = d;
 }
