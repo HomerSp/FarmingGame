@@ -1,9 +1,9 @@
 [submodule "src/jsoncpp"]
-	path = src/jsoncpp
+	path = src/external/jsoncpp
 	url = https://github.com/open-source-parsers/jsoncpp.git
 [submodule "src/lodepng/src"]
-	path = src/lodepng/src
+	path = src/external/lodepng/src
 	url = https://github.com/lvandeve/lodepng.git
 [submodule "src/angelscript/src"]
-	path = src/angelscript/src
+	path = src/external/angelscript/src
 	url = https://github.com/IngwiePhoenix/AngelScript.git
