@@ -27,7 +27,7 @@ public:
 
     Character(const std::string& name);
 
-    void draw(Renderer& renderer, const Types::Point& camera);
+    void draw(Renderer& renderer, const Types::Point<>& camera);
 
     bool animate(double currentFrame, bool reset = false);
     bool processAsync(float frameDiff, Map* map = nullptr);

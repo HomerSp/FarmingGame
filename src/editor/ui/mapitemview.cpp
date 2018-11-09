@@ -22,7 +22,7 @@ void MapItemView::paint(QPainter* painter)
 {
     mRenderer.setPainter(painter);
 
-    engine::Types::Rect dst(0, 0, width(), height());
+    engine::Types::Rect<> dst(0, 0, width(), height());
     mMap->draw(mRenderer, dst, false);
 
     if (mSquare.x >= 0) {
@@ -30,16 +30,16 @@ void MapItemView::paint(QPainter* painter)
 
         engine::Types::Color lineColor(255, 255, 255);
 
-        engine::Types::Rect left(mSquare.x, mSquare.y, 1, mSquare.height);
+        engine::Types::Rect<> left(mSquare.x, mSquare.y, 1, mSquare.height);
         mRenderer.fillRect(left, lineColor);
 
-        engine::Types::Rect top(mSquare.x, mSquare.y, mSquare.width, 1);
+        engine::Types::Rect<> top(mSquare.x, mSquare.y, mSquare.width, 1);
         mRenderer.fillRect(top, lineColor);
 
-        engine::Types::Rect bottom(mSquare.x, mSquare.y + mSquare.height - 1, mSquare.width, 1);
+        engine::Types::Rect<> bottom(mSquare.x, mSquare.y + mSquare.height - 1, mSquare.width, 1);
         mRenderer.fillRect(bottom, lineColor);
 
-        engine::Types::Rect right(mSquare.x + mSquare.width - 1, mSquare.y, 1, mSquare.height);
+        engine::Types::Rect<> right(mSquare.x + mSquare.width - 1, mSquare.y, 1, mSquare.height);
         mRenderer.fillRect(right, lineColor);
     }
 }

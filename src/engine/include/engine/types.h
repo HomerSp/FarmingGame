@@ -9,34 +9,25 @@ class Types {
 public:
     typedef typename std::unordered_map<int, std::unordered_map<int, int>> Map2D;
 
+    template<typename T = int>
     struct Rect {
     public:
-        Rect(int x = 0, int y = 0, int w = 0, int h = 0);
+        Rect(T x = 0, T y = 0, T w = 0, T h = 0)
+            : x(x), y(y), width(w), height(h)
+        {}
 
-        int x, y;
-        int width, height;
+        T x, y;
+        T width, height;
     };
 
-    struct RectF {
-    public:
-        RectF(float x = 0, float y = 0, float w = 0, float h = 0);
-
-        float x, y;
-        float width, height;
-    };
-
+    template<typename T = int>
     struct Point {
     public:
-        Point(int x = 0, int y = 0);
+        Point(T x = 0, T y = 0)
+            : x(x), y(y)
+        {}
 
-        int x, y;
-    };
-
-    struct PointF {
-    public:
-        PointF(float x = 0, float y = 0);
-
-        float x, y;
+        T x, y;
     };
 
     struct Dimension {
@@ -62,20 +53,15 @@ public:
         uint8_t r, g, b, a;
     };
 
+    template<typename T = int>
     struct Quad {
     public:
-        Quad(int x1 = 0, int y1 = 0, int x2 = 0, int y2 = 0);
+        Quad(T x1 = 0, T y1 = 0, T x2 = 0, T y2 = 0)
+            : x1(x1), y1(y1), x2(x2), y2(y2)
+        {}
 
-        int x1, y1;
-        int x2, y2;
-    };
-
-    struct QuadF {
-    public:
-        QuadF(float x1 = 0, float y1 = 0, float x2 = 0, float y2 = 0);
-
-        float x1, y1;
-        float x2, y2;
+        T x1, y1;
+        T x2, y2;
     };
 
     struct Pair {

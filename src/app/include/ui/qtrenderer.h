@@ -12,10 +12,10 @@ public:
     int width();
     int height();
 
-    void fillRect(const engine::Types::Rect& dst, const engine::Types::Color& color);
+    void fillRect(const engine::Types::Rect<>& dst, const engine::Types::Color& color);
 
-    void drawImage(const engine::Image& img, const engine::Types::Rect& src, const engine::Types::Rect& dst);
-    void drawText(const engine::Types::Point& dst, const std::string& text, const engine::Types::Color& color, int size, engine::Types::TextAlign align);
+    void drawImage(const engine::Image& img, const engine::Types::Rect<>& src, const engine::Types::Rect<>& dst);
+    void drawText(const engine::Types::Point<>& dst, const std::string& text, const engine::Types::Color& color, int size, engine::Types::TextAlign align);
 
     void translate(float x, float y);
 

@@ -27,5 +27,5 @@ private:
     QtRenderer mRenderer;
     std::shared_ptr<engine::Map> mMap;
 
-    engine::Types::Rect mSquare;
+    engine::Types::Rect<> mSquare;
 };

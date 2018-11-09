@@ -59,7 +59,7 @@ TilesetType::TilesetType(Types::Dimension& tileDimension, const std::string& til
 std::shared_ptr<TilesetNode> TilesetType::toNode(Types::Map2D& tiles, uint32_t x, uint32_t y, uint32_t width, uint32_t height)
 {
     std::shared_ptr<TilesetNode> node = std::make_shared<TilesetNode>();
-    node->anim = Types::Point((mTileType == TileTypeAuto) ? (mTileDimension.width * 2) : 0, (mTileType == TileTypeAutoHoriz) ? mTileDimension.height : 0);
+    node->anim = Types::Point<>((mTileType == TileTypeAuto) ? (mTileDimension.width * 2) : 0, (mTileType == TileTypeAutoHoriz) ? mTileDimension.height : 0);
     node->frames = mFrames;
     node->current = 0;
 
@@ -376,15 +376,15 @@ Tileset::Tileset(const std::string& name)
     mValid = true;
 }
 
-void Tileset::draw(Renderer& renderer, TilesetNode& node, const Types::Point& pos)
+void Tileset::draw(Renderer& renderer, TilesetNode& node, const Types::Point<>& pos)
 {
-    Types::Rect dst(0, 0, mTileDimension.width / 2, mTileDimension.height / 2);
+    Types::Rect<> dst(0, 0, mTileDimension.width / 2, mTileDimension.height / 2);
     int dx = 0, dy = 0;
     for (auto& po : node.pos) {
         dst.x = (pos.x * mTileDimension.width) + (dx * (mTileDimension.width / 2));
         dst.y = (pos.y * mTileDimension.height) + (dy * (mTileDimension.height / 2));
 
-        Types::Rect src(po.x + (node.anim.x * node.current), po.y + (node.anim.y * node.current), dst.width, dst.height);
+        Types::Rect<> src(po.x + (node.anim.x * node.current), po.y + (node.anim.y * node.current), dst.width, dst.height);
         renderer.drawImage(*mImage, dst, src);
 
         dx++;

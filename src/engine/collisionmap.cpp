@@ -38,7 +38,7 @@ CollisionMap::CollisionMap(const std::string& path)
     mValid = true;
 }
 
-bool CollisionMap::get(uint32_t x, uint32_t y, uint32_t width, uint32_t height, Types::Quad* diff) const
+bool CollisionMap::get(uint32_t x, uint32_t y, uint32_t width, uint32_t height, Types::Quad<>* diff) const
 {
     if (diff != nullptr) {
         diff->x1 = diff->y1 = diff->x2 = diff->y2 = -1;

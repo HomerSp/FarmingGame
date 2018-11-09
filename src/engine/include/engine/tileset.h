@@ -15,8 +15,8 @@
 namespace engine {
 struct TilesetNode {
 public:
-    Types::Point pos[4];
-    Types::Point anim;
+    Types::Point<> pos[4];
+    Types::Point<> anim;
     int frames;
     std::atomic<int> current;
 };
@@ -68,7 +68,7 @@ class Tileset {
 public:
     Tileset(const std::string& name);
 
-    void draw(Renderer& renderer, TilesetNode& node, const Types::Point& pos);
+    void draw(Renderer& renderer, TilesetNode& node, const Types::Point<>& pos);
 
     Types::Dimension getTileDimension() const
     {

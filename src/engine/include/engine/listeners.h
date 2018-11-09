@@ -34,7 +34,7 @@ public:
         bool check(int x, int y);
 
     private:
-        Types::Point mTarget;
+        Types::Point<> mTarget;
     };
 };
 }

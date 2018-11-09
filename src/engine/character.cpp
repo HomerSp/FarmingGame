@@ -61,9 +61,9 @@ int Character::height() const
     return mCharset->height(mCharsetType);
 }
 
-void Character::draw(Renderer& renderer, const Types::Point& camera)
+void Character::draw(Renderer& renderer, const Types::Point<>& camera)
 {
-    Types::Point pos(mPosX - camera.x, mPosY - camera.y);
+    Types::Point<> pos(mPosX - camera.x, mPosY - camera.y);
     mCharset->draw(renderer, pos, mCharsetType, mDirection, mFrame);
 }
 
@@ -146,9 +146,9 @@ bool Character::processAsync(float frameDiff, Map* map)
     }
 
     if (velocityX != 0.0f || velocityY != 0.0f) {
-        Types::PointF dst(velocityX * (frameDiff * 200.0f), velocityY * (frameDiff * 200.0f));
+        Types::Point<float> dst(velocityX * (frameDiff * 200.0f), velocityY * (frameDiff * 200.0f));
         if (map != nullptr) {
-            Types::PointF pos(posX, posY);
+            Types::Point<float> pos(posX, posY);
             Types::Dimension size(width(), height());
             map->checkCollision(pos, size, dst, velocityX, velocityY);
         }

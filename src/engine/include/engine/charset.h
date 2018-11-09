@@ -12,9 +12,9 @@
 namespace engine {
 struct CharsetNode {
 public:
-    CharsetNode(const Types::Rect& rc, const Types::Cells& cells);
+    CharsetNode(const Types::Rect<>& rc, const Types::Cells& cells);
 
-    Types::Rect rect;
+    Types::Rect<> rect;
     Types::Cells cells;
 };
 
@@ -26,7 +26,7 @@ public:
 
     Charset(const std::string& name);
 
-    void draw(Renderer& renderer, const Types::Point& pos, Charset::Type type, int direction = 0, int frame = 0);
+    void draw(Renderer& renderer, const Types::Point<>& pos, Charset::Type type, int direction = 0, int frame = 0);
 
     int width(Charset::Type type);
     int height(Charset::Type type);

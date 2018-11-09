@@ -6,7 +6,7 @@
 
 using namespace engine;
 
-CharsetNode::CharsetNode(const Types::Rect& rc, const Types::Cells& cells)
+CharsetNode::CharsetNode(const Types::Rect<>& rc, const Types::Cells& cells)
     : rect(rc)
     , cells(cells)
 {
@@ -41,7 +41,7 @@ Charset::Charset(const std::string& name)
     mValid = !mNodes.empty();
 }
 
-void Charset::draw(Renderer& renderer, const Types::Point& pos, Charset::Type type, int direction, int frame)
+void Charset::draw(Renderer& renderer, const Types::Point<>& pos, Charset::Type type, int direction, int frame)
 {
     // Couldn't find the node, return...
     if (mNodes.find(type) == mNodes.end()) {
@@ -49,8 +49,8 @@ void Charset::draw(Renderer& renderer, const Types::Point& pos, Charset::Type ty
     }
 
     std::shared_ptr<CharsetNode> node = mNodes.find(type)->second;
-    Types::Rect dst(pos.x, pos.y, node->rect.width, node->rect.height);
-    Types::Rect src(node->rect.x + (node->rect.width * frame), node->rect.y + (node->rect.height * direction), node->rect.width, node->rect.height);
+    Types::Rect<> dst(pos.x, pos.y, node->rect.width, node->rect.height);
+    Types::Rect<> src(node->rect.x + (node->rect.width * frame), node->rect.y + (node->rect.height * direction), node->rect.width, node->rect.height);
     renderer.drawImage(*mImage, dst, src);
 }
 
@@ -94,7 +94,7 @@ void Charset::addNode(Charset::Type type, Json::Value& val)
         return;
     }
 
-    Types::Rect rect(pos[0].asInt(), pos[1].asInt(), size[0].asInt(), size[1].asInt());
+    Types::Rect<> rect(pos[0].asInt(), pos[1].asInt(), size[0].asInt(), size[1].asInt());
     Types::Cells c(cells[0].asInt(), cells[1].asInt());
     mNodes[type] = std::make_shared<CharsetNode>(rect, c);
 }

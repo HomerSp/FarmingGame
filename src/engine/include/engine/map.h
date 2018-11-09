@@ -15,8 +15,8 @@ public:
 
     bool animate(double currentFrame);
 
-    void draw(Renderer& renderer, const Types::Rect& dst, bool clip);
-    void drawRow(Renderer& renderer, const Types::Rect& dst, int row, TilesetAttribute::Type type, bool clip);
+    void draw(Renderer& renderer, const Types::Rect<>& dst, bool clip);
+    void drawRow(Renderer& renderer, const Types::Rect<>& dst, int row, TilesetAttribute::Type type, bool clip);
 
     bool updateCollisionMap(CollisionMap& map);
 
@@ -43,10 +43,10 @@ public:
 
     bool animate(double currentFrame);
 
-    void draw(Renderer& renderer, const Types::Rect& dst, bool clip = true);
-    void drawRow(Renderer& renderer, const Types::Rect& dst, int row, TilesetAttribute::Type type, bool clip = true);
+    void draw(Renderer& renderer, const Types::Rect<>& dst, bool clip = true);
+    void drawRow(Renderer& renderer, const Types::Rect<>& dst, int row, TilesetAttribute::Type type, bool clip = true);
 
-    void checkCollision(const Types::PointF& pos, const Types::Dimension& size, Types::PointF& dst, float& velocityX, float& velocityY) const;
+    void checkCollision(const Types::Point<float>& pos, const Types::Dimension& size, Types::Point<float>& dst, float& velocityX, float& velocityY) const;
 
     uint32_t width() const
     {
@@ -76,7 +76,7 @@ public:
     }
 
 protected:
-    bool isColliding(const Types::PointF& pos, const Types::Dimension& size, Types::Pair& diff, int8_t& rDiff, bool vertical) const;
+    bool isColliding(const Types::Point<float>& pos, const Types::Dimension& size, Types::Pair& diff, int8_t& rDiff, bool vertical) const;
 
 private:
     bool mValid;

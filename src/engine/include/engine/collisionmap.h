@@ -11,7 +11,7 @@ public:
     CollisionMap(uint32_t width = 0, uint32_t height = 0);
     CollisionMap(const std::string& path);
 
-    bool get(uint32_t x, uint32_t y, uint32_t width = 1, uint32_t height = 1, Types::Quad* diff = nullptr) const;
+    bool get(uint32_t x, uint32_t y, uint32_t width = 1, uint32_t height = 1, Types::Quad<>* diff = nullptr) const;
 
     void set(uint32_t x, uint32_t y, bool b);
 

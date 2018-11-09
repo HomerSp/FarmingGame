@@ -32,7 +32,7 @@ int QtRenderer::height()
     return mPainter->viewport().height();
 }
 
-void QtRenderer::fillRect(const engine::Types::Rect& dst, const engine::Types::Color& color)
+void QtRenderer::fillRect(const engine::Types::Rect<>& dst, const engine::Types::Color& color)
 {
     if (mPainter == nullptr) {
         engine::Logger::critical() << "No painter set!!!";
@@ -44,7 +44,7 @@ void QtRenderer::fillRect(const engine::Types::Rect& dst, const engine::Types::C
     mPainter->fillRect(dstRect, c);
 }
 
-void QtRenderer::drawImage(const engine::Image& img, const engine::Types::Rect& src, const engine::Types::Rect& dst)
+void QtRenderer::drawImage(const engine::Image& img, const engine::Types::Rect<>& src, const engine::Types::Rect<>& dst)
 {
     if (mPainter == nullptr) {
         engine::Logger::critical() << "No painter set!!!";
@@ -57,7 +57,7 @@ void QtRenderer::drawImage(const engine::Image& img, const engine::Types::Rect& 
     mPainter->drawImage(srcRect, i, dstRect);
 }
 
-void QtRenderer::drawText(const engine::Types::Point& dst, const std::string& text, const engine::Types::Color& color, int size, engine::Types::TextAlign align)
+void QtRenderer::drawText(const engine::Types::Point<>& dst, const std::string& text, const engine::Types::Color& color, int size, engine::Types::TextAlign align)
 {
     if (mPainter == nullptr) {
         engine::Logger::critical() << "No painter set!!!";

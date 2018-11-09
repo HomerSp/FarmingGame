@@ -48,7 +48,7 @@ bool MapLayer::animate(double currentFrame)
     return changed;
 }
 
-void MapLayer::draw(Renderer& renderer, const Types::Rect& dst, bool clip)
+void MapLayer::draw(Renderer& renderer, const Types::Rect<>& dst, bool clip)
 {
     for (auto nodeY: mNodes) {
         if (nodeY.first >= dst.y - 1 && nodeY.first <= dst.y + dst.height + 1) {
@@ -57,7 +57,7 @@ void MapLayer::draw(Renderer& renderer, const Types::Rect& dst, bool clip)
     }
 }
 
-void MapLayer::drawRow(Renderer& renderer, const Types::Rect& dst, int row, TilesetAttribute::Type type, bool clip)
+void MapLayer::drawRow(Renderer& renderer, const Types::Rect<>& dst, int row, TilesetAttribute::Type type, bool clip)
 {
     auto* nodes = &mNodes;
     switch(type) {
@@ -201,10 +201,10 @@ bool Map::animate(double currentFrame)
     return changed;
 }
 
-void Map::draw(Renderer& renderer, const Types::Rect& dst, bool clip)
+void Map::draw(Renderer& renderer, const Types::Rect<>& dst, bool clip)
 {
     Types::Dimension tileDimens = getTileDimension();
-    Types::Rect target;
+    Types::Rect<> target;
     target.x = std::ceil(dst.x / tileDimens.width);
     target.y = std::ceil(dst.y / tileDimens.height);
     target.width = std::ceil(dst.width / tileDimens.width);
@@ -217,10 +217,10 @@ void Map::draw(Renderer& renderer, const Types::Rect& dst, bool clip)
     renderer.translate((dst.x % tileDimens.width), (dst.y % tileDimens.height));
 }
 
-void Map::drawRow(Renderer& renderer, const Types::Rect& dst, int row, TilesetAttribute::Type type, bool clip)
+void Map::drawRow(Renderer& renderer, const Types::Rect<>& dst, int row, TilesetAttribute::Type type, bool clip)
 {
     Types::Dimension tileDimens = getTileDimension();
-    Types::Rect target;
+    Types::Rect<> target;
     target.x = std::ceil(dst.x / tileDimens.width);
     target.y = std::ceil(dst.y / tileDimens.height);
     target.width = std::ceil(dst.width / tileDimens.width);
@@ -233,7 +233,7 @@ void Map::drawRow(Renderer& renderer, const Types::Rect& dst, int row, TilesetAt
     renderer.translate((dst.x % tileDimens.width), (dst.y % tileDimens.height));
 }
 
-void Map::checkCollision(const Types::PointF& pos, const Types::Dimension& size, Types::PointF& dst, float& velocityX, float& velocityY) const
+void Map::checkCollision(const Types::Point<float>& pos, const Types::Dimension& size, Types::Point<float>& dst, float& velocityX, float& velocityY) const
 {
     if (pos.x + dst.x < 0.0f) {
         dst.x = 0.0f;
@@ -293,12 +293,12 @@ void Map::checkCollision(const Types::PointF& pos, const Types::Dimension& size,
     }
 }
 
-bool Map::isColliding(const Types::PointF& pos, const Types::Dimension& size, Types::Pair& diff, int8_t& rDiff, bool vertical) const
+bool Map::isColliding(const Types::Point<float>& pos, const Types::Dimension& size, Types::Pair& diff, int8_t& rDiff, bool vertical) const
 {
     rDiff = 0;
 
     int startY = (size.height / 2);
-    Types::Quad foundDiff;
+    Types::Quad<> foundDiff;
     bool found = mCollisionMap->get(pos.x, pos.y + startY, size.width, startY, &foundDiff);
 
     // Check if we can move around the obstacle.

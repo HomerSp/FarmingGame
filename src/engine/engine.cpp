@@ -196,7 +196,7 @@ void Engine::processAsync()
 
 void Engine::paint(Renderer& renderer)
 {
-    renderer.fillRect(Types::Rect(0, 0, mWidth, mHeight), Types::Color(0, 0, 0));
+    renderer.fillRect(Types::Rect<>(0, 0, mWidth, mHeight), Types::Color(0, 0, 0));
 
     // Centre small maps.
     float translateX = 0.0f, translateY = 0.0f;
@@ -212,7 +212,7 @@ void Engine::paint(Renderer& renderer)
         renderer.translate(translateX, translateY);
     }
 
-    Types::Rect dst(mCamera->x(), mCamera->y(), mWidth, mHeight);
+    Types::Rect<> dst(mCamera->x(), mCamera->y(), mWidth, mHeight);
     mMap->draw(renderer, dst);
 
     Types::Dimension d = mMap->getTileDimension();
@@ -221,7 +221,7 @@ void Engine::paint(Renderer& renderer)
     bool drawnHero = false;
     for (int row = startY - 1; row <= startY + std::ceil(mHeight / d.height); row++) {
         if (!drawnHero && row * d.height >= mHero->y()) {
-            mHero->draw(renderer, Types::Point(mCamera->x(), mCamera->y()));
+            mHero->draw(renderer, Types::Point<>(mCamera->x(), mCamera->y()));
             drawnHero = true;
         }
 
@@ -229,7 +229,7 @@ void Engine::paint(Renderer& renderer)
     }
 
     if (!drawnHero) {
-        mHero->draw(renderer, Types::Point(mCamera->x(), mCamera->y()));
+        mHero->draw(renderer, Types::Point<>(mCamera->x(), mCamera->y()));
     }
 
     mClock->draw(renderer);
