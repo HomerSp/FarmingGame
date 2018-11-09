@@ -1,5 +1,7 @@
 #pragma once
 
+#include <mutex>
+
 #include <engine/listeners.h>
 #include <engine/map.h>
 #include <engine/scriptobject.h>
@@ -36,10 +38,11 @@ public:
     float x() const;
     float y() const;
 
-    void follow(Target* target);
+    void follow(const Target* target);
     void moveTo(int dstX, int dstY, asIScriptFunction* fun = nullptr);
 
-    void process(uint64_t frameDiff, Map* map);
+    void processAsync(float frameDiff, Map* map);
+    void processListeners();
 
     void setPosition(int x, int y);
     void setTarget(Target* target);
@@ -49,11 +52,14 @@ public:
     static std::string className();
 
 private:
-    Target* mTarget;
-    Types::PointF mTargetPos;
-    Types::Dimension mDimen;
-    Types::PointF mPos;
+    std::mutex mTargetMutex;
+    Target const* mTarget;
 
+    Types::Dimension mDimen;
+    std::atomic<float> mPosX, mPosY;
+    std::atomic<float> mTargetPosX, mTargetPosY;
+
+    std::mutex mMoveMutex;
     std::vector<std::shared_ptr<Listeners::MoveListener>> mMoveListeners;
 };
 }

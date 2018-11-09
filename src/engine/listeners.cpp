@@ -1,3 +1,5 @@
+#include <thread>
+
 #include <engine/listeners.h>
 #include <engine/logger.h>
 #include <engine/scriptobject.h>
@@ -5,6 +7,7 @@
 using namespace engine;
 
 Listeners::Listener::Listener(asIScriptFunction* fun)
+    : mCanTrigger(false)
 {
     mFunction = FunctionPtrHelper::get<ScriptCallback>(fun);
 }
@@ -27,18 +30,34 @@ void Listeners::Listener::call(asIScriptContext& ctx)
     mFunction->call(ctx);
 }
 
+bool Listeners::Listener::maybeTrigger(asIScriptContext& ctx)
+{
+    if (!mCanTrigger) {
+        return false;
+    }
+
+    mCanTrigger = false;
+    call(ctx);
+    return true;
+}
+
+void Listeners::Listener::setCanTrigger(bool b)
+{
+    mCanTrigger = b;
+}
+
 Listeners::MoveListener::MoveListener(asIScriptFunction* fun, int x, int y)
     : Listener(fun)
     , mTarget(x, y)
 {
 }
 
-bool Listeners::MoveListener::check(asIScriptContext& ctx, int x, int y)
+bool Listeners::MoveListener::check(int x, int y)
 {
     if (x != mTarget.x || y != mTarget.y) {
         return false;
     }
 
-    call(ctx);
+    setCanTrigger(true);
     return true;
 }

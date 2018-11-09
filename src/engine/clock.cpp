@@ -79,15 +79,23 @@ void Clock::draw(Renderer& renderer)
     renderer.fillRect({0, 0, renderer.width(), renderer.height()}, color);
 }
 
-void Clock::process(uint64_t frameDiff)
+void Clock::processAsync(float frameDiff)
 {
     uint64_t val = std::floor(mCurrent);
-    mCurrent += 1.0f * (frameDiff / 500.0f);
+    mCurrent.store(mCurrent + (frameDiff));
 
     if (std::floor(mCurrent) != val) {
+        std::lock_guard<std::mutex> lock(mChangeMutex);
         for(auto& i: mChangeListeners) {
-            i->check(scriptContext(), mCurrent);
+            i->check(mCurrent);
         }
+    }
+}
+
+void Clock::processListeners()
+{
+    for(auto& i: mChangeListeners) {
+        i->maybeTrigger(scriptContext());
     }
 }
 
@@ -99,12 +107,13 @@ void Clock::setTime(int h, int m)
 
     int v = m + (h * 60);
     int c = minute() + (hour() * 60);
-    mCurrent += (v - c);
+    mCurrent.store(mCurrent + (v - c));
 }
 
 void Clock::on(const std::string& type, const std::string& format, asIScriptFunction* func)
 {
     if (type == "change") {
+        std::lock_guard<std::mutex> lock(mChangeMutex);
         mChangeListeners.push_back(std::make_shared<ChangeListener>(func, format));
     } else {
         Logger::warning() << "Clock on unknown trigger" << type;
@@ -152,7 +161,7 @@ Clock::ChangeListener::ChangeListener(asIScriptFunction* fun, const std::string&
     mMinute = (data.find(Time::Minute) != data.end()) ? data.find(Time::Minute)->second : -1;
 }
 
-bool Clock::ChangeListener::check(asIScriptContext& ctx, uint64_t val)
+bool Clock::ChangeListener::check(uint64_t val)
 {
     if (mYear != -1) {
         auto v = static_cast<int>(std::floor(val / 60 / 24 / 28 / 4));
@@ -212,7 +221,7 @@ bool Clock::ChangeListener::check(asIScriptContext& ctx, uint64_t val)
 
     bool t = mTriggered;
     if (!t) {
-        call(ctx);
+        setCanTrigger(true);
     }
 
     mTriggered = true;

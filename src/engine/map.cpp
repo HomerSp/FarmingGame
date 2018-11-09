@@ -15,7 +15,6 @@ MapLayer::MapLayer(Types::Map2D data, std::shared_ptr<Tileset> tileset, uint32_t
     , mTileset(std::move(tileset))
     , mWidth(width)
     , mHeight(height)
-    , mCurrentFrames(0)
 {
     if (!mTileset->updateTiles(mData, mNodes, mWidth, mHeight, TilesetAttribute::AboveNone)) {
         return;
@@ -32,12 +31,12 @@ MapLayer::MapLayer(Types::Map2D data, std::shared_ptr<Tileset> tileset, uint32_t
     mValid = true;
 }
 
-void MapLayer::animate(uint64_t currentFrame)
+void MapLayer::animate(double currentFrame)
 {
     for(auto nodeY: mNodes) {
         for (auto nodeX: nodeY.second) {
             if (nodeX.second->frames > 0) {
-                nodeX.second->current = std::floor(currentFrame % (200 * nodeX.second->frames) / 200);
+                nodeX.second->current = std::floor(static_cast<uint64_t>(currentFrame * 5) % nodeX.second->frames);
             }
         }
     }
@@ -185,7 +184,7 @@ Map::Map(const std::string& name)
     mValid = true;
 }
 
-void Map::animate(uint64_t currentFrame)
+void Map::animate(double currentFrame)
 {
     for (const auto& layer : mLayers) {
         layer->animate(currentFrame);
@@ -224,16 +223,16 @@ void Map::drawRow(Renderer& renderer, const Types::Rect& dst, int row, TilesetAt
     renderer.translate((dst.x % tileDimens.width), (dst.y % tileDimens.height));
 }
 
-void Map::checkCollision(const Types::PointF& pos, const Types::Dimension& size, Types::PointF& dst, Types::PointF& velocity) const
+void Map::checkCollision(const Types::PointF& pos, const Types::Dimension& size, Types::PointF& dst, float& velocityX, float& velocityY) const
 {
     if (pos.x + dst.x < 0.0f) {
         dst.x = 0.0f;
-        velocity.x = 0.0f;
+        velocityX = 0.0f;
     }
 
     if (pos.y + dst.y < -std::floor(size.height / 2)) {
         dst.y = 0.0f;
-        velocity.y = 0.0f;
+        velocityY = 0.0f;
     }
 
     // No need to continue checking.
@@ -245,7 +244,7 @@ void Map::checkCollision(const Types::PointF& pos, const Types::Dimension& size,
     int8_t rDiff = 0;
     if (dst.x != 0.0f && isColliding({ pos.x + dst.x, pos.y }, size, diff, rDiff, false)) {
         if (rDiff == 0) {
-            velocity.x = 0.0f;
+            velocityX = 0.0f;
         }
 
         if (dst.y == 0.0f) {
@@ -265,7 +264,7 @@ void Map::checkCollision(const Types::PointF& pos, const Types::Dimension& size,
 
     if (dst.y != 0.0f && isColliding({ pos.x, pos.y + dst.y }, size, diff, rDiff, true)) {
         if (rDiff == 0) {
-            velocity.y = 0.0f;
+            velocityY = 0.0f;
         }
 
         if (dst.x == 0.0f) {

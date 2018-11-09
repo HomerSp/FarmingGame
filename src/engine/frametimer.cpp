@@ -3,22 +3,22 @@
 using namespace engine;
 
 FrameTimer::FrameTimer()
-    : mStart(std::chrono::high_resolution_clock::now())
+    : mStart(std::chrono::steady_clock::now())
 {
     mSaved = mLast = elapsed();
 }
 
-uint64_t FrameTimer::diff() const
+float FrameTimer::diff() const
 {
     return elapsed() - mLast;
 }
 
-uint64_t FrameTimer::elapsed() const
+double FrameTimer::elapsed() const
 {
-    return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - mStart).count();
+    return std::chrono::duration_cast<std::chrono::duration<double>>(std::chrono::steady_clock::now() - mStart).count();
 }
 
-uint64_t FrameTimer::last() const
+double FrameTimer::last() const
 {
     return mLast;
 }

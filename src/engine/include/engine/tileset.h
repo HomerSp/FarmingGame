@@ -1,5 +1,6 @@
 #pragma once
 
+#include <atomic>
 #include <bitset>
 #include <memory>
 #include <unordered_map>
@@ -17,7 +18,7 @@ public:
     Types::Point pos[4];
     Types::Point anim;
     int frames;
-    int current;
+    std::atomic<int> current;
 };
 
 struct TilesetAttribute {

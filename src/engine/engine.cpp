@@ -3,9 +3,9 @@
 #include <sstream>
 #include <thread>
 
+#include <scriptbuilder/scriptbuilder.h>
 #include <scripthandle/scripthandle.h>
 #include <scriptstdstring/scriptstdstring.h>
-#include <scriptbuilder/scriptbuilder.h>
 
 #include <engine/engine.h>
 #include <engine/logger.h>
@@ -13,7 +13,9 @@
 using namespace engine;
 
 Engine::Engine(uint32_t width, uint32_t height)
-    : mHasFocus(true)
+    : mRunning(true)
+    , mNeedRepaint(false)
+    , mHasFocus(true)
     , mWidth(width)
     , mHeight(height)
     , mMap(nullptr)
@@ -34,10 +36,15 @@ Engine::Engine(uint32_t width, uint32_t height)
     mClock->setTime(8, 0);
 
     registerScript();
+
+    mProcessThread = std::make_unique<std::thread>(&Engine::processAsync, this);
 }
 
 Engine::~Engine()
 {
+    mRunning = false;
+    mProcessThread->join();
+
     Logger::debug() << "~Engine";
     if(mScriptContext != nullptr) {
         mScriptContext->Release();
@@ -66,106 +73,119 @@ int Engine::bufferHeight() const
 
 bool Engine::process()
 {
-    bool needRepaint = true;
+    mCamera->processListeners();
+    mClock->processListeners();
+    mHero->processListeners();
 
-    mFrameTimer.start();
+    return mNeedRepaint;
+}
 
-    if (mDownKeys.contains(engine::Keys::TestFastForward)) {
-        mClock->fastForward(1.0f * (mFrameTimer.diff() / 50.0f));
-    }
+void Engine::processAsync()
+{
+    FrameTimer frameTimer;
+    while (mRunning) {
+        frameTimer.start();
 
-    mClock->process(mFrameTimer.diff());
-
-    int8_t x = 0, y = 0;
-    if (mHasFocus && !mDownKeys.empty()) {
-        bool turned = false;
-        for (auto it = mDownKeys.rbegin(); it != mDownKeys.rend(); it++) {
-            switch (*it) {
-            case engine::Keys::Up:
-                if (y == 0) {
-                    y = -1;
-                }
-                if (!turned) {
-                    mHero->turnTo(engine::Character::Direction::Up);
-                    turned = true;
-                }
-                break;
-            case engine::Keys::Down:
-                if (y == 0) {
-                    y = 1;
-                }
-                if (!turned) {
-                    mHero->turnTo(engine::Character::Direction::Down);
-                    turned = true;
-                }
-                break;
-            case engine::Keys::Left:
-                if (x == 0) {
-                    x = -1;
-                }
-                if (!turned) {
-                    mHero->turnTo(engine::Character::Direction::Left);
-                    turned = true;
-                }
-                break;
-            case engine::Keys::Right:
-                if (x == 0) {
-                    x = 1;
-                }
-                if (!turned) {
-                    mHero->turnTo(engine::Character::Direction::Right);
-                    turned = true;
-                }
-                break;
-            default:
-                break;
-            }
-
-            if (x != 0 && y != 0) {
-                break;
-            }
+        engine::KeyList downKeys;
+        {
+            std::lock_guard<std::mutex> lock(mDownKeysMutex);
+            downKeys = mDownKeys;
         }
 
-        if (mDownKeys.contains(engine::Keys::TestFriction)) {
-            mHero->setFriction(0.1f);
-        } else {
-            mHero->setFriction(1.0f);
+        int8_t x = 0, y = 0;
+        if (downKeys.contains(engine::Keys::TestFastForward)) {
+            mClock->fastForward(50.0f * frameTimer.diff());
         }
 
-        if (mDownKeys.contains(engine::Keys::Run)) {
-            mHero->setSpeed(2.0f);
-        } else if (mDownKeys.contains(engine::Keys::Walk)) {
-            mHero->setSpeed(0.5f);
+        if (downKeys.contains(engine::Keys::TestSlowMode)) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(50));
+        }
+
+        if (mHasFocus && !downKeys.empty()) {
+            bool turned = false;
+            for (auto it = downKeys.rbegin(); it != downKeys.rend(); it++) {
+                switch (*it) {
+                case engine::Keys::Up:
+                    if (y == 0) {
+                        y = -1;
+                    }
+                    if (!turned) {
+                        mHero->turnTo(engine::Character::Direction::Up);
+                        turned = true;
+                    }
+                    break;
+                case engine::Keys::Down:
+                    if (y == 0) {
+                        y = 1;
+                    }
+                    if (!turned) {
+                        mHero->turnTo(engine::Character::Direction::Down);
+                        turned = true;
+                    }
+                    break;
+                case engine::Keys::Left:
+                    if (x == 0) {
+                        x = -1;
+                    }
+                    if (!turned) {
+                        mHero->turnTo(engine::Character::Direction::Left);
+                        turned = true;
+                    }
+                    break;
+                case engine::Keys::Right:
+                    if (x == 0) {
+                        x = 1;
+                    }
+                    if (!turned) {
+                        mHero->turnTo(engine::Character::Direction::Right);
+                        turned = true;
+                    }
+                    break;
+                default:
+                    break;
+                }
+
+                if (x != 0 && y != 0) {
+                    break;
+                }
+            }
+
+            if (downKeys.contains(engine::Keys::TestFriction)) {
+                mHero->setFriction(0.1f);
+            } else {
+                mHero->setFriction(1.0f);
+            }
+
+            if (downKeys.contains(engine::Keys::Run)) {
+                mHero->setSpeed(2.0f);
+            } else if (downKeys.contains(engine::Keys::Walk)) {
+                mHero->setSpeed(0.5f);
+            } else {
+                mHero->setSpeed(1.0f);
+            }
         } else {
             mHero->setSpeed(1.0f);
+            mHero->reset();
         }
-    } else {
-        mHero->setSpeed(1.0f);
-        mHero->reset();
+
+        mHero->velocity(frameTimer.diff(), x, y);
+
+        mCamera->processAsync(frameTimer.diff(), mMap.get());
+        mClock->processAsync(frameTimer.diff());
+        mHero->processAsync(frameTimer.diff(), mMap.get());
+
+        if (!mHero->isMoving()) {
+            mHero->reset();
+        } else {
+            mHero->animate(frameTimer.elapsed());
+        }
+
+        mMap->animate(frameTimer.elapsed());
+
+        frameTimer.end();
+        mNeedRepaint = true;
+        std::this_thread::yield();
     }
-
-    mHero->velocity(mFrameTimer.diff(), x, y);
-    mHero->process(mFrameTimer.diff(), mMap.get());
-
-    if (!mHero->isMoving()) {
-        mHero->reset();
-    }
-
-    if (mHero->isMoving()) {
-        mHero->animate(mFrameTimer.elapsed());
-    }
-
-    mMap->animate(mFrameTimer.elapsed());
-
-    mCamera->process(mFrameTimer.diff(), mMap.get());
-
-    if (mDownKeys.contains(engine::Keys::TestSlowMode)) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(50));
-    }
-
-    mFrameTimer.end();
-
-    return needRepaint;
 }
 
 void Engine::paint(Renderer& renderer)
@@ -215,6 +235,7 @@ void Engine::paint(Renderer& renderer)
 
 void Engine::setKeyMap(const std::unordered_map<int, Keys::Type>& keys)
 {
+    std::lock_guard<std::mutex> lock(mDownKeysMutex);
     for (auto key : keys) {
         mDownKeys[key.first] = key.second;
     }
@@ -222,11 +243,13 @@ void Engine::setKeyMap(const std::unordered_map<int, Keys::Type>& keys)
 
 void Engine::setKeyDown(int key)
 {
+    std::lock_guard<std::mutex> lock(mDownKeysMutex);
     mDownKeys.append(key);
 }
 
 void Engine::setKeyUp(int key)
 {
+    std::lock_guard<std::mutex> lock(mDownKeysMutex);
     mDownKeys.remove(key);
 }
 
@@ -259,7 +282,7 @@ bool Engine::registerScript()
 
     // Create the script engine
     mScriptEngine = asCreateScriptEngine();
-    if (mScriptEngine->SetMessageCallback(asFUNCTION(scriptMessageCallback), 0, asCALL_CDECL)) {
+    if (mScriptEngine->SetMessageCallback(asFUNCTION(scriptMessageCallback), nullptr, asCALL_CDECL) != 0) {
         Logger::error() << "Could not register message callback";
         return false;
     }
@@ -281,7 +304,7 @@ bool Engine::registerScript()
     // performs a pre-processing pass if necessary, and then tells
     // the engine to build a script module.
     CScriptBuilder builder;
-    if (builder.StartNewModule(mScriptEngine, "MainModule")) {
+    if (builder.StartNewModule(mScriptEngine, "MainModule") != 0) {
         Logger::error() << ("Unrecoverable error while starting a new module.");
         return false;
     }
@@ -299,7 +322,7 @@ bool Engine::registerScript()
     // Find the function that is to be called. 
     asIScriptModule *mod = mScriptEngine->GetModule("MainModule");
     asIScriptFunction *func = mod->GetFunctionByDecl("void main()");
-    if (!func) {
+    if (func == nullptr) {
         Logger::error() << ("The script must have the function 'void main()'. Please add it and try again.");
         return false;
     }

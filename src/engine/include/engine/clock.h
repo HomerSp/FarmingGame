@@ -1,6 +1,8 @@
 #pragma once
 
+#include <atomic>
 #include <cmath>
+#include <mutex>
 #include <unordered_map>
 
 #include <engine/listeners.h>
@@ -15,7 +17,7 @@ private:
     public:
         ChangeListener(asIScriptFunction* fun, const std::string& format);
 
-        bool check(asIScriptContext& ctx, uint64_t val);
+        bool check(uint64_t val);
 
     protected:
         void parseBlock(const std::string& block);
@@ -43,10 +45,11 @@ public:
     uint32_t minute() const;
 
     void draw(Renderer& renderer);
-    void process(uint64_t frameDiff);
+    void processAsync(float frameDiff);
+    void processListeners();
 
     void fastForward(float v) {
-        mCurrent += v;
+        mCurrent.store(mCurrent + v);
     }
 
     void setTime(int h, int m);
@@ -58,12 +61,13 @@ public:
     static std::string className();
 
 private:
-    double mCurrent;
+    std::atomic<double> mCurrent;
     uint32_t mDawn;
     uint32_t mSunrise;
     uint32_t mSunset;
     uint32_t mDusk;
 
+    std::mutex mChangeMutex;
     std::vector<std::shared_ptr<ChangeListener>> mChangeListeners;
 };
 } 

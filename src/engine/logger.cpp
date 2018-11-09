@@ -1,6 +1,10 @@
+#include <mutex>
+
 #include <engine/logger.h>
 
 using namespace engine;
+
+static std::mutex loggerMutex;
 
 LoggerStream::LoggerStream(std::ostream& s, std::string type)
     : mOut(s)
@@ -10,6 +14,7 @@ LoggerStream::LoggerStream(std::ostream& s, std::string type)
 
 LoggerStream::~LoggerStream()
 {
+    std::lock_guard<std::mutex> lock(loggerMutex);
     mOut << mType << ": " << mStream.str() << std::endl
          << std::flush;
 }

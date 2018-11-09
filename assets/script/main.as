@@ -10,8 +10,12 @@ void main() {
         print("Hero " + hero.x() + " " + hero.y());
 
         camera.moveTo(290, 290, function() {
-            camera.follow(engine.hero());
+            camera.follow(hero);
             print("camera finished");
+
+            hero.moveTo(290, 290, function() {
+                print("move done");
+            });
         });
     });
 }

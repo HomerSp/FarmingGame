@@ -1,7 +1,9 @@
 #pragma once
 
 #include <memory>
+#include <mutex>
 #include <string>
+#include <thread>
 
 #include <angelscript.h>
 
@@ -44,23 +46,29 @@ public:
     static std::string className();
 
 protected:
-	bool registerScript();
-	void registerGeneric();
-	void registerClass();
-	void registerContext();
+    void processAsync();
+
+    bool registerScript();
+    void registerGeneric();
+    void registerClass();
+    void registerContext();
 
 private:
-    bool mHasFocus;
+    std::atomic<bool> mRunning;
+    std::atomic<bool> mNeedRepaint;
+    std::atomic<bool> mHasFocus;
     uint32_t mWidth;
     uint32_t mHeight;
 
-    engine::FrameTimer mFrameTimer;
+    std::mutex mDownKeysMutex;
     engine::KeyList mDownKeys;
 
     std::shared_ptr<engine::Camera> mCamera;
     std::shared_ptr<engine::Clock> mClock;
     std::shared_ptr<engine::Map> mMap;
     std::shared_ptr<engine::Character> mHero;
+
+    std::unique_ptr<std::thread> mProcessThread;
 
     asIScriptEngine* mScriptEngine;
     asIScriptContext* mScriptContext;

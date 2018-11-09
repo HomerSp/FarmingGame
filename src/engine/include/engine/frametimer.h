@@ -8,16 +8,16 @@ class FrameTimer {
 public:
     FrameTimer();
 
-    uint64_t diff() const;
-    uint64_t elapsed() const;
-    uint64_t last() const;
+    float diff() const;
+    double elapsed() const;
+    double last() const;
 
     void start();
     void end();
 
 private:
-    std::chrono::time_point<std::chrono::high_resolution_clock> mStart;
-    uint64_t mSaved;
-    uint64_t mLast;
+    std::chrono::time_point<std::chrono::steady_clock> mStart;
+    double mSaved;
+    double mLast;
 };
 }

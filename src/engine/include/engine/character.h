@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <mutex>
 
 #include <png++/png.hpp>
 
@@ -14,10 +15,6 @@
 
 namespace engine {
 class Character : public Camera::Target, public ScriptObject {
-private:
-    class MoveListener {
-
-    };
 public:
     struct Direction {
         typedef enum {
@@ -30,12 +27,14 @@ public:
 
     Character(const std::string& name);
 
-    void animate(uint64_t currentFrame);
+    void animate(double currentFrame);
     void draw(Renderer& renderer, const Types::Point& camera);
 
-    void process(uint64_t frameDiff, Map* map = nullptr);
+    void processAsync(float frameDiff, Map* map = nullptr);
+    void processListeners();
+
     void reset();
-    void velocity(uint64_t frameDiff, int8_t x, int8_t y);
+    void velocity(float frameDiff, int8_t x, int8_t y);
 
     virtual float x() const;
     virtual float y() const;
@@ -69,19 +68,21 @@ private:
     std::string mName;
     std::shared_ptr<Charset> mCharset;
     Charset::Type mCharsetType;
-    int mFrame;
     std::shared_ptr<engine::Image> mPortrait;
 
-    float mDirectionTurn;
-    Direction::Type mDirectionTo;
-    Direction::Type mDirection;
+    std::atomic<int> mFrame;
 
-    float mSpeed;
-    Types::PointF mPos;
-    Types::PointF mVelocity;
-    Types::Point mTarget;
-    float mFriction;
+    std::atomic<float> mDirectionTurn;
+    std::atomic<Direction::Type> mDirectionTo;
+    std::atomic<Direction::Type> mDirection;
 
+    std::atomic<float> mSpeed;
+    std::atomic<float> mPosX, mPosY;
+    std::atomic<float> mVelocityX, mVelocityY;
+    std::atomic<int> mTargetX, mTargetY;
+    std::atomic<float> mFriction;
+
+    std::mutex mMoveMutex;
     std::vector<std::shared_ptr<Listeners::MoveListener>> mMoveListeners;
 };
 }
