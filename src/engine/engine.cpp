@@ -92,7 +92,6 @@ void Engine::processAsync()
             downKeys = mDownKeys;
         }
 
-        int8_t x = 0, y = 0;
         if (downKeys.contains(engine::Keys::TestFastForward)) {
             mClock->fastForward(50.0f * frameTimer.diff());
         }
@@ -101,6 +100,7 @@ void Engine::processAsync()
             std::this_thread::sleep_for(std::chrono::milliseconds(50));
         }
 
+        int8_t x = 0, y = 0;
         if (mHasFocus && !downKeys.empty()) {
             bool turned = false;
             for (auto it = downKeys.rbegin(); it != downKeys.rend(); it++) {
@@ -165,25 +165,31 @@ void Engine::processAsync()
             }
         } else {
             mHero->setSpeed(1.0f);
-            mHero->reset();
         }
 
         mHero->velocity(frameTimer.diff(), x, y);
 
-        mCamera->processAsync(frameTimer.diff(), mMap.get());
-        mClock->processAsync(frameTimer.diff());
-        mHero->processAsync(frameTimer.diff(), mMap.get());
-
-        if (!mHero->isMoving()) {
-            mHero->reset();
-        } else {
-            mHero->animate(frameTimer.elapsed());
+        // Process movement, etc
+        if (mCamera->processAsync(frameTimer.diff(), mMap.get())) {
+            mNeedRepaint = true;
+        }
+        if (mClock->processAsync(frameTimer.diff())) {
+            mNeedRepaint = true;
+        }
+        if (mHero->processAsync(frameTimer.diff(), mMap.get())) {
+            mNeedRepaint = true;
         }
 
-        mMap->animate(frameTimer.elapsed());
+        // Process animations
+        if (mHero->animate(frameTimer.elapsed(), !mHero->isMoving())) {
+            mNeedRepaint = true;
+        }
+
+        if (mMap->animate(frameTimer.elapsed())) {
+            mNeedRepaint = true;
+        }
 
         frameTimer.end();
-        mNeedRepaint = true;
         std::this_thread::yield();
     }
 }

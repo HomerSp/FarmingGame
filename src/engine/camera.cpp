@@ -47,7 +47,7 @@ void Camera::moveTo(int dstX, int dstY, asIScriptFunction* fun)
     mTargetPosY = dstY;
 }
 
-void Camera::processAsync(float frameDiff, Map* map)
+bool Camera::processAsync(float frameDiff, Map* map)
 {
     Camera::Target const* target;
     float posX, posY, targetPosX, targetPosY;
@@ -131,17 +131,18 @@ void Camera::processAsync(float frameDiff, Map* map)
         targetPosY = -1;
     }
 
-    {
-        mPosX = posX;
-        mPosY = posY;
-        mTargetPosX = targetPosX;
-        mTargetPosY = targetPosY;
+    bool changed = mPosX != posX || mPosY != posY;
+    mPosX = posX;
+    mPosY = posY;
+    mTargetPosX = targetPosX;
+    mTargetPosY = targetPosY;
 
-        std::lock_guard<std::mutex> lock(mMoveMutex);
-        for(auto &i: mMoveListeners) {
-            i->check(mPosX, mPosY);
-        }
+    std::lock_guard<std::mutex> lock(mMoveMutex);
+    for(auto &i: mMoveListeners) {
+        i->check(mPosX, mPosY);
     }
+
+    return changed;
 }
 
 void Camera::processListeners()

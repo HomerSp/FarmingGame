@@ -31,15 +31,21 @@ MapLayer::MapLayer(Types::Map2D data, std::shared_ptr<Tileset> tileset, uint32_t
     mValid = true;
 }
 
-void MapLayer::animate(double currentFrame)
+bool MapLayer::animate(double currentFrame)
 {
+    bool changed = false;
     for(auto nodeY: mNodes) {
         for (auto nodeX: nodeY.second) {
             if (nodeX.second->frames > 0) {
+                int c = nodeX.second->current;
                 nodeX.second->current = std::floor(static_cast<uint64_t>(currentFrame * 5) % nodeX.second->frames);
+                if(c != nodeX.second->current) {
+                    changed = true;
+                }
             }
         }
     }
+    return changed;
 }
 
 void MapLayer::draw(Renderer& renderer, const Types::Rect& dst, bool clip)
@@ -184,11 +190,15 @@ Map::Map(const std::string& name)
     mValid = true;
 }
 
-void Map::animate(double currentFrame)
+bool Map::animate(double currentFrame)
 {
+    bool changed = false;
     for (const auto& layer : mLayers) {
-        layer->animate(currentFrame);
+        if (layer->animate(currentFrame)) {
+            changed = true;
+        }
     }
+    return changed;
 }
 
 void Map::draw(Renderer& renderer, const Types::Rect& dst, bool clip)

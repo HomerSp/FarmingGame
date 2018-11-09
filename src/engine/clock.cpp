@@ -79,17 +79,22 @@ void Clock::draw(Renderer& renderer)
     renderer.fillRect({0, 0, renderer.width(), renderer.height()}, color);
 }
 
-void Clock::processAsync(float frameDiff)
+bool Clock::processAsync(float frameDiff)
 {
     uint64_t val = std::floor(mCurrent);
     mCurrent.store(mCurrent + (frameDiff));
 
+    bool changed = false;
     if (std::floor(mCurrent) != val) {
         std::lock_guard<std::mutex> lock(mChangeMutex);
         for(auto& i: mChangeListeners) {
             i->check(mCurrent);
         }
+
+        changed = true;
     }
+
+    return changed;
 }
 
 void Clock::processListeners()

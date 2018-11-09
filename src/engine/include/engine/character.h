@@ -27,13 +27,12 @@ public:
 
     Character(const std::string& name);
 
-    void animate(double currentFrame);
     void draw(Renderer& renderer, const Types::Point& camera);
 
-    void processAsync(float frameDiff, Map* map = nullptr);
+    bool animate(double currentFrame, bool reset = false);
+    bool processAsync(float frameDiff, Map* map = nullptr);
     void processListeners();
 
-    void reset();
     void velocity(float frameDiff, int8_t x, int8_t y);
 
     virtual float x() const;

@@ -41,7 +41,7 @@ public:
     void follow(const Target* target);
     void moveTo(int dstX, int dstY, asIScriptFunction* fun = nullptr);
 
-    void processAsync(float frameDiff, Map* map);
+    bool processAsync(float frameDiff, Map* map);
     void processListeners();
 
     void setPosition(int x, int y);

@@ -61,24 +61,31 @@ int Character::height() const
     return mCharset->height(mCharsetType);
 }
 
-void Character::animate(double currentFrame)
-{
-    int cols = mCharset->columns(mCharsetType);
-    int frame = std::floor(static_cast<uint64_t>(currentFrame * 5) % ((cols + cols - 2)));
-    if (frame >= cols) {
-        mFrame = frame + 1 - cols;
-    } else {
-        mFrame = frame;
-    }
-}
-
 void Character::draw(Renderer& renderer, const Types::Point& camera)
 {
     Types::Point pos(mPosX - camera.x, mPosY - camera.y);
     mCharset->draw(renderer, pos, mCharsetType, mDirection, mFrame);
 }
 
-void Character::processAsync(float frameDiff, Map* map)
+bool Character::animate(double currentFrame, bool reset)
+{
+    int frame;
+    if (!reset) {
+        int cols = mCharset->columns(mCharsetType);
+        frame = std::floor(static_cast<uint64_t>(currentFrame * 5) % ((cols + cols - 2)));
+        if (frame >= cols) {
+            frame = frame + 1 - cols;
+        }
+    } else {
+        frame = 1;
+    }
+
+    bool changed = mFrame != frame;
+    mFrame = frame;
+    return changed;
+}
+
+bool Character::processAsync(float frameDiff, Map* map)
 {
     float posX = mPosX, posY = mPosY;
     float velocityX = mVelocityX, velocityY = mVelocityY;
@@ -171,6 +178,7 @@ void Character::processAsync(float frameDiff, Map* map)
         }
     }
 
+    bool changed = mPosX != posX || mPosY != posY;
     mPosX = posX;
     mPosY = posY;
     mTargetX = targetX;
@@ -184,6 +192,8 @@ void Character::processAsync(float frameDiff, Map* map)
             i->check(mPosX, mPosY);
         }
     }
+
+    return changed;
 }
 
 void Character::processListeners()
@@ -210,11 +220,6 @@ void Character::processListeners()
 
         it++;
     }
-}
-
-void Character::reset()
-{
-    mFrame = 1;
 }
 
 void Character::velocity(float frameDiff, int8_t x, int8_t y)

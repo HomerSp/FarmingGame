@@ -45,7 +45,7 @@ public:
     uint32_t minute() const;
 
     void draw(Renderer& renderer);
-    void processAsync(float frameDiff);
+    bool processAsync(float frameDiff);
     void processListeners();
 
     void fastForward(float v) {
