@@ -29,7 +29,7 @@ public:
 
     void draw(Renderer& renderer, const Types::Point<>& camera);
 
-    bool animate(double currentFrame, bool reset = false);
+    bool animate(float frameDiff, bool reset = false);
     bool processAsync(float frameDiff, Map* map = nullptr);
     void processListeners();
 
@@ -69,7 +69,7 @@ private:
     Charset::Type mCharsetType;
     std::shared_ptr<engine::Image> mPortrait;
 
-    std::atomic<int> mFrame;
+    std::atomic<float> mFrame;
 
     std::atomic<float> mDirectionTurn;
     std::atomic<Direction::Type> mDirectionTo;

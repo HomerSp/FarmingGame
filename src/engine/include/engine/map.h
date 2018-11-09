@@ -13,7 +13,7 @@ class MapLayer {
 public:
     MapLayer(Types::Map2D data, std::shared_ptr<Tileset> tileset, uint32_t width, uint32_t height);
 
-    bool animate(double currentFrame);
+    bool animate(float frameDiff);
 
     void draw(Renderer& renderer, const Types::Rect<>& dst, bool clip);
     void drawRow(Renderer& renderer, const Types::Rect<>& dst, int row, TilesetAttribute::Type type, bool clip);
@@ -40,7 +40,7 @@ class Map {
 public:
     Map(const std::string& name);
 
-    bool animate(double currentFrame);
+    bool animate(float frameDiff);
 
     void draw(Renderer& renderer, const Types::Rect<>& dst, bool clip = true);
     void drawRow(Renderer& renderer, const Types::Rect<>& dst, int row, TilesetAttribute::Type type, bool clip = true);

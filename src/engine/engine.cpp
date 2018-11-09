@@ -92,6 +92,12 @@ void Engine::processAsync()
             downKeys = mDownKeys;
         }
 
+        if (downKeys.contains(Keys::TestPause)) {
+            std::this_thread::yield();
+            frameTimer.end();
+            continue;
+        }
+
         if (downKeys.contains(engine::Keys::TestFastForward)) {
             mClock->fastForward(50.0f * frameTimer.diff());
         }
@@ -181,11 +187,11 @@ void Engine::processAsync()
         }
 
         // Process animations
-        if (mHero->animate(frameTimer.elapsed(), !mHero->isMoving())) {
+        if (mHero->animate(frameTimer.diff(), !mHero->isMoving())) {
             mNeedRepaint = true;
         }
 
-        if (mMap->animate(frameTimer.elapsed())) {
+        if (mMap->animate(frameTimer.diff())) {
             mNeedRepaint = true;
         }
 

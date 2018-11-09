@@ -30,17 +30,20 @@ MapLayer::MapLayer(Types::Map2D data, std::shared_ptr<Tileset> tileset, uint32_t
     mValid = true;
 }
 
-bool MapLayer::animate(double currentFrame)
+bool MapLayer::animate(float frameDiff)
 {
     bool changed = false;
     for(auto nodeY: mNodes) {
         for (auto nodeX: nodeY.second) {
             if (nodeX.second->frames > 0) {
-                int c = nodeX.second->current;
-                nodeX.second->current = std::floor(static_cast<uint64_t>(currentFrame * 5) % nodeX.second->frames);
-                if(c != nodeX.second->current) {
-                    changed = true;
+                float c = nodeX.second->current;
+                c += 5.0f * frameDiff;
+                if (c >= nodeX.second->frames) {
+                    c = 0;
                 }
+
+                changed = std::floor(c) != std::floor(nodeX.second->current);
+                nodeX.second->current = c;
             }
         }
     }
@@ -188,11 +191,11 @@ Map::Map(const std::string& name)
     mValid = true;
 }
 
-bool Map::animate(double currentFrame)
+bool Map::animate(float frameDiff)
 {
     bool changed = false;
     for (const auto& layer : mLayers) {
-        if (layer->animate(currentFrame)) {
+        if (layer->animate(frameDiff)) {
             changed = true;
         }
     }

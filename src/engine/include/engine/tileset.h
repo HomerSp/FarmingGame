@@ -18,7 +18,7 @@ public:
     Types::Point<> pos[4];
     Types::Point<> anim;
     int frames;
-    std::atomic<int> current;
+    std::atomic<float> current;
 };
 
 struct TilesetAttribute {

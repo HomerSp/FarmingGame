@@ -60,24 +60,30 @@ int Character::height() const
 
 void Character::draw(Renderer& renderer, const Types::Point<>& camera)
 {
-    Types::Point<> pos(mPos.x - camera.x, mPos.y - camera.y);
-    mCharset->draw(renderer, pos, mCharsetType, mDirection, mFrame);
-}
-
-bool Character::animate(double currentFrame, bool reset)
-{
-    int frame;
-    if (!reset) {
-        int cols = mCharset->columns(mCharsetType);
-        frame = std::floor(static_cast<uint64_t>(currentFrame * 5) % ((cols + cols - 2)));
-        if (frame >= cols) {
-            frame = frame + 1 - cols;
-        }
-    } else {
-        frame = 1;
+    int cols = mCharset->columns(mCharsetType);
+    int frame = std::floor(mFrame);
+    if(frame >= cols) {
+        frame = frame + 1 - cols;
     }
 
-    bool changed = mFrame != frame;
+    Types::Point<> pos(mPos.x - camera.x, mPos.y - camera.y);
+    mCharset->draw(renderer, pos, mCharsetType, mDirection, frame);
+}
+
+bool Character::animate(float frameDiff, bool reset)
+{
+    float frame = mFrame;
+    if (!reset) {
+        int cols = mCharset->columns(mCharsetType);
+        frame += frameDiff * 5.0f;
+        if (frame >= cols + cols - 2) {
+            frame = 0;
+        }
+    } else {
+        frame = 1.0f;
+    }
+
+    bool changed = std::floor(mFrame) != std::floor(frame);
     mFrame = frame;
     return changed;
 }

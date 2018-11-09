@@ -1,3 +1,4 @@
+#include <cmath>
 #include <fstream>
 
 #include <json/json.h>
@@ -384,7 +385,7 @@ void Tileset::draw(Renderer& renderer, TilesetNode& node, const Types::Point<>& 
         dst.x = (pos.x * mTileDimension.width) + (dx * (mTileDimension.width / 2));
         dst.y = (pos.y * mTileDimension.height) + (dy * (mTileDimension.height / 2));
 
-        Types::Rect<> src(po.x + (node.anim.x * node.current), po.y + (node.anim.y * node.current), dst.width, dst.height);
+        Types::Rect<> src(po.x + (node.anim.x * std::floor(node.current)), po.y + (node.anim.y * std::floor(node.current)), dst.width, dst.height);
         renderer.drawImage(*mImage, dst, src);
 
         dx++;

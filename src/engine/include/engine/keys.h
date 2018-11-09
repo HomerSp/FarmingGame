@@ -19,6 +19,7 @@ public:
         TestFriction,
         TestSlowMode,
         TestFastForward,
+        TestPause,
     } Type;
 };
 
