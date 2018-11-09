@@ -26,6 +26,7 @@ MapItemView::MapItemView(QQuickItem* parent)
     keys[Qt::Key_Q] = engine::Keys::TestFriction;
     keys[Qt::Key_S] = engine::Keys::TestSlowMode;
     keys[Qt::Key_T] = engine::Keys::TestFastForward;
+    keys[Qt::Key_P] = engine::Keys::TestPause;
 
     mEngine->setKeyMap(keys);
 
@@ -47,12 +48,16 @@ void MapItemView::focusOutEvent(QFocusEvent* event)
 
 void MapItemView::keyPressEvent(QKeyEvent* event)
 {
-    mEngine->setKeyDown(event->key());
+    if (!event->isAutoRepeat()) {
+        mEngine->setKeyDown(event->key());
+    }
 }
 
 void MapItemView::keyReleaseEvent(QKeyEvent* event)
 {
-    mEngine->setKeyUp(event->key());
+    if (!event->isAutoRepeat()) {
+        mEngine->setKeyUp(event->key());
+    }
 }
 
 void MapItemView::geometryChanged(const QRectF& newGeometry, const QRectF& oldGeometry)
