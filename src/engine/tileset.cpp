@@ -10,13 +10,12 @@
 
 using namespace engine;
 
-TilesetType::TilesetType(Types::Dimension<>& tileDimension, const std::string& tileType, const std::bitset<TilesetAttribute::Last>& attrs, uint32_t& x, uint32_t& y, uint32_t& typeHeight, int frames, Types::Cells count, uint32_t base)
+TilesetType::TilesetType(Types::Dimension<>& tileDimension, const std::string& tileType, const std::bitset<TilesetAttribute::Last>& attrs, uint32_t x, uint32_t y, int frames, Types::Cells count, uint32_t base)
     : mValid(false)
     , mTileDimension(tileDimension)
     , mTileType(TileTypeSingle)
     , mAttributes(attrs)
-    , mX(x)
-    , mY(y)
+    , mSize(x, y, tileDimension.width, tileDimension.height)
     , mFrames(frames)
     , mCount(count)
     , mBase(base)
@@ -34,22 +33,21 @@ TilesetType::TilesetType(Types::Dimension<>& tileDimension, const std::string& t
 
     switch (mTileType) {
     case TileTypeAuto:
+        mSize.width = tileDimension.width * 2;
         if (frames > 0) {
-            x += (mTileDimension.width * 2) * frames;
-        } else {
-            x += mTileDimension.width * 2;
+            mSize.width *= frames;
         }
-        typeHeight = 3 * mTileDimension.height;
+        mSize.height = tileDimension.height * 3;
         break;
     case TileTypeAutoHoriz:
-        x += mTileDimension.width * 2;
+        mSize.width *= 2;
         if (frames > 0) {
-            typeHeight = frames * mTileDimension.height;
+            mSize.height *= frames;
         }
         break;
     default:
-        x += mTileDimension.width * mCount.cols;
-        typeHeight = mTileDimension.height * mCount.rows;
+        mSize.width *= mCount.cols;
+        mSize.height *= mCount.rows;
         break;
     }
 
@@ -58,6 +56,21 @@ TilesetType::TilesetType(Types::Dimension<>& tileDimension, const std::string& t
     }
 
     mValid = true;
+}
+
+bool TilesetType::contains(const Types::Point<uint32_t>& other) const
+{
+    return (other.x >= mSize.x && other.x < mSize.x + mSize.width && other.y >= mSize.y && other.y < mSize.y + mSize.height);
+}
+
+bool TilesetType::hasAttribute(TilesetAttribute::Type type) const
+{
+    return mAttributes[type];
+}
+
+bool TilesetType::operator!() const
+{
+    return !mValid;
 }
 
 bool TilesetType::checkBase(Types::Map2D& tiles, TilesetAttribute::Type type, uint32_t x, uint32_t y)
@@ -91,7 +104,7 @@ std::shared_ptr<TilesetNode> TilesetType::toNode(Types::Map2D& tiles, uint32_t x
 
     switch (mTileType) {
     case TileTypeSingle: {
-        Types::Point<uint32_t> pos(mX, mY);
+        Types::Point<uint32_t> pos(mSize.x, mSize.y);
         for(uint32_t iy = 1; iy < mCount.rows; iy++) {
             if (y - iy >= 0) {
                 if (tiles[x][y - iy] == tiles[x][y]) {
@@ -128,157 +141,157 @@ std::shared_ptr<TilesetNode> TilesetType::toNode(Types::Map2D& tiles, uint32_t x
         // Top left
         if (x > 0 && y > 0) {
             if (tiles[x - 1][y - 1] != tiles[x][y] && tiles[x - 1][y] == tiles[x][y] && tiles[x][y - 1] == tiles[x][y]) {
-                node->pos[0].x = mX + mTileDimension.width;
-                node->pos[0].y = mY;
+                node->pos[0].x = mSize.x + mTileDimension.width;
+                node->pos[0].y = mSize.y;
             } else if (tiles[x - 1][y] != tiles[x][y] && tiles[x][y - 1] != tiles[x][y]) {
-                node->pos[0].x = mX;
-                node->pos[0].y = mY + mTileDimension.height;
+                node->pos[0].x = mSize.x;
+                node->pos[0].y = mSize.y + mTileDimension.height;
             } else if (tiles[x - 1][y] != tiles[x][y]) {
-                node->pos[0].x = mX;
-                node->pos[0].y = mY + (mTileDimension.height + (mTileDimension.height / 2));
+                node->pos[0].x = mSize.x;
+                node->pos[0].y = mSize.y + (mTileDimension.height + (mTileDimension.height / 2));
             } else if (tiles[x][y - 1] != tiles[x][y]) {
-                node->pos[0].x = mX + (mTileDimension.width / 2);
-                node->pos[0].y = mY + mTileDimension.height;
+                node->pos[0].x = mSize.x + (mTileDimension.width / 2);
+                node->pos[0].y = mSize.y + mTileDimension.height;
             } else {
-                node->pos[0].x = mX + (mTileDimension.width / 2);
-                node->pos[0].y = mY + (mTileDimension.height + (mTileDimension.height / 2));
+                node->pos[0].x = mSize.x + (mTileDimension.width / 2);
+                node->pos[0].y = mSize.y + (mTileDimension.height + (mTileDimension.height / 2));
             }
         } else if (x > 0) {
             if (tiles[x - 1][y] != tiles[x][y]) {
-                node->pos[0].x = mX;
-                node->pos[0].y = mY + (mTileDimension.height + (mTileDimension.height / 2));
+                node->pos[0].x = mSize.x;
+                node->pos[0].y = mSize.y + (mTileDimension.height + (mTileDimension.height / 2));
             } else {
-                node->pos[0].x = mX + (mTileDimension.width / 2);
-                node->pos[0].y = mY + (mTileDimension.height + (mTileDimension.height / 2));
+                node->pos[0].x = mSize.x + (mTileDimension.width / 2);
+                node->pos[0].y = mSize.y + (mTileDimension.height + (mTileDimension.height / 2));
             }
         } else if (y > 0) {
             if (tiles[x][y - 1] != tiles[x][y]) {
-                node->pos[0].x = mX + (mTileDimension.width / 2);
-                node->pos[0].y = mY + mTileDimension.height;
+                node->pos[0].x = mSize.x + (mTileDimension.width / 2);
+                node->pos[0].y = mSize.y + mTileDimension.height;
             } else {
-                node->pos[0].x = mX + (mTileDimension.width / 2);
-                node->pos[0].y = mY + (mTileDimension.height + (mTileDimension.height / 2));
+                node->pos[0].x = mSize.x + (mTileDimension.width / 2);
+                node->pos[0].y = mSize.y + (mTileDimension.height + (mTileDimension.height / 2));
             }
         } else {
-            node->pos[0].x = mX + (mTileDimension.width / 2);
-            node->pos[0].y = mY + (mTileDimension.height + (mTileDimension.height / 2));
+            node->pos[0].x = mSize.x + (mTileDimension.width / 2);
+            node->pos[0].y = mSize.y + (mTileDimension.height + (mTileDimension.height / 2));
         }
 
         // Top right
         if (x < width - 1 && y > 0) {
             if (tiles[x + 1][y - 1] != tiles[x][y] && tiles[x + 1][y] == tiles[x][y] && tiles[x][y - 1] == tiles[x][y]) {
-                node->pos[1].x = mX + (mTileDimension.width + (mTileDimension.width / 2));
-                node->pos[1].y = mY;
+                node->pos[1].x = mSize.x + (mTileDimension.width + (mTileDimension.width / 2));
+                node->pos[1].y = mSize.y;
             } else if (tiles[x + 1][y] != tiles[x][y] && tiles[x][y - 1] != tiles[x][y]) {
-                node->pos[1].x = mX + (mTileDimension.width + (mTileDimension.width / 2));
-                node->pos[1].y = mY + mTileDimension.height;
+                node->pos[1].x = mSize.x + (mTileDimension.width + (mTileDimension.width / 2));
+                node->pos[1].y = mSize.y + mTileDimension.height;
             } else if (tiles[x + 1][y] != tiles[x][y]) {
-                node->pos[1].x = mX + (mTileDimension.width + (mTileDimension.width / 2));
-                node->pos[1].y = mY + (mTileDimension.height + (mTileDimension.height / 2));
+                node->pos[1].x = mSize.x + (mTileDimension.width + (mTileDimension.width / 2));
+                node->pos[1].y = mSize.y + (mTileDimension.height + (mTileDimension.height / 2));
             } else if (tiles[x][y - 1] != tiles[x][y]) {
-                node->pos[1].x = mX + mTileDimension.width;
-                node->pos[1].y = mY + mTileDimension.height;
+                node->pos[1].x = mSize.x + mTileDimension.width;
+                node->pos[1].y = mSize.y + mTileDimension.height;
             } else {
-                node->pos[1].x = mX + mTileDimension.width;
-                node->pos[1].y = mY + (mTileDimension.height + (mTileDimension.height / 2));
+                node->pos[1].x = mSize.x + mTileDimension.width;
+                node->pos[1].y = mSize.y + (mTileDimension.height + (mTileDimension.height / 2));
             }
         } else if (x < width - 1) {
             if (tiles[x + 1][y] != tiles[x][y]) {
-                node->pos[1].x = mX + (mTileDimension.width + (mTileDimension.width / 2));
-                node->pos[1].y = mY + (mTileDimension.height + (mTileDimension.height / 2));
+                node->pos[1].x = mSize.x + (mTileDimension.width + (mTileDimension.width / 2));
+                node->pos[1].y = mSize.y + (mTileDimension.height + (mTileDimension.height / 2));
             } else {
-                node->pos[1].x = mX + mTileDimension.width;
-                node->pos[1].y = mY + (mTileDimension.height + (mTileDimension.height / 2));
+                node->pos[1].x = mSize.x + mTileDimension.width;
+                node->pos[1].y = mSize.y + (mTileDimension.height + (mTileDimension.height / 2));
             }
         } else if (y > 0) {
             if (tiles[x][y - 1] != tiles[x][y]) {
-                node->pos[1].x = mX + mTileDimension.width;
-                node->pos[1].y = mY + mTileDimension.height;
+                node->pos[1].x = mSize.x + mTileDimension.width;
+                node->pos[1].y = mSize.y + mTileDimension.height;
             } else {
-                node->pos[1].x = mX + mTileDimension.width;
-                node->pos[1].y = mY + (mTileDimension.height + (mTileDimension.height / 2));
+                node->pos[1].x = mSize.x + mTileDimension.width;
+                node->pos[1].y = mSize.y + (mTileDimension.height + (mTileDimension.height / 2));
             }
         } else {
-            node->pos[1].x = mX + mTileDimension.width;
-            node->pos[1].y = mY + (mTileDimension.height + (mTileDimension.height / 2));
+            node->pos[1].x = mSize.x + mTileDimension.width;
+            node->pos[1].y = mSize.y + (mTileDimension.height + (mTileDimension.height / 2));
         }
 
         // Bottom left
         if (x > 0 && y < height - 1) {
             if (tiles[x - 1][y + 1] != tiles[x][y] && tiles[x - 1][y] == tiles[x][y] && tiles[x][y + 1] == tiles[x][y]) {
-                node->pos[2].x = mX + mTileDimension.width;
-                node->pos[2].y = mY + (mTileDimension.height / 2);
+                node->pos[2].x = mSize.x + mTileDimension.width;
+                node->pos[2].y = mSize.y + (mTileDimension.height / 2);
             } else if (tiles[x - 1][y] != tiles[x][y] && tiles[x][y + 1] != tiles[x][y]) {
-                node->pos[2].x = mX;
-                node->pos[2].y = mY + (mTileDimension.height * 2) + (mTileDimension.height / 2);
+                node->pos[2].x = mSize.x;
+                node->pos[2].y = mSize.y + (mTileDimension.height * 2) + (mTileDimension.height / 2);
             } else if (tiles[x - 1][y] != tiles[x][y]) {
-                node->pos[2].x = mX;
-                node->pos[2].y = mY + (mTileDimension.height * 2);
+                node->pos[2].x = mSize.x;
+                node->pos[2].y = mSize.y + (mTileDimension.height * 2);
             } else if (tiles[x][y + 1] != tiles[x][y]) {
-                node->pos[2].x = mX + (mTileDimension.width / 2);
-                node->pos[2].y = mY + (mTileDimension.height * 2) + (mTileDimension.height / 2);
+                node->pos[2].x = mSize.x + (mTileDimension.width / 2);
+                node->pos[2].y = mSize.y + (mTileDimension.height * 2) + (mTileDimension.height / 2);
             } else {
-                node->pos[2].x = mX + (mTileDimension.width / 2);
-                node->pos[2].y = mY + (mTileDimension.height + (mTileDimension.height / 2));
+                node->pos[2].x = mSize.x + (mTileDimension.width / 2);
+                node->pos[2].y = mSize.y + (mTileDimension.height + (mTileDimension.height / 2));
             }
         } else if (x > 0) {
             if (tiles[x - 1][y] != tiles[x][y]) {
-                node->pos[2].x = mX;
-                node->pos[2].y = mY + (mTileDimension.height * 2);
+                node->pos[2].x = mSize.x;
+                node->pos[2].y = mSize.y + (mTileDimension.height * 2);
             } else {
-                node->pos[2].x = mX + (mTileDimension.width / 2);
-                node->pos[2].y = mY + (mTileDimension.height + (mTileDimension.height / 2));
+                node->pos[2].x = mSize.x + (mTileDimension.width / 2);
+                node->pos[2].y = mSize.y + (mTileDimension.height + (mTileDimension.height / 2));
             }
         } else if (y < height - 1) {
             if (tiles[x][y + 1] != tiles[x][y]) {
-                node->pos[2].x = mX + (mTileDimension.width / 2);
-                node->pos[2].y = mY + (mTileDimension.height * 2) + (mTileDimension.height / 2);
+                node->pos[2].x = mSize.x + (mTileDimension.width / 2);
+                node->pos[2].y = mSize.y + (mTileDimension.height * 2) + (mTileDimension.height / 2);
             } else {
-                node->pos[2].x = mX + (mTileDimension.width / 2);
-                node->pos[2].y = mY + (mTileDimension.height + (mTileDimension.height / 2));
+                node->pos[2].x = mSize.x + (mTileDimension.width / 2);
+                node->pos[2].y = mSize.y + (mTileDimension.height + (mTileDimension.height / 2));
             }
         } else {
-            node->pos[2].x = mX + (mTileDimension.width / 2);
-            node->pos[2].y = mY + (mTileDimension.height + (mTileDimension.height / 2));
+            node->pos[2].x = mSize.x + (mTileDimension.width / 2);
+            node->pos[2].y = mSize.y + (mTileDimension.height + (mTileDimension.height / 2));
         }
 
         // Bottom right
         if (x < width - 1 && y < height - 1) {
             if (tiles[x + 1][y + 1] != tiles[x][y] && tiles[x + 1][y] == tiles[x][y] && tiles[x][y + 1] == tiles[x][y]) {
-                node->pos[3].x = mX + (mTileDimension.width + (mTileDimension.width / 2));
-                node->pos[3].y = mY + (mTileDimension.height / 2);
+                node->pos[3].x = mSize.x + (mTileDimension.width + (mTileDimension.width / 2));
+                node->pos[3].y = mSize.y + (mTileDimension.height / 2);
             } else if (tiles[x + 1][y] != tiles[x][y] && tiles[x][y + 1] != tiles[x][y]) {
-                node->pos[3].x = mX + (mTileDimension.width + (mTileDimension.width / 2));
-                node->pos[3].y = mY + (mTileDimension.height * 2) + (mTileDimension.height / 2);
+                node->pos[3].x = mSize.x + (mTileDimension.width + (mTileDimension.width / 2));
+                node->pos[3].y = mSize.y + (mTileDimension.height * 2) + (mTileDimension.height / 2);
             } else if (tiles[x + 1][y] != tiles[x][y]) {
-                node->pos[3].x = mX + (mTileDimension.width + (mTileDimension.width / 2));
-                node->pos[3].y = mY + (mTileDimension.height * 2);
+                node->pos[3].x = mSize.x + (mTileDimension.width + (mTileDimension.width / 2));
+                node->pos[3].y = mSize.y + (mTileDimension.height * 2);
             } else if (tiles[x][y + 1] != tiles[x][y]) {
-                node->pos[3].x = mX + mTileDimension.width;
-                node->pos[3].y = mY + (mTileDimension.height * 2) + (mTileDimension.height / 2);
+                node->pos[3].x = mSize.x + mTileDimension.width;
+                node->pos[3].y = mSize.y + (mTileDimension.height * 2) + (mTileDimension.height / 2);
             } else {
-                node->pos[3].x = mX + mTileDimension.width;
-                node->pos[3].y = mY + (mTileDimension.height * 2);
+                node->pos[3].x = mSize.x + mTileDimension.width;
+                node->pos[3].y = mSize.y + (mTileDimension.height * 2);
             }
         } else if (x < width - 1) {
             if (tiles[x + 1][y] != tiles[x][y]) {
-                node->pos[3].x = mX + (mTileDimension.width + (mTileDimension.width / 2));
-                node->pos[3].y = mY + (mTileDimension.height * 2);
+                node->pos[3].x = mSize.x + (mTileDimension.width + (mTileDimension.width / 2));
+                node->pos[3].y = mSize.y + (mTileDimension.height * 2);
             } else {
-                node->pos[3].x = mX + mTileDimension.width;
-                node->pos[3].y = mY + (mTileDimension.height * 2);
+                node->pos[3].x = mSize.x + mTileDimension.width;
+                node->pos[3].y = mSize.y + (mTileDimension.height * 2);
             }
         } else if (y < height - 1) {
             if (tiles[x][y + 1] != tiles[x][y]) {
-                node->pos[3].x = mX + mTileDimension.width;
-                node->pos[3].y = mY + (mTileDimension.height * 2) + (mTileDimension.height / 2);
+                node->pos[3].x = mSize.x + mTileDimension.width;
+                node->pos[3].y = mSize.y + (mTileDimension.height * 2) + (mTileDimension.height / 2);
             } else {
-                node->pos[3].x = mX + mTileDimension.width;
-                node->pos[3].y = mY + (mTileDimension.height * 2);
+                node->pos[3].x = mSize.x + mTileDimension.width;
+                node->pos[3].y = mSize.y + (mTileDimension.height * 2);
             }
         } else {
-            node->pos[3].x = mX + mTileDimension.width;
-            node->pos[3].y = mY + (mTileDimension.height * 2);
+            node->pos[3].x = mSize.x + mTileDimension.width;
+            node->pos[3].y = mSize.y + (mTileDimension.height * 2);
         }
 
         break;
@@ -286,38 +299,38 @@ std::shared_ptr<TilesetNode> TilesetType::toNode(Types::Map2D& tiles, uint32_t x
     case TileTypeAutoHoriz: {
         // Top left
         if (x > 0 && tiles[x - 1][y] != tiles[x][y]) {
-            node->pos[0].x = mX;
-            node->pos[0].y = mY;
+            node->pos[0].x = mSize.x;
+            node->pos[0].y = mSize.y;
         } else {
-            node->pos[0].x = mX + (mTileDimension.width / 2);
-            node->pos[0].y = mY;
+            node->pos[0].x = mSize.x + (mTileDimension.width / 2);
+            node->pos[0].y = mSize.y;
         }
 
         // Top right
         if (x < width - 1 && tiles[x + 1][y] != tiles[x][y]) {
-            node->pos[1].x = mX + (mTileDimension.width + (mTileDimension.width / 2));
-            node->pos[1].y = mY;
+            node->pos[1].x = mSize.x + (mTileDimension.width + (mTileDimension.width / 2));
+            node->pos[1].y = mSize.y;
         } else {
-            node->pos[1].x = mX + mTileDimension.width;
-            node->pos[1].y = mY;
+            node->pos[1].x = mSize.x + mTileDimension.width;
+            node->pos[1].y = mSize.y;
         }
 
         // Bottom left
         if (x > 0 && tiles[x - 1][y] != tiles[x][y]) {
-            node->pos[2].x = mX;
-            node->pos[2].y = mY + (mTileDimension.height / 2);
+            node->pos[2].x = mSize.x;
+            node->pos[2].y = mSize.y + (mTileDimension.height / 2);
         } else {
-            node->pos[2].x = mX + (mTileDimension.width / 2);
-            node->pos[2].y = mY + (mTileDimension.height / 2);
+            node->pos[2].x = mSize.x + (mTileDimension.width / 2);
+            node->pos[2].y = mSize.y + (mTileDimension.height / 2);
         }
 
         // Bottom right
         if (x < width - 1 && tiles[x + 1][y] != tiles[x][y]) {
-            node->pos[3].x = mX + (mTileDimension.width + (mTileDimension.width / 2));
-            node->pos[3].y = mY + (mTileDimension.height / 2);
+            node->pos[3].x = mSize.x + (mTileDimension.width + (mTileDimension.width / 2));
+            node->pos[3].y = mSize.y + (mTileDimension.height / 2);
         } else {
-            node->pos[3].x = mX + mTileDimension.width;
-            node->pos[3].y = mY + (mTileDimension.height / 2);
+            node->pos[3].x = mSize.x + mTileDimension.width;
+            node->pos[3].y = mSize.y + (mTileDimension.height / 2);
         }
 
         break;
@@ -362,73 +375,84 @@ Tileset::Tileset(const std::string& name)
 
     Json::Value nodes = doc["nodes"];
 
-    uint32_t x = 0, y = 0, typeHeight = mTileDimension.height;
-    for (uint32_t i = 0; i < nodes.size(); i++) {
-        Json::Value nodeObj = nodes[i];
-        if (!nodeObj.isMember("tile")) {
-            Logger::critical() << "Could not find required tileset node JSON data for" << name;
-            return;
-        }
-
-        if (y >= mImage->height()) {
-            Logger::critical() << "Too many nodes in tileset data for" << name;
-            return;
-        }
-
-        int frames = 0;
-        if (nodeObj.isMember("animation")) {
-            Json::Value animObj = nodeObj["animation"];
-            if (animObj.isMember("frames")) {
-                frames = animObj["frames"].asInt();
+    uint32_t x = 0, y = 0;
+    uint32_t index = 0;
+    while (y < mImage->height()) {
+        bool canAdd = true;
+        for (const auto& i: mTypes) {
+            if (i.second->contains({x, y})) {
+                canAdd = false;
+                break;
             }
         }
 
-        Types::Cells count(1, 1);
-        if (nodeObj.isMember("count")) {
-            Json::Value countObj = nodeObj["count"];
-            if (countObj.size() == 2) {
-                count.cols = countObj[0].asInt();
-                count.rows = countObj[1].asInt();
+        if (canAdd && index < nodes.size()) {
+            Json::Value nodeObj = nodes[index];
+            if (!nodeObj.isMember("tile")) {
+                Logger::critical() << "Could not find required tileset node JSON data for" << name;
+                return;
             }
-        }
 
-        uint32_t base = 0;
-        if (nodeObj.isMember("base")) {
-            base = nodeObj["base"].asInt();
-        }
+            if (y >= mImage->height()) {
+                Logger::critical() << "Too many nodes in tileset data for" << name;
+                return;
+            }
 
-        std::bitset<TilesetAttribute::Last> attrs;
-        if (nodeObj.isMember("attributes")) {
-            Json::Value attrsObj = nodeObj["attributes"];
-            for (const auto& attrObj : attrsObj) {
-                std::string key = attrObj.asString();
-                if (key == "water") {
-                    attrs[TilesetAttribute::Water] = true;
-                } else if (key == "above_row") {
-                    attrs[TilesetAttribute::AboveRow] = true;
-                } else if (key == "above_all") {
-                    attrs[TilesetAttribute::AboveAll] = true;
-                } else {
-                    Logger::warning() << "Unknown attribute" << key << "for tileset" << name;
+            int frames = 0;
+            if (nodeObj.isMember("animation")) {
+                Json::Value animObj = nodeObj["animation"];
+                if (animObj.isMember("frames")) {
+                    frames = animObj["frames"].asInt();
                 }
             }
+
+            Types::Cells count(1, 1);
+            if (nodeObj.isMember("count")) {
+                Json::Value countObj = nodeObj["count"];
+                if (countObj.size() == 2) {
+                    count.cols = countObj[0].asInt();
+                    count.rows = countObj[1].asInt();
+                }
+            }
+
+            uint32_t base = 0;
+            if (nodeObj.isMember("base")) {
+                base = nodeObj["base"].asInt();
+            }
+
+            std::bitset<TilesetAttribute::Last> attrs;
+            if (nodeObj.isMember("attributes")) {
+                Json::Value attrsObj = nodeObj["attributes"];
+                for (const auto& attrObj : attrsObj) {
+                    std::string key = attrObj.asString();
+                    if (key == "water") {
+                        attrs[TilesetAttribute::Water] = true;
+                    } else if (key == "above_row") {
+                        attrs[TilesetAttribute::AboveRow] = true;
+                    } else if (key == "above_all") {
+                        attrs[TilesetAttribute::AboveAll] = true;
+                    } else {
+                        Logger::warning() << "Unknown attribute" << key << "for tileset" << name;
+                    }
+                }
+            }
+
+            std::shared_ptr<TilesetType> type = std::make_shared<TilesetType>(mTileDimension, nodeObj["tile"].asString(), attrs, x, y, frames, count, base);
+            if (!*type) {
+                return;
+            }
+
+            mTypes[index++] = type;
         }
 
-        std::shared_ptr<TilesetType> type = std::make_shared<TilesetType>(mTileDimension, nodeObj["tile"].asString(), attrs, x, y, typeHeight, frames, count, base);
-        if (!*type) {
-            return;
-        }
-
+        x += mTileDimension.width;
         if (x >= mImage->width()) {
             x = 0;
-            y += typeHeight;
-            typeHeight = mTileDimension.height;
+            y += mTileDimension.height;
         }
-
-        mTypes[i] = type;
     }
 
-    if (y != mImage->height()) {
+    if (mTypes.size() != nodes.size()) {
         Logger::warning() << "Possible missing nodes in tileset data for" << name;
     }
 

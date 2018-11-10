@@ -3,6 +3,7 @@
     "dimen": [48, 48],
     "collision": "Outside_A1",
     "nodes": [
+        // 1 - Water with grass
         {
             "tile": "automatic",
             "animation": {
@@ -12,84 +13,105 @@
                 "water"
             ]
         },
+        // 2 - Water lily
         {
             "tile": "automatic"
         },
+        // 3 - Water with snow
         {
             "tile": "automatic",
             "animation": {
                 "frames": 3
             }
         },
+        // 4 - Waterfall stone
         {
             "tile": "automatic_horizontal",
             "animation": {
                 "frames": 3
             }
         },
+        
+        // 5 - Deep water
         {
             "tile": "automatic",
             "animation": {
                 "frames": 3
-            }
+            },
+            "attributes": [
+                "water"
+            ]
         },
+        // 6 - Grass patch
         {
             "tile": "automatic"
         },
+        // 7 - Pool of water
         {
             "tile": "automatic",
             "animation": {
                 "frames": 3
             }
         },
+        // 8 - Waterfall sand
         {
             "tile": "automatic_horizontal",
             "animation": {
                 "frames": 3
             }
         },
+
+        // 9
+        {
+            "tile": "automatic",
+            "animation": {
+                "frames": 3
+            },
+            "attributes": [
+                "water"
+            ]
+        },
+        // 10
+        {
+            "tile": "automatic"
+        },
+        // 11
         {
             "tile": "automatic",
             "animation": {
                 "frames": 3
             }
         },
+        // 12
         {
             "tile": "automatic_horizontal",
             "animation": {
                 "frames": 3
             }
         },
+
+        // 13
+        {
+            "tile": "automatic",
+            "animation": {
+                "frames": 3
+            },
+            "attributes": [
+                "water"
+            ]
+        },
+        // 14
+        {
+            "tile": "automatic"
+        },
+        // 15
         {
             "tile": "automatic",
             "animation": {
                 "frames": 3
             }
         },
-        {
-            "tile": "automatic_horizontal",
-            "animation": {
-                "frames": 3
-            }
-        },
-        {
-            "tile": "automatic",
-            "animation": {
-                "frames": 3
-            }
-        },
-        {
-            "tile": "automatic_horizontal",
-            "animation": {
-                "frames": 3
-            }
-        },
-        {
-            "tile": "automatic",
-            "animation": {
-                "frames": 3
-            }
-        },
+        // 16
         {
             "tile": "automatic_horizontal",
             "animation": {
