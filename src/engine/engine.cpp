@@ -82,10 +82,8 @@ bool Engine::process()
 
 void Engine::processAsync()
 {
-    FrameTimer frameTimer;
+    std::array<FrameTimer, 7> frameTimer;
     while (mRunning) {
-        frameTimer.start();
-
         engine::KeyList downKeys;
         {
             std::lock_guard<std::mutex> lock(mDownKeysMutex);
@@ -94,12 +92,14 @@ void Engine::processAsync()
 
         if (downKeys.contains(Keys::TestPause)) {
             std::this_thread::yield();
-            frameTimer.end();
+            for (auto& i: frameTimer) {
+                i.reset();
+            }
             continue;
         }
 
         if (downKeys.contains(engine::Keys::TestFastForward)) {
-            mClock->fastForward(50.0f * frameTimer.diff());
+            mClock->fastForward(50.0f * frameTimer[0].diff());
         }
 
         if (downKeys.contains(engine::Keys::TestSlowMode)) {
@@ -173,29 +173,28 @@ void Engine::processAsync()
             mHero->setSpeed(1.0f);
         }
 
-        mHero->velocity(frameTimer.diff(), x, y);
+        mHero->velocity(frameTimer[1].diff(), x, y);
 
         // Process movement, etc
-        if (mCamera->processAsync(frameTimer.diff(), mMap.get())) {
+        if (mCamera->processAsync(frameTimer[2].diff(), mMap.get())) {
             mNeedRepaint = true;
         }
-        if (mClock->processAsync(frameTimer.diff())) {
+        if (mClock->processAsync(frameTimer[3].diff())) {
             mNeedRepaint = true;
         }
-        if (mHero->processAsync(frameTimer.diff(), mMap.get())) {
+        if (mHero->processAsync(frameTimer[4].diff(), mMap.get())) {
             mNeedRepaint = true;
         }
 
         // Process animations
-        if (mHero->animate(frameTimer.diff(), !mHero->isMoving())) {
+        if (mHero->animate(frameTimer[5].diff(), !mHero->isMoving())) {
             mNeedRepaint = true;
         }
 
-        if (mMap->animate(frameTimer.diff())) {
+        if (mMap->animate(frameTimer[6].diff())) {
             mNeedRepaint = true;
         }
 
-        frameTimer.end();
         std::this_thread::yield();
     }
 }
