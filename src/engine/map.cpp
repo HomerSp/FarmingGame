@@ -180,7 +180,6 @@ Map::Map(const std::string& name)
     }
 
     mCollisionMap = std::make_shared<CollisionMap>(pixelWidth(), pixelHeight());
-    mCollisionMap->set(144, 0, true);
     for (const auto& layer : mLayers) {
         if (!layer->updateCollisionMap(*mCollisionMap.get())) {
             Logger::critical() << "Could not load collision map for" << name;
