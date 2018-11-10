@@ -42,10 +42,9 @@ public:
 
     struct Cells {
     public:
-        Cells(int cols = 0, int rows = 0);
+        Cells(uint32_t cols = 0, uint32_t rows = 0);
 
-        int cols;
-        int rows;
+        uint32_t cols, rows;
     };
 
     struct Color {

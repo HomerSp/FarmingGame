@@ -235,6 +235,10 @@ void Engine::paint(Renderer& renderer)
         mHero->draw(renderer, Types::Point<>(mCamera->x(), mCamera->y()));
     }
 
+    for (int row = startY - 1; row <= startY + std::ceil(mHeight / d.height); row++) {
+        mMap->drawRow(renderer, dst, row, TilesetAttribute::AboveAll);
+    }
+
     mClock->draw(renderer);
 
     std::stringstream str;

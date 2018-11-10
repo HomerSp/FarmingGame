@@ -2,7 +2,7 @@
 
 using namespace engine;
 
-Types::Cells::Cells(int cols, int rows)
+Types::Cells::Cells(uint32_t cols, uint32_t rows)
     : cols(cols)
     , rows(rows)
 {

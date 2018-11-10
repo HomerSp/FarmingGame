@@ -10,7 +10,7 @@
 
 using namespace engine;
 
-TilesetType::TilesetType(Types::Dimension<>& tileDimension, const std::string& tileType, const std::bitset<TilesetAttribute::Last>& attrs, uint32_t& x, uint32_t& y, uint32_t& typeHeight, int frames)
+TilesetType::TilesetType(Types::Dimension<>& tileDimension, const std::string& tileType, const std::bitset<TilesetAttribute::Last>& attrs, uint32_t& x, uint32_t& y, uint32_t& typeHeight, int frames, Types::Cells count, uint32_t base)
     : mValid(false)
     , mTileDimension(tileDimension)
     , mTileType(TileTypeSingle)
@@ -18,6 +18,8 @@ TilesetType::TilesetType(Types::Dimension<>& tileDimension, const std::string& t
     , mX(x)
     , mY(y)
     , mFrames(frames)
+    , mCount(count)
+    , mBase(base)
 {
     if (tileType == "automatic") {
         mTileType = TileTypeAuto;
@@ -46,7 +48,8 @@ TilesetType::TilesetType(Types::Dimension<>& tileDimension, const std::string& t
         }
         break;
     default:
-        x += mTileDimension.width;
+        x += mTileDimension.width * mCount.cols;
+        typeHeight = mTileDimension.height * mCount.rows;
         break;
     }
 
@@ -57,6 +60,28 @@ TilesetType::TilesetType(Types::Dimension<>& tileDimension, const std::string& t
     mValid = true;
 }
 
+bool TilesetType::checkBase(Types::Map2D& tiles, TilesetAttribute::Type type, uint32_t x, uint32_t y)
+{
+    if (mBase > 0) {
+        if (type == TilesetAttribute::AboveRow) {
+            if (y >= mBase && tiles[x][y - mBase] == tiles[x][y]) {
+                return true;
+            }
+        } else if(type == TilesetAttribute::AboveAll) {
+            if (y < mBase) {
+                return true;
+            }
+            if (y >= mBase && tiles[x][y - mBase] == tiles[x][y]) {
+                return false;
+            }
+
+            return true;
+        }
+    }
+
+    return false;
+}
+
 std::shared_ptr<TilesetNode> TilesetType::toNode(Types::Map2D& tiles, uint32_t x, uint32_t y, uint32_t width, uint32_t height)
 {
     std::shared_ptr<TilesetNode> node = std::make_shared<TilesetNode>();
@@ -65,24 +90,41 @@ std::shared_ptr<TilesetNode> TilesetType::toNode(Types::Map2D& tiles, uint32_t x
     node->current = 0;
 
     switch (mTileType) {
-    case TileTypeSingle:
+    case TileTypeSingle: {
+        Types::Point<uint32_t> pos(mX, mY);
+        for(uint32_t iy = 1; iy < mCount.cols; iy++) {
+            if (y - iy >= 0) {
+                if (tiles[x][y - iy] == tiles[x][y]) {
+                    pos.y += mTileDimension.height;
+                }
+            }
+        }
+        for(uint32_t ix = 1; ix < mCount.rows; ix++) {
+            if (x - ix >= 0) {
+                if (tiles[x - ix][y] == tiles[x][y]) {
+                    pos.x += mTileDimension.width;
+                }
+            }
+        }
+
         // Top left
-        node->pos[0].x = mX;
-        node->pos[0].y = mY;
+        node->pos[0].x = pos.x;
+        node->pos[0].y = pos.y;
 
         // Top right
-        node->pos[1].x = mX + (mTileDimension.width / 2);
-        node->pos[1].y = mY;
+        node->pos[1].x = pos.x + (mTileDimension.width / 2);
+        node->pos[1].y = pos.y;
 
         // Bottom left
-        node->pos[2].x = mX;
-        node->pos[2].y = mY + (mTileDimension.height / 2);
+        node->pos[2].x = pos.x;
+        node->pos[2].y = pos.y + (mTileDimension.height / 2);
 
         // Bottom right
-        node->pos[3].x = mX + (mTileDimension.width / 2);
-        node->pos[3].y = mY + (mTileDimension.height / 2);
+        node->pos[3].x = pos.x + (mTileDimension.width / 2);
+        node->pos[3].y = pos.y + (mTileDimension.height / 2);
         break;
-    case TileTypeAuto:
+    }
+    case TileTypeAuto: {
         // Top left
         if (x > 0 && y > 0) {
             if (tiles[x - 1][y - 1] != tiles[x][y] && tiles[x - 1][y] == tiles[x][y] && tiles[x][y - 1] == tiles[x][y]) {
@@ -240,7 +282,8 @@ std::shared_ptr<TilesetNode> TilesetType::toNode(Types::Map2D& tiles, uint32_t x
         }
 
         break;
-    case TileTypeAutoHoriz:
+    }
+    case TileTypeAutoHoriz: {
         // Top left
         if (x > 0 && tiles[x - 1][y] != tiles[x][y]) {
             node->pos[0].x = mX;
@@ -278,6 +321,7 @@ std::shared_ptr<TilesetNode> TilesetType::toNode(Types::Map2D& tiles, uint32_t x
         }
 
         break;
+    }
     }
 
     return node;
@@ -339,6 +383,20 @@ Tileset::Tileset(const std::string& name)
             }
         }
 
+        Types::Cells count(1, 1);
+        if (nodeObj.isMember("count")) {
+            Json::Value countObj = nodeObj["count"];
+            if (countObj.size() == 2) {
+                count.cols = countObj[0].asInt();
+                count.rows = countObj[1].asInt();
+            }
+        }
+
+        uint32_t base = 0;
+        if (nodeObj.isMember("base")) {
+            base = nodeObj["base"].asInt();
+        }
+
         std::bitset<TilesetAttribute::Last> attrs;
         if (nodeObj.isMember("attributes")) {
             Json::Value attrsObj = nodeObj["attributes"];
@@ -356,7 +414,7 @@ Tileset::Tileset(const std::string& name)
             }
         }
 
-        std::shared_ptr<TilesetType> type = std::make_shared<TilesetType>(mTileDimension, nodeObj["tile"].asString(), attrs, x, y, typeHeight, frames);
+        std::shared_ptr<TilesetType> type = std::make_shared<TilesetType>(mTileDimension, nodeObj["tile"].asString(), attrs, x, y, typeHeight, frames, count, base);
         if (!*type) {
             return;
         }
@@ -442,7 +500,7 @@ bool Tileset::updateTiles(Types::Map2D& tiles, std::unordered_map<int, std::unor
                 }
 
                 auto tileType = mTypes[n - 1];
-                if (tileType->hasAttribute(type)) {
+                if (tileType->hasAttribute(type) || tileType->checkBase(tiles, type, x, y)) {
                     map[y][x] = tileType->toNode(tiles, x, y, width, height);
                 }
             }

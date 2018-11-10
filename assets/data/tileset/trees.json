@@ -1,0 +1,49 @@
+{
+    "image": "Trees",
+    "dimen": [48, 48],
+    "collision": "Trees",
+    "nodes": [
+        // First row
+        {
+            "tile": "single",
+            "base": 2,
+            "count": [3, 3],
+            "attributes": [
+                "above_row"
+            ]
+        },
+        {
+            "tile": "single",
+            "base": 2,
+            "count": [3, 3],
+            "attributes": [
+                "above_row"
+            ]
+        },
+        {
+            "tile": "single",
+            "base": 2,
+            "count": [2, 3],
+            "attributes": [
+                "above_row"
+            ]
+        },
+        {
+            "tile": "single",
+            "base": 2,
+            "count": [2, 3],
+            "attributes": [
+                "above_row"
+            ]
+        }
+        ,
+        {
+            "tile": "single",
+            "base": 2,
+            "count": [2, 3],
+            "attributes": [
+                "above_row"
+            ]
+        }
+    ]
+}

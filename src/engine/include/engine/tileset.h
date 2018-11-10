@@ -34,8 +34,9 @@ public:
 
 class TilesetType {
 public:
-    TilesetType(Types::Dimension<>& tileDimension, const std::string& tileType, const std::bitset<TilesetAttribute::Last>& attrs, uint32_t& x, uint32_t& y, uint32_t& typeHeight, int frames);
+    TilesetType(Types::Dimension<>& tileDimension, const std::string& tileType, const std::bitset<TilesetAttribute::Last>& attrs, uint32_t& x, uint32_t& y, uint32_t& typeHeight, int frames, Types::Cells count, uint32_t base);
 
+    bool checkBase(Types::Map2D& tiles, TilesetAttribute::Type type, uint32_t x, uint32_t y);
     std::shared_ptr<TilesetNode> toNode(Types::Map2D& tiles, uint32_t x, uint32_t y, uint32_t width, uint32_t height);
 
     bool hasAttribute(TilesetAttribute::Type type) const
@@ -62,6 +63,8 @@ private:
     uint32_t mX;
     uint32_t mY;
     int mFrames;
+    Types::Cells mCount;
+    uint32_t mBase;
 };
 
 class Tileset {
