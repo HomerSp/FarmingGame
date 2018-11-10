@@ -1,18 +1,19 @@
 #pragma once
 
+#include <array>
 #include <chrono>
 #include <string>
+#include <unordered_map>
 
 namespace engine {
 class FrameTimer {
 public:
     FrameTimer();
 
-    double diff();
     void reset();
+    double operator[](size_t i);
 
 private:
-    bool mSet;
-    std::chrono::time_point<std::chrono::steady_clock> mLast;
+    std::unordered_map<size_t, std::pair<bool, std::chrono::time_point<std::chrono::steady_clock>>> mSaved;
 };
 }
