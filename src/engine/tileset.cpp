@@ -92,14 +92,14 @@ std::shared_ptr<TilesetNode> TilesetType::toNode(Types::Map2D& tiles, uint32_t x
     switch (mTileType) {
     case TileTypeSingle: {
         Types::Point<uint32_t> pos(mX, mY);
-        for(uint32_t iy = 1; iy < mCount.cols; iy++) {
+        for(uint32_t iy = 1; iy < mCount.rows; iy++) {
             if (y - iy >= 0) {
                 if (tiles[x][y - iy] == tiles[x][y]) {
                     pos.y += mTileDimension.height;
                 }
             }
         }
-        for(uint32_t ix = 1; ix < mCount.rows; ix++) {
+        for(uint32_t ix = 1; ix < mCount.cols; ix++) {
             if (x - ix >= 0) {
                 if (tiles[x - ix][y] == tiles[x][y]) {
                     pos.x += mTileDimension.width;
