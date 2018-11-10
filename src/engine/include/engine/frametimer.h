@@ -10,7 +10,7 @@ class FrameTimer {
 public:
     FrameTimer();
 
-    void reset();
+    void reset(int i = -1);
     double operator[](size_t i);
 
 private:
