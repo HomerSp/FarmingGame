@@ -104,7 +104,7 @@ void Engine::processAsync()
             std::this_thread::sleep_for(std::chrono::milliseconds(50));
         }
 
-        int8_t x = 0, y = 0;
+        float x = 0, y = 0;
         if (mHasFocus && !downKeys.empty()) {
             bool turned = false;
             for (auto it = downKeys.rbegin(); it != downKeys.rend(); it++) {

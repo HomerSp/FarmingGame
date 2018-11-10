@@ -225,7 +225,7 @@ void Character::processListeners()
     }
 }
 
-void Character::velocity(float frameDiff, int8_t x, int8_t y)
+void Character::velocity(float frameDiff, float x, float y)
 {
     float velocityX = mVelocity.x, velocityY = mVelocity.y;
 
@@ -287,8 +287,12 @@ void Character::setY(float y)
     mPos.y = y;
 }
 
-void Character::updateVelocity(float& velocity, int8_t direction, float val, bool hasTarget)
+void Character::updateVelocity(float& velocity, float direction, float val, bool hasTarget)
 {
+    if (direction != 0) {
+        val *= (direction < 0) ? -direction : direction;
+    }
+
     // Check if we are changing direction, this will increase the friction.
     if ((direction > 0 && velocity < 0.0f) || (direction < 0 && velocity > 0.0f)) {
         val *= mFriction * 5;

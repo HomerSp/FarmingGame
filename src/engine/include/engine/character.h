@@ -33,7 +33,7 @@ public:
     bool processAsync(float frameDiff, Map* map = nullptr);
     void processListeners();
 
-    void velocity(float frameDiff, int8_t x, int8_t y);
+    void velocity(float frameDiff, float x, float y);
 
     virtual float x() const;
     virtual float y() const;
@@ -60,7 +60,7 @@ public:
     static std::string className();
 
 protected:
-    void updateVelocity(float& velocity, int8_t direction, float val, bool hasTarget);
+    void updateVelocity(float& velocity, float direction, float val, bool hasTarget);
 
 private:
     bool mValid;
