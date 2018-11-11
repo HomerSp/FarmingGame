@@ -1,5 +1,8 @@
 cmake_minimum_required(VERSION 3.1.0)
 
+set(CMAKE_CXX_CLANG_TIDY_TEMP "${CMAKE_CXX_CLANG_TIDY}")
+unset(CMAKE_CXX_CLANG_TIDY)
+
 set(PROJECT "external")
 project(${PROJECT})
 
@@ -12,3 +15,5 @@ SET(JSONCPP_WITH_CMAKE_PACKAGE OFF CACHE BOOL "Compile JsonCpp without cmake")
 add_subdirectory(jsoncpp)
 
 add_subdirectory(lodepng)
+
+set(CMAKE_CXX_CLANG_TIDY "${CMAKE_CXX_CLANG_TIDY_TEMP}")
