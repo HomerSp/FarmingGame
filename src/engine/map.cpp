@@ -253,11 +253,10 @@ void Map::checkCollision(const Types::Point<float>& pos, const Types::Dimension<
     Types::Pair diff;
     int8_t rDiff = 0;
     if (dst.x != 0.0f && isColliding({ pos.x + dst.x, pos.y }, size, diff, rDiff, false)) {
+        // rDiff == 0 means that we can't move around the object, so we reset the velocity
         if (rDiff == 0) {
             velocityX = 0.0f;
-        }
-
-        if (dst.y == 0.0f) {
+        } else if (dst.y == 0.0f) {
             if (rDiff < 0) {
                 dst.y = (dst.x < 0.0f) ? dst.x : -dst.x;
             } else if (rDiff > 0) {
@@ -273,30 +272,27 @@ void Map::checkCollision(const Types::Point<float>& pos, const Types::Dimension<
     }
 
     if (dst.y != 0.0f && isColliding({ pos.x, pos.y + dst.y }, size, diff, rDiff, true)) {
+        // rDiff == 0 means that we can't move around the object, so we reset the velocity
         if (rDiff == 0) {
             velocityY = 0.0f;
-        }
+        } else if (dst.x == 0.0f) {
+            if (rDiff < 0) {
+                dst.x = (dst.y < 0.0f) ? dst.y : -dst.y;
+            } else if (rDiff > 0) {
+                dst.x = (dst.y < 0.0f) ? -dst.y : dst.y;
+            }
 
-        if (dst.x == 0.0f) {
-            if (rDiff != 0) {
-                if (rDiff < 0) {
-                    dst.x = (dst.y < 0.0f) ? dst.y : -dst.y;
-                } else if (rDiff > 0) {
-                    dst.x = (dst.y < 0.0f) ? -dst.y : dst.y;
+            // We need to check x collision again to make sure we don't get stuck
+            Types::Pair diffx;
+            if (dst.x != 0.0f && isColliding({ pos.x + dst.x, pos.y }, size, diffx, rDiff, false)) {
+                if (rDiff == 0) {
+                    velocityX = 0.0f;
                 }
 
-                // We need to check x collision again to make sure we don't get stuck
-                Types::Pair diff2;
-                if (dst.x != 0.0f && isColliding({ pos.x + dst.x, pos.y }, size, diff2, rDiff, false)) {
-                    if (rDiff == 0) {
-                        velocityX = 0.0f;
-                    }
-
-                    if (dst.x < 0.0f) {
-                        dst.x = diff2.first;
-                    } else {
-                        dst.x = diff2.second;
-                    }
+                if (dst.x < 0.0f) {
+                    dst.x = diffx.first;
+                } else {
+                    dst.x = diffx.second;
                 }
             }
         }
