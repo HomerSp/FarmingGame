@@ -37,13 +37,17 @@ Engine::Engine(uint32_t width, uint32_t height)
 
     registerScript();
 
-    mProcessThread = std::make_unique<std::thread>(&Engine::processAsync, this);
+    mThreads.push_back(std::make_unique<std::thread>(&Engine::animateAsync, this));
+    mThreads.push_back(std::make_unique<std::thread>(&Engine::processAsync, this));
 }
 
 Engine::~Engine()
 {
+    // Stop the running threads
     mRunning = false;
-    mProcessThread->join();
+    for (auto& i: mThreads) {
+        i->join();
+    }
 
     Logger::debug() << "~Engine";
     if(mScriptContext != nullptr) {
@@ -77,6 +81,23 @@ bool Engine::process()
     mClock->processListeners();
     mHero->processListeners();
     return mNeedRepaint;
+}
+
+void Engine::animateAsync()
+{
+    FrameTimer frameTimer;
+    while (mRunning) {
+        // Process animations
+        if (mHero->animate(frameTimer[FRAMETIMER_HERO_ANIMATION], !mHero->isMoving())) {
+            mNeedRepaint = true;
+        }
+
+        if (mMap->animate(frameTimer[FRAMETIMER_MAP_ANIMATION])) {
+            mNeedRepaint = true;
+        }
+
+        std::this_thread::yield();
+    }
 }
 
 void Engine::processAsync()
@@ -182,15 +203,6 @@ void Engine::processAsync()
             mNeedRepaint = true;
         }
         if (mHero->processAsync(frameTimer[FRAMETIMER_HERO_MOVEMENT], mMap.get())) {
-            mNeedRepaint = true;
-        }
-
-        // Process animations
-        if (mHero->animate(frameTimer[FRAMETIMER_HERO_ANIMATION], !mHero->isMoving())) {
-            mNeedRepaint = true;
-        }
-
-        if (mMap->animate(frameTimer[FRAMETIMER_MAP_ANIMATION])) {
             mNeedRepaint = true;
         }
 

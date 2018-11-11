@@ -46,6 +46,7 @@ public:
     static std::string className();
 
 protected:
+    void animateAsync();
     void processAsync();
 
     bool registerScript();
@@ -79,7 +80,7 @@ private:
     std::shared_ptr<engine::Map> mMap;
     std::shared_ptr<engine::Character> mHero;
 
-    std::unique_ptr<std::thread> mProcessThread;
+    std::vector<std::unique_ptr<std::thread>> mThreads;
 
     asIScriptEngine* mScriptEngine;
     asIScriptContext* mScriptContext;
