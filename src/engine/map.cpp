@@ -278,10 +278,26 @@ void Map::checkCollision(const Types::Point<float>& pos, const Types::Dimension<
         }
 
         if (dst.x == 0.0f) {
-            if (rDiff < 0) {
-                dst.x = (dst.y < 0.0f) ? dst.y : -dst.y;
-            } else if (rDiff > 0) {
-                dst.x = (dst.y < 0.0f) ? -dst.y : dst.y;
+            if (rDiff != 0) {
+                if (rDiff < 0) {
+                    dst.x = (dst.y < 0.0f) ? dst.y : -dst.y;
+                } else if (rDiff > 0) {
+                    dst.x = (dst.y < 0.0f) ? -dst.y : dst.y;
+                }
+
+                // We need to check x collision again to make sure we don't get stuck
+                Types::Pair diff2;
+                if (dst.x != 0.0f && isColliding({ pos.x + dst.x, pos.y }, size, diff2, rDiff, false)) {
+                    if (rDiff == 0) {
+                        velocityX = 0.0f;
+                    }
+
+                    if (dst.x < 0.0f) {
+                        dst.x = diff2.first;
+                    } else {
+                        dst.x = diff2.second;
+                    }
+                }
             }
         }
 
