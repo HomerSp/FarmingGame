@@ -7,19 +7,16 @@ set(PROJECT "angelscript_addon")
 project(${PROJECT})
 
 include_directories(
-    addon/include
     src/sdk/angelscript/include
 )
 
 set(HEADERS
-    addon/include/functionptr.h
     src/sdk/add_on/scripthandle/scripthandle.h
     src/sdk/add_on/scriptbuilder/scriptbuilder.h
     src/sdk/add_on/scriptstdstring/scriptstdstring.h
 )
 
 set(SOURCES
-    addon/functionptr.cpp
     src/sdk/add_on/scripthandle/scripthandle.cpp
     src/sdk/add_on/scriptbuilder/scriptbuilder.cpp
     src/sdk/add_on/scriptstdstring/scriptstdstring.cpp
