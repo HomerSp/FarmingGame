@@ -7,10 +7,14 @@ FrameTimer::FrameTimer()
     reset();
 }
 
-void FrameTimer::reset(int i)
+void FrameTimer::reset(int from, int to)
 {
-    if (i >= 0) {
-        mSaved[i].first = false;
+    if (from >= 0 && to >= 0) {
+        for (int i = from; i < to; i++) {
+            mSaved[i].first = false;
+        }
+    } else if (from >= 0) {
+        mSaved[from].first = false;
     } else {
         for (auto& i: mSaved) {
             i.second.first = false;

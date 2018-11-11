@@ -20,6 +20,7 @@ Engine::Engine(uint32_t width, uint32_t height)
     , mHeight(height)
     , mMap(nullptr)
     , mHero(nullptr)
+    , mEnableThreading(true)
     , mScriptEngine(nullptr)
     , mScriptContext(nullptr)
 {
@@ -37,8 +38,10 @@ Engine::Engine(uint32_t width, uint32_t height)
 
     registerScript();
 
-    mThreads.push_back(std::make_unique<std::thread>(&Engine::animateAsync, this));
-    mThreads.push_back(std::make_unique<std::thread>(&Engine::processAsync, this));
+    if (mEnableThreading) {
+        mThreads.push_back(std::make_unique<std::thread>(&Engine::animateAsync, this));
+        mThreads.push_back(std::make_unique<std::thread>(&Engine::processAsync, this));
+    }
 }
 
 Engine::~Engine()
@@ -77,6 +80,11 @@ int Engine::bufferHeight() const
 
 bool Engine::process()
 {
+    if (!mEnableThreading) {
+        animateAsync();
+        processAsync();
+    }
+
     mCamera->processListeners();
     mClock->processListeners();
     mHero->processListeners();
@@ -85,15 +93,18 @@ bool Engine::process()
 
 void Engine::animateAsync()
 {
-    FrameTimer frameTimer;
     while (mRunning) {
         // Process animations
-        if (mHero->animate(frameTimer[FRAMETIMER_HERO_ANIMATION], !mHero->isMoving())) {
+        if (mHero->animate(mFrameTimer[FRAMETIMER_HERO_ANIMATION], !mHero->isMoving())) {
             mNeedRepaint = true;
         }
 
-        if (mMap->animate(frameTimer[FRAMETIMER_MAP_ANIMATION])) {
+        if (mMap->animate(mFrameTimer[FRAMETIMER_MAP_ANIMATION])) {
             mNeedRepaint = true;
+        }
+
+        if (!mEnableThreading) {
+            break;
         }
 
         std::this_thread::yield();
@@ -102,7 +113,6 @@ void Engine::animateAsync()
 
 void Engine::processAsync()
 {
-    FrameTimer frameTimer;
     while (mRunning) {
         engine::KeyList downKeys;
         {
@@ -111,15 +121,19 @@ void Engine::processAsync()
         }
 
         if (downKeys.contains(Keys::TestPause)) {
+            mFrameTimer.reset(FRAMETIMER_CLOCK, FRAMETIMER_HERO_MOVEMENT);
+            if (!mEnableThreading) {
+                break;
+            }
+
             std::this_thread::yield();
-            frameTimer.reset();
             continue;
         }
 
         if (downKeys.contains(engine::Keys::TestFastForward)) {
-            mClock->fastForward(50.0f * frameTimer[FRAMETIMER_FASTFORWARD]);
+            mClock->fastForward(50.0f * mFrameTimer[FRAMETIMER_FASTFORWARD]);
         } else {
-            frameTimer.reset(FRAMETIMER_FASTFORWARD);
+            mFrameTimer.reset(FRAMETIMER_FASTFORWARD);
         }
 
         if (downKeys.contains(engine::Keys::TestSlowMode)) {
@@ -193,17 +207,21 @@ void Engine::processAsync()
             mHero->setSpeed(1.0f);
         }
 
-        mHero->velocity(frameTimer[FRAMETIMER_HERO_VELOCITY], x, y);
+        mHero->velocity(mFrameTimer[FRAMETIMER_HERO_VELOCITY], x, y);
 
         // Process movement, etc
-        if (mCamera->processAsync(frameTimer[FRAMETIMER_CAMERA], mMap.get())) {
+        if (mCamera->processAsync(mFrameTimer[FRAMETIMER_CAMERA], mMap.get())) {
             mNeedRepaint = true;
         }
-        if (mClock->processAsync(frameTimer[FRAMETIMER_CLOCK])) {
+        if (mClock->processAsync(mFrameTimer[FRAMETIMER_CLOCK])) {
             mNeedRepaint = true;
         }
-        if (mHero->processAsync(frameTimer[FRAMETIMER_HERO_MOVEMENT], mMap.get())) {
+        if (mHero->processAsync(mFrameTimer[FRAMETIMER_HERO_MOVEMENT], mMap.get())) {
             mNeedRepaint = true;
+        }
+
+        if (!mEnableThreading) {
+            break;
         }
 
         std::this_thread::yield();

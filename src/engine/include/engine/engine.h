@@ -80,6 +80,8 @@ private:
     std::shared_ptr<engine::Map> mMap;
     std::shared_ptr<engine::Character> mHero;
 
+    FrameTimer mFrameTimer;
+    bool mEnableThreading;
     std::vector<std::unique_ptr<std::thread>> mThreads;
 
     asIScriptEngine* mScriptEngine;
