@@ -77,18 +77,10 @@ bool TilesetType::checkBase(Types::Map2D& tiles, TilesetAttribute::Type type, ui
 {
     if (mBase > 0) {
         if (type == TilesetAttribute::AboveRow) {
-            if (y >= mBase && tiles[x][y - mBase] == tiles[x][y]) {
-                return true;
-            }
-        } else if(type == TilesetAttribute::AboveAll) {
-            if (y < mBase) {
-                return true;
-            }
-            if (y >= mBase && tiles[x][y - mBase] == tiles[x][y]) {
-                return false;
-            }
-
-            return true;
+            return (y >= mBase && tiles[x][y - mBase] == tiles[x][y]);
+        }
+        if(type == TilesetAttribute::AboveAll) {
+            return (y < mBase || tiles[x][y - mBase] != tiles[x][y]);
         }
     }
 

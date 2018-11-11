@@ -21,5 +21,3 @@ source_group("Source Files" FILES ${SOURCES})
 
 add_library( ${PROJECT} STATIC
              ${SOURCES} )
-
-target_compile_options(angelscript_function PUBLIC -fno-strict-aliasing -Wno-unused-but-set-variable -Wno-unused-variable)
