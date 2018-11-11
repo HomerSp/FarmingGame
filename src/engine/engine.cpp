@@ -76,7 +76,6 @@ bool Engine::process()
     mCamera->processListeners();
     mClock->processListeners();
     mHero->processListeners();
-
     return mNeedRepaint;
 }
 
@@ -98,10 +97,12 @@ void Engine::processAsync()
 
         if (downKeys.contains(engine::Keys::TestFastForward)) {
             mClock->fastForward(50.0f * frameTimer[0]);
+        } else {
+            frameTimer.reset(0);
         }
 
         if (downKeys.contains(engine::Keys::TestSlowMode)) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(50));
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
 
         float x = 0, y = 0;
@@ -244,6 +245,8 @@ void Engine::paint(Renderer& renderer)
     std::stringstream str;
     str << std::setw(2) << std::setfill('0') << mClock->hour() << ":" << std::setw(2) << std::setfill('0') << mClock->minute();
     renderer.drawText({-10, 10}, str.str(), {0, 0, 0}, 24, Types::TextAlign({Types::TextAlign::Right}));
+
+    mNeedRepaint = false;
 }
 
 void Engine::setKeyMap(const std::unordered_map<int, Keys::Type>& keys)
