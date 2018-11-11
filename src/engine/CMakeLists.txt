@@ -23,8 +23,9 @@ set(HEADERS
 	include/engine/listeners.h
 	include/engine/logger.h
 	include/engine/map.h
+    include/engine/player.h
+    include/engine/renderer.h
 	include/engine/scriptobject.h
-	include/engine/renderer.h
 	include/engine/tileset.h
 	include/engine/time.h
 	include/engine/types.h
@@ -44,6 +45,7 @@ set(SOURCES
 	listeners.cpp
     logger.cpp
     map.cpp
+    player.cpp
     renderer.cpp
     scriptobject.cpp
     tileset.cpp

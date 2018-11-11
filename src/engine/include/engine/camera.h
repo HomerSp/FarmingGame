@@ -48,7 +48,7 @@ public:
     void setTarget(Target* target);
     void setViewport(const Types::Dimension<uint32_t>& d);
 
-    void registerClass(asIScriptEngine* engine);
+    static void registerClass(asIScriptEngine* engine);
     static std::string className();
 
 private:

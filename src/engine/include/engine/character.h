@@ -56,7 +56,7 @@ public:
         return !mValid;
     }
 
-    void registerClass(asIScriptEngine* engine);
+    static void registerClass(asIScriptEngine* engine);
     static std::string className();
 
 protected:

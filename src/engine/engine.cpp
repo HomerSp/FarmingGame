@@ -19,7 +19,7 @@ Engine::Engine(uint32_t width, uint32_t height)
     , mWidth(width)
     , mHeight(height)
     , mMap(nullptr)
-    , mHero(nullptr)
+    , mPlayer(nullptr)
     , mEnableThreading(true)
     , mScriptEngine(nullptr)
     , mScriptContext(nullptr)
@@ -29,11 +29,11 @@ Engine::Engine(uint32_t width, uint32_t height)
     mCamera = std::make_shared<engine::Camera>(mWidth, mHeight);
     mClock = std::make_shared<engine::Clock>();
     mMap = std::make_shared<engine::Map>("map");
-    mHero = std::make_shared<engine::Character>("hero");
-    mHero->setX(std::floor((mMap->pixelWidth() - mHero->width()) / 2));
-    mHero->setY(std::floor((mMap->pixelHeight() - mHero->height()) / 2));
+    mPlayer = std::make_shared<engine::Player>();
+    mPlayer->setX(std::floor((mMap->pixelWidth() - mPlayer->width()) / 2));
+    mPlayer->setY(std::floor((mMap->pixelHeight() - mPlayer->height()) / 2));
 
-    mCamera->setTarget(mHero.get());
+    mCamera->setTarget(mPlayer.get());
     mClock->setTime(8, 0);
 
     registerScript();
@@ -59,7 +59,7 @@ Engine::~Engine()
 
     mCamera.reset();
     mClock.reset();
-    mHero.reset();
+    mPlayer.reset();
 
     if(mScriptEngine != nullptr) {
         mScriptEngine->ShutDownAndRelease();
@@ -87,7 +87,7 @@ bool Engine::process()
 
     mCamera->processListeners();
     mClock->processListeners();
-    mHero->processListeners();
+    mPlayer->processListeners();
     return mNeedRepaint;
 }
 
@@ -95,7 +95,7 @@ void Engine::animateAsync()
 {
     while (mRunning) {
         // Process animations
-        if (mHero->animate(mFrameTimer[FRAMETIMER_HERO_ANIMATION], !mHero->isMoving())) {
+        if (mPlayer->animate(mFrameTimer[FRAMETIMER_HERO_ANIMATION], !mPlayer->isMoving())) {
             mNeedRepaint = true;
         }
 
@@ -150,7 +150,7 @@ void Engine::processAsync()
                         y = -1;
                     }
                     if (!turned) {
-                        mHero->turnTo(engine::Character::Direction::Up);
+                        mPlayer->turnTo(engine::Character::Direction::Up);
                         turned = true;
                     }
                     break;
@@ -159,7 +159,7 @@ void Engine::processAsync()
                         y = 1;
                     }
                     if (!turned) {
-                        mHero->turnTo(engine::Character::Direction::Down);
+                        mPlayer->turnTo(engine::Character::Direction::Down);
                         turned = true;
                     }
                     break;
@@ -168,7 +168,7 @@ void Engine::processAsync()
                         x = -1;
                     }
                     if (!turned) {
-                        mHero->turnTo(engine::Character::Direction::Left);
+                        mPlayer->turnTo(engine::Character::Direction::Left);
                         turned = true;
                     }
                     break;
@@ -177,7 +177,7 @@ void Engine::processAsync()
                         x = 1;
                     }
                     if (!turned) {
-                        mHero->turnTo(engine::Character::Direction::Right);
+                        mPlayer->turnTo(engine::Character::Direction::Right);
                         turned = true;
                     }
                     break;
@@ -191,23 +191,23 @@ void Engine::processAsync()
             }
 
             if (downKeys.contains(engine::Keys::TestFriction)) {
-                mHero->setFriction(0.1f);
+                mPlayer->setFriction(0.1f);
             } else {
-                mHero->setFriction(1.0f);
+                mPlayer->setFriction(1.0f);
             }
 
             if (downKeys.contains(engine::Keys::Run)) {
-                mHero->setSpeed(2.0f);
+                mPlayer->setSpeed(2.0f);
             } else if (downKeys.contains(engine::Keys::Walk)) {
-                mHero->setSpeed(0.5f);
+                mPlayer->setSpeed(0.5f);
             } else {
-                mHero->setSpeed(1.0f);
+                mPlayer->setSpeed(1.0f);
             }
         } else {
-            mHero->setSpeed(1.0f);
+            mPlayer->setSpeed(1.0f);
         }
 
-        mHero->velocity(mFrameTimer[FRAMETIMER_HERO_VELOCITY], x, y);
+        mPlayer->velocity(mFrameTimer[FRAMETIMER_HERO_VELOCITY], x, y);
 
         // Process movement, etc
         if (mCamera->processAsync(mFrameTimer[FRAMETIMER_CAMERA], mMap.get())) {
@@ -216,7 +216,7 @@ void Engine::processAsync()
         if (mClock->processAsync(mFrameTimer[FRAMETIMER_CLOCK])) {
             mNeedRepaint = true;
         }
-        if (mHero->processAsync(mFrameTimer[FRAMETIMER_HERO_MOVEMENT], mMap.get())) {
+        if (mPlayer->processAsync(mFrameTimer[FRAMETIMER_HERO_MOVEMENT], mMap.get())) {
             mNeedRepaint = true;
         }
 
@@ -254,8 +254,8 @@ void Engine::paint(Renderer& renderer)
     int startY = std::ceil(mCamera->y() / d.height);
     bool drawnHero = false;
     for (int row = startY - 1; row <= startY + std::ceil(mHeight / d.height); row++) {
-        if (!drawnHero && row * d.height >= mHero->y()) {
-            mHero->draw(renderer, Types::Point<>(mCamera->x(), mCamera->y()));
+        if (!drawnHero && row * d.height >= mPlayer->y()) {
+            mPlayer->draw(renderer, Types::Point<>(mCamera->x(), mCamera->y()));
             drawnHero = true;
         }
 
@@ -263,7 +263,7 @@ void Engine::paint(Renderer& renderer)
     }
 
     if (!drawnHero) {
-        mHero->draw(renderer, Types::Point<>(mCamera->x(), mCamera->y()));
+        mPlayer->draw(renderer, Types::Point<>(mCamera->x(), mCamera->y()));
     }
 
     for (int row = startY - 1; row <= startY + std::ceil(mHeight / d.height); row++) {
@@ -337,9 +337,10 @@ bool Engine::registerScript()
     RegisterScriptHandle(mScriptEngine);
 
     registerGeneric();
-    mClock->registerClass(mScriptEngine);
-    mHero->registerClass(mScriptEngine);
-    mCamera->registerClass(mScriptEngine);
+    Character::registerClass(mScriptEngine);
+    Clock::registerClass(mScriptEngine);
+    Player::registerClass(mScriptEngine);
+    Camera::registerClass(mScriptEngine);
 
     // This needs to be done after all other types have been registered.
     registerClass();
@@ -402,7 +403,7 @@ void Engine::registerClass()
     registerReference<Engine>(mScriptEngine);
     REGISTER_FUNC(mScriptEngine, Engine, Camera&, camera);
     REGISTER_FUNC(mScriptEngine, Engine, Clock&, clock);
-    REGISTER_FUNC(mScriptEngine, Engine, Character&, hero);
+    REGISTER_FUNC(mScriptEngine, Engine, Player&, player);
     registerInstance<Engine>(mScriptEngine, "engine", this);
 }
 
@@ -410,7 +411,7 @@ void Engine::registerContext()
 {
     mCamera->setContext(mScriptContext);
     mClock->setContext(mScriptContext);
-    mHero->setContext(mScriptContext);
+    mPlayer->setContext(mScriptContext);
 }
 
 engine::Camera* Engine::camera()
@@ -423,7 +424,7 @@ engine::Clock* Engine::clock()
     return mClock.get();
 }
 
-engine::Character* Engine::hero()
+engine::Player* Engine::player()
 {
-    return mHero.get();
+    return mPlayer.get();
 }

@@ -1,5 +1,5 @@
 {
-    "image": "hero",
+    "image": "player",
     "walk": {
         "size": [48, 48],
         "pos": [0, 0],

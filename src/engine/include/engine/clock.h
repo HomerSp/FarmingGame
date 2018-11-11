@@ -57,7 +57,7 @@ public:
     // Scripting
     void on(const std::string& type, const std::string& format, asIScriptFunction* func);
 
-    void registerClass(asIScriptEngine* engine);
+    static void registerClass(asIScriptEngine* engine);
     static std::string className();
 
 private:

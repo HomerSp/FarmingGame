@@ -13,6 +13,7 @@
 #include <engine/frametimer.h>
 #include <engine/keys.h>
 #include <engine/map.h>
+#include <engine/player.h>
 #include <engine/scriptobject.h>
 
 namespace engine {
@@ -41,7 +42,7 @@ public:
     // Scripting
     engine::Camera* camera();
     engine::Clock* clock();
-    engine::Character* hero();
+    engine::Player* player();
 
     static std::string className();
 
@@ -78,7 +79,7 @@ private:
     std::shared_ptr<engine::Camera> mCamera;
     std::shared_ptr<engine::Clock> mClock;
     std::shared_ptr<engine::Map> mMap;
-    std::shared_ptr<engine::Character> mHero;
+    std::shared_ptr<engine::Player> mPlayer;
 
     FrameTimer mFrameTimer;
     bool mEnableThreading;
