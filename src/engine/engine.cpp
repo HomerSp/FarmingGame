@@ -96,9 +96,9 @@ void Engine::processAsync()
         }
 
         if (downKeys.contains(engine::Keys::TestFastForward)) {
-            mClock->fastForward(50.0f * frameTimer[0]);
+            mClock->fastForward(50.0f * frameTimer[FRAMETIMER_FASTFORWARD]);
         } else {
-            frameTimer.reset(0);
+            frameTimer.reset(FRAMETIMER_FASTFORWARD);
         }
 
         if (downKeys.contains(engine::Keys::TestSlowMode)) {
@@ -172,25 +172,25 @@ void Engine::processAsync()
             mHero->setSpeed(1.0f);
         }
 
-        mHero->velocity(frameTimer[1], x, y);
+        mHero->velocity(frameTimer[FRAMETIMER_HERO_VELOCITY], x, y);
 
         // Process movement, etc
-        if (mCamera->processAsync(frameTimer[2], mMap.get())) {
+        if (mCamera->processAsync(frameTimer[FRAMETIMER_CAMERA], mMap.get())) {
             mNeedRepaint = true;
         }
-        if (mClock->processAsync(frameTimer[3])) {
+        if (mClock->processAsync(frameTimer[FRAMETIMER_CLOCK])) {
             mNeedRepaint = true;
         }
-        if (mHero->processAsync(frameTimer[4], mMap.get())) {
+        if (mHero->processAsync(frameTimer[FRAMETIMER_HERO_MOVEMENT], mMap.get())) {
             mNeedRepaint = true;
         }
 
         // Process animations
-        if (mHero->animate(frameTimer[5], !mHero->isMoving())) {
+        if (mHero->animate(frameTimer[FRAMETIMER_HERO_ANIMATION], !mHero->isMoving())) {
             mNeedRepaint = true;
         }
 
-        if (mMap->animate(frameTimer[6])) {
+        if (mMap->animate(frameTimer[FRAMETIMER_MAP_ANIMATION])) {
             mNeedRepaint = true;
         }
 

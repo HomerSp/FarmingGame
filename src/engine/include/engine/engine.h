@@ -54,6 +54,17 @@ protected:
     void registerContext();
 
 private:
+    enum {
+        FRAMETIMER_CLOCK = 0,
+        FRAMETIMER_CAMERA,
+        FRAMETIMER_HERO_VELOCITY,
+        FRAMETIMER_HERO_MOVEMENT,
+        FRAMETIMER_HERO_ANIMATION,
+        FRAMETIMER_MAP_ANIMATION,
+        FRAMETIMER_FASTFORWARD,
+    };
+
+private:
     std::atomic<bool> mRunning;
     std::atomic<bool> mNeedRepaint;
     std::atomic<bool> mHasFocus;
