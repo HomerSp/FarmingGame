@@ -88,7 +88,7 @@ bool Character::animate(float frameDiff, bool reset)
     return changed;
 }
 
-bool Character::processAsync(float frameDiff, Map* map)
+bool Character::processAsync(float frameDiff, Map* map, std::vector<std::shared_ptr<Character>> *characters)
 {
     float posX = mPos.x, posY = mPos.y;
     float velocityX = mVelocity.x, velocityY = mVelocity.y;
@@ -151,9 +151,17 @@ bool Character::processAsync(float frameDiff, Map* map)
     if (velocityX != 0.0f || velocityY != 0.0f) {
         Types::Point<float> dst(velocityX * (frameDiff * 200.0f), velocityY * (frameDiff * 200.0f));
         if (map != nullptr) {
-            Types::Point<float> pos(posX, posY);
-            Types::Dimension<> size(width(), height());
+            Types::Rect<> col = mCharset->collision(mCharsetType);
+
+            Types::Point<float> pos(posX + col.x, posY + col.y);
+            Types::Dimension<> size(col.width, col.height);
             map->checkCollision(pos, size, dst, velocityX, velocityY);
+        }
+
+        if (characters != nullptr && (dst.x != 0.0f || dst.y != 0.0f)) {
+            for(auto& i: *characters) {
+                checkCollision(*(i.get()), dst);
+            }
         }
 
         if (targetX != -1 && (
@@ -285,6 +293,35 @@ void Character::setX(float x)
 void Character::setY(float y)
 {
     mPos.y = y;
+}
+
+void Character::checkCollision(const Character& other, Types::Point<float>& dst)
+{
+    Types::Rect<> col = mCharset->collision(mCharsetType);
+    Types::Rect<> othercol = other.mCharset->collision(other.mCharsetType);
+
+    Types::Quad<float> quad1(mPos.x + col.x, mPos.y + col.y, mPos.x + col.x + col.width, mPos.y + col.y + col.height);
+    Types::Quad<float> quad2(other.mPos.x + othercol.x, other.mPos.y + othercol.y, other.mPos.x + othercol.x + othercol.width, other.mPos.y + othercol.y + othercol.height);
+
+    if (dst.x != 0.0f && ((quad1.y1 >= quad2.y1 && quad1.y1 < quad2.y2) || (quad1.y2 >= quad2.y1 && quad1.y2 < quad2.y2))) {
+        // Left
+        if (dst.x < 0.0f && quad1.x1 + dst.x <= quad2.x2 && quad1.x1 + dst.x > quad2.x1) {
+            dst.x = quad2.x2 - quad1.x1;
+        // Right
+        } else if(dst.x > 0.0f && quad1.x2 + dst.x >= quad2.x1 && quad1.x2 + dst.x < quad2.x2) {
+            dst.x = quad2.x1 - quad1.x2;
+        }
+    }
+
+    if (dst.y != 0.0f && ((quad1.x1 >= quad2.x1 && quad1.x1 < quad2.x2) || (quad1.x2 >= quad2.x1 && quad1.x2 < quad2.x2))) {
+        // Top
+        if (dst.y < 0.0f && quad1.y1 + dst.y <= quad2.y2 && quad1.y1 + dst.y > quad2.y1) {
+            dst.y = quad2.y2 - quad1.y1;
+        // Bottom
+        } else if(dst.y > 0.0f && quad1.y2 + dst.y >= quad2.y1 && quad1.y2 + dst.y < quad2.y2) {
+            dst.y = quad2.y1 - quad1.y2;
+        }
+    }
 }
 
 void Character::updateVelocity(float& velocity, float direction, float val, bool hasTarget)

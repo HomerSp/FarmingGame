@@ -6,9 +6,10 @@
 
 using namespace engine;
 
-CharsetNode::CharsetNode(const Types::Rect<>& rc, const Types::Cells& cells)
+CharsetNode::CharsetNode(const Types::Rect<>& rc, const Types::Cells& cells, const Types::Rect<>& collision)
     : rect(rc)
     , cells(cells)
+    , collision(collision)
 {
 }
 
@@ -81,20 +82,33 @@ int Charset::columns(Charset::Type type)
     return mNodes.find(type)->second->cells.cols;
 }
 
+Types::Rect<> Charset::collision(Charset::Type type)
+{
+    if (mNodes.find(type) == mNodes.end()) {
+        return Types::Rect<>();
+    }
+
+    return mNodes.find(type)->second->collision;
+}
+
 void Charset::addNode(Charset::Type type, Json::Value& val)
 {
     if (!val.isMember("size") || !val.isMember("pos") || !val.isMember("cells")) {
+        Logger::error() << "Could not find required json values for charset";
         return;
     }
 
     Json::Value size = val["size"];
     Json::Value pos = val["pos"];
     Json::Value cells = val["cells"];
-    if (size.size() != 2 || pos.size() != 2 || cells.size() != 2) {
+    Json::Value collision = val["collision"];
+    if (size.size() != 2 || pos.size() != 2 || cells.size() != 2 || collision.size() != 4) {
+        Logger::error() << "Invalid json values for charset";
         return;
     }
 
     Types::Rect<> rect(pos[0].asInt(), pos[1].asInt(), size[0].asInt(), size[1].asInt());
     Types::Cells c(cells[0].asInt(), cells[1].asInt());
-    mNodes[type] = std::make_shared<CharsetNode>(rect, c);
+    Types::Rect<> col(collision[0].asInt(), collision[1].asInt(), collision[2].asInt(), collision[3].asInt());
+    mNodes[type] = std::make_shared<CharsetNode>(rect, c, col);
 }

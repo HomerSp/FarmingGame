@@ -139,7 +139,7 @@ bool Camera::processAsync(float frameDiff, Map* map)
 
     std::lock_guard<std::mutex> lock(mMoveMutex);
     for(auto &i: mMoveListeners) {
-        i->check(mPosX, mPosY);
+        i->check(mPosX, mPosY, mTargetPosX >= 0, mTargetPosY >= 0);
     }
 
     return changed;

@@ -33,6 +33,10 @@ Engine::Engine(uint32_t width, uint32_t height)
     mPlayer->setX(std::floor((mMap->pixelWidth() - mPlayer->width()) / 2));
     mPlayer->setY(std::floor((mMap->pixelHeight() - mPlayer->height()) / 2));
 
+    mCharacters.push_back(std::make_shared<engine::Character>("dude"));
+    mCharacters.back()->setX(200);
+    mCharacters.back()->setY(200);
+
     mCamera->setTarget(mPlayer.get());
     mClock->setTime(8, 0);
 
@@ -46,20 +50,24 @@ Engine::Engine(uint32_t width, uint32_t height)
 
 Engine::~Engine()
 {
+    Logger::debug() << "~Engine";
+
     // Stop the running threads
     mRunning = false;
     for (auto& i: mThreads) {
         i->join();
     }
 
-    Logger::debug() << "~Engine";
-    if(mScriptContext != nullptr) {
-        mScriptContext->Release();
-    }
-
     mCamera.reset();
     mClock.reset();
     mPlayer.reset();
+    for(auto &i: mCharacters) {
+        i.reset();
+    }
+
+    if(mScriptContext != nullptr) {
+        mScriptContext->Release();
+    }
 
     if(mScriptEngine != nullptr) {
         mScriptEngine->ShutDownAndRelease();
@@ -88,6 +96,9 @@ bool Engine::process()
     mCamera->processListeners();
     mClock->processListeners();
     mPlayer->processListeners();
+    for(auto &i: mCharacters) {
+        i->processListeners();
+    }
     return mNeedRepaint;
 }
 
@@ -101,6 +112,11 @@ void Engine::animateAsync()
 
         if (mMap->animate(mFrameTimer[FRAMETIMER_MAP_ANIMATION])) {
             mNeedRepaint = true;
+        }
+
+        double diff = mFrameTimer[FRAMETIMER_CHARACTERS_ANIMATION];
+        for(auto &i: mCharacters) {
+            i->animate(diff, !i->isMoving());
         }
 
         if (!mEnableThreading) {
@@ -216,8 +232,15 @@ void Engine::processAsync()
         if (mClock->processAsync(mFrameTimer[FRAMETIMER_CLOCK])) {
             mNeedRepaint = true;
         }
-        if (mPlayer->processAsync(mFrameTimer[FRAMETIMER_HERO_MOVEMENT], mMap.get())) {
+        if (mPlayer->processAsync(mFrameTimer[FRAMETIMER_HERO_MOVEMENT], mMap.get(), &mCharacters)) {
             mNeedRepaint = true;
+        }
+
+        double diff = mFrameTimer[FRAMETIMER_CHARACTERS_PROCESS];
+        for(auto &i: mCharacters) {
+            if (i->processAsync(diff, mMap.get())) {
+                mNeedRepaint = true;
+            }
         }
 
         if (!mEnableThreading) {
@@ -251,19 +274,26 @@ void Engine::paint(Renderer& renderer)
 
     Types::Dimension<> d = mMap->getTileDimension();
 
+    std::vector<Character*> drawCharacters;
+    for (auto& i: mCharacters) {
+        drawCharacters.push_back(i.get());
+    }
+
+    drawCharacters.push_back(mPlayer.get());
+
     int startY = std::ceil(mCamera->y() / d.height);
-    bool drawnHero = false;
     for (int row = startY - 1; row <= startY + std::ceil(mHeight / d.height); row++) {
-        if (!drawnHero && row * d.height >= mPlayer->y()) {
-            mPlayer->draw(renderer, Types::Point<>(mCamera->x(), mCamera->y()));
-            drawnHero = true;
+        auto it = drawCharacters.begin();
+        while (it != drawCharacters.end()) {
+            if (row * d.height >= (*it)->y()) {
+                (*it)->draw(renderer, Types::Point<>(mCamera->x(), mCamera->y()));
+                it = drawCharacters.erase(it);
+            } else {
+                it++;
+            }
         }
 
         mMap->drawRow(renderer, dst, row, TilesetAttribute::AboveRow);
-    }
-
-    if (!drawnHero) {
-        mPlayer->draw(renderer, Types::Point<>(mCamera->x(), mCamera->y()));
     }
 
     for (int row = startY - 1; row <= startY + std::ceil(mHeight / d.height); row++) {

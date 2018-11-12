@@ -20,6 +20,7 @@ public:
     protected:
         void call(asIScriptContext& ctx);
 
+        bool canTrigger() const;
         void setCanTrigger(bool b);
 
     private:
@@ -31,7 +32,7 @@ public:
     public:
         MoveListener(asIScriptFunction* fun, int x, int y);
         
-        bool check(int x, int y);
+        bool check(int x, int y, bool canReachX = true, bool canReachY = true);
 
     private:
         Types::Point<> mTarget;

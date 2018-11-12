@@ -240,7 +240,7 @@ void Map::checkCollision(const Types::Point<float>& pos, const Types::Dimension<
         velocityX = 0.0f;
     }
 
-    if (pos.y + dst.y < -std::floor(size.height / 2)) {
+    if (pos.y + dst.y < 0.0f) {
         dst.y = 0.0f;
         velocityY = 0.0f;
     }
@@ -309,9 +309,8 @@ bool Map::isColliding(const Types::Point<float>& pos, const Types::Dimension<>& 
 {
     rDiff = 0;
 
-    int startY = (size.height / 2);
     Types::Quad<> foundDiff;
-    bool found = mCollisionMap->get(pos.x, pos.y + startY, size.width, startY, &foundDiff);
+    bool found = mCollisionMap->get(pos.x, pos.y, size.width, size.height, &foundDiff);
 
     // Check if we can move around the obstacle.
     if (vertical) {
@@ -328,10 +327,10 @@ bool Map::isColliding(const Types::Point<float>& pos, const Types::Dimension<>& 
         diff.first = foundDiff.x1;
         diff.second = foundDiff.x2;
 
-        int obsdiff = size.height / 4;
-        if ((foundDiff.x1 == 0 && foundDiff.y1 >= 0 && startY - foundDiff.y2 < obsdiff) || (foundDiff.x2 == 0 && foundDiff.y1 >= 0 && startY - foundDiff.y2 < obsdiff)) {
+        int obsdiff = size.height / 2;
+        if ((foundDiff.x1 == 0 && foundDiff.y1 >= 0 && size.height - foundDiff.y2 < obsdiff) || (foundDiff.x2 == 0 && foundDiff.y1 >= 0 && size.height - foundDiff.y2 < obsdiff)) {
             rDiff = 1;
-        } else if ((foundDiff.x1 == 0 && foundDiff.y2 >= 0 && startY - foundDiff.y1 < obsdiff) || (foundDiff.x2 == 0 && foundDiff.y2 >= 0 && startY - foundDiff.y1 < obsdiff)) {
+        } else if ((foundDiff.x1 == 0 && foundDiff.y2 >= 0 && size.height - foundDiff.y1 < obsdiff) || (foundDiff.x2 == 0 && foundDiff.y2 >= 0 && size.height - foundDiff.y1 < obsdiff)) {
             rDiff = -1;
         }
     }

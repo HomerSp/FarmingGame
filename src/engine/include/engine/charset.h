@@ -12,10 +12,11 @@
 namespace engine {
 struct CharsetNode {
 public:
-    CharsetNode(const Types::Rect<>& rc, const Types::Cells& cells);
+    CharsetNode(const Types::Rect<>& rc, const Types::Cells& cells, const Types::Rect<>& collision);
 
     Types::Rect<> rect;
     Types::Cells cells;
+    Types::Rect<> collision;
 };
 
 class Charset {
@@ -32,6 +33,8 @@ public:
     int height(Charset::Type type);
 
     int columns(Charset::Type type);
+
+    Types::Rect<> collision(Charset::Type type);
 
     bool operator!() const
     {

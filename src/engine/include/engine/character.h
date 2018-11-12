@@ -12,6 +12,7 @@
 #include <engine/map.h>
 #include <engine/renderer.h>
 #include <engine/scriptobject.h>
+#include <engine/types.h>
 
 namespace engine {
 class Character : public Camera::Target, public ScriptObject {
@@ -30,7 +31,7 @@ public:
     void draw(Renderer& renderer, const Types::Point<>& camera);
 
     bool animate(float frameDiff, bool reset = false);
-    bool processAsync(float frameDiff, Map* map = nullptr);
+    bool processAsync(float frameDiff, Map* map, std::vector<std::shared_ptr<Character>> *characters = nullptr);
     void processListeners();
 
     void velocity(float frameDiff, float x, float y);
@@ -60,6 +61,8 @@ public:
     static std::string className();
 
 protected:
+    void checkCollision(const Character& other, Types::Point<float>& dst);
+
     void updateVelocity(float& velocity, float direction, float val, bool hasTarget);
 
 private:

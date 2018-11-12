@@ -30,7 +30,11 @@ std::shared_ptr<Json::Value> AssetManager::data(Type type, const std::string& na
     std::string path = AssetManager::dataPath(type, name);
     if (path.length() > 0) {
         std::ifstream file(path);
-        file >> *doc.get();
+        try {
+            file >> *doc.get();
+        } catch(const Json::RuntimeError &e) {
+            Logger::critical() << "Could not parse file" << path << e.what();
+        }
     }
 
     return doc;

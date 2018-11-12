@@ -10,8 +10,8 @@ ApplicationWindow
 {
     id: mainWindow
     visible: true
-    width: 1024
-    height: 768
+    width: 1920
+    height: 1080
     x: 0
     y: 0
     visibility: ApplicationWindow.AutomaticVisibility

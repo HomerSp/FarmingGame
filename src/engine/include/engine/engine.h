@@ -64,6 +64,8 @@ private:
         FRAMETIMER_HERO_ANIMATION,
         FRAMETIMER_MAP_ANIMATION,
         FRAMETIMER_FASTFORWARD,
+        FRAMETIMER_CHARACTERS_ANIMATION,
+        FRAMETIMER_CHARACTERS_PROCESS,
     };
 
 private:
@@ -80,6 +82,7 @@ private:
     std::shared_ptr<engine::Clock> mClock;
     std::shared_ptr<engine::Map> mMap;
     std::shared_ptr<engine::Player> mPlayer;
+    std::vector<std::shared_ptr<engine::Character>> mCharacters;
 
     FrameTimer mFrameTimer;
     bool mEnableThreading;
