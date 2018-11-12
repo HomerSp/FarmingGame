@@ -88,7 +88,7 @@ bool Character::animate(float frameDiff, bool reset)
     return changed;
 }
 
-bool Character::processAsync(float frameDiff, Map* map, std::vector<std::shared_ptr<Character>> *characters)
+bool Character::processAsync(float frameDiff, Map* map, std::vector<std::shared_ptr<Character>> *characters, Camera* camera)
 {
     float posX = mPos.x, posY = mPos.y;
     float velocityX = mVelocity.x, velocityY = mVelocity.y;
@@ -160,6 +160,11 @@ bool Character::processAsync(float frameDiff, Map* map, std::vector<std::shared_
 
         if (characters != nullptr && (dst.x != 0.0f || dst.y != 0.0f)) {
             for(auto& i: *characters) {
+                // Skip characters that are outside the visible view
+                if (i->mPos.x < camera->x() || i->mPos.x > camera->x() + camera->width() || i->mPos.y < camera->y() || i->mPos.y > camera->y() + camera->height()) {
+                    continue;
+                }
+
                 checkCollision(*(i.get()), dst);
             }
         }

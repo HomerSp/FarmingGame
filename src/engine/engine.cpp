@@ -1,4 +1,5 @@
 #include <cmath>
+#include <cstdlib>
 #include <iomanip>
 #include <sstream>
 #include <thread>
@@ -26,6 +27,8 @@ Engine::Engine(uint32_t width, uint32_t height)
 {
     Logger::debug() << "Creating Engine";
 
+    srand(time(nullptr));
+
     mCamera = std::make_shared<engine::Camera>(mWidth, mHeight);
     mClock = std::make_shared<engine::Clock>();
     mMap = std::make_shared<engine::Map>("map");
@@ -33,9 +36,12 @@ Engine::Engine(uint32_t width, uint32_t height)
     mPlayer->setX(std::floor((mMap->pixelWidth() - mPlayer->width()) / 2));
     mPlayer->setY(std::floor((mMap->pixelHeight() - mPlayer->height()) / 2));
 
-    mCharacters.push_back(std::make_shared<engine::Character>("dude"));
-    mCharacters.back()->setX(200);
-    mCharacters.back()->setY(200);
+    for(uint32_t i = 0; i < 30; i++) {
+        mCharacters.push_back(std::make_shared<engine::Character>("dude"));
+        mCharacters.back()->setX(24 + (i * 48));
+        mCharacters.back()->setY(200);
+        mCharacters.back()->setDirection(static_cast<Character::Direction::Type>(rand() % static_cast<int>(Character::Direction::Up + 1)));
+    }
 
     mCamera->setTarget(mPlayer.get());
     mClock->setTime(8, 0);
@@ -116,7 +122,7 @@ void Engine::animateAsync()
 
         double diff = mFrameTimer[FRAMETIMER_CHARACTERS_ANIMATION];
         for(auto &i: mCharacters) {
-            i->animate(diff, !i->isMoving());
+            i->animate(diff, false);
         }
 
         if (!mEnableThreading) {
@@ -232,7 +238,7 @@ void Engine::processAsync()
         if (mClock->processAsync(mFrameTimer[FRAMETIMER_CLOCK])) {
             mNeedRepaint = true;
         }
-        if (mPlayer->processAsync(mFrameTimer[FRAMETIMER_HERO_MOVEMENT], mMap.get(), &mCharacters)) {
+        if (mPlayer->processAsync(mFrameTimer[FRAMETIMER_HERO_MOVEMENT], mMap.get(), &mCharacters, mCamera.get())) {
             mNeedRepaint = true;
         }
 

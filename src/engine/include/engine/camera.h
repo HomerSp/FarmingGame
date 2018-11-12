@@ -38,6 +38,9 @@ public:
     float x() const;
     float y() const;
 
+    int width() const;
+    int height() const;
+
     void follow(const Target* target);
     void moveTo(int dstX, int dstY, asIScriptFunction* fun = nullptr);
 

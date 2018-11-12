@@ -26,6 +26,16 @@ float Camera::y() const
     return mPosY;
 }
 
+int Camera::width() const
+{
+    return mDimen.width;
+}
+
+int Camera::height() const
+{
+    return mDimen.height;
+}
+
 void Camera::follow(Camera::Target const* target)
 {
     std::lock_guard<std::mutex> lock(mTargetMutex);
