@@ -22,12 +22,10 @@ Engine::Engine(uint32_t width, uint32_t height)
     , mMap(nullptr)
     , mPlayer(nullptr)
     , mEnableThreading(true)
-    , mScriptEngine(nullptr)
-    , mScriptContext(nullptr)
 {
     Logger::debug() << "Creating Engine";
 
-    std::srand(std::time(nullptr));
+    mScript = std::make_shared<Engine::ScriptCreator>();
 
     mCamera = std::make_shared<engine::Camera>(mWidth, mHeight);
     mClock = std::make_shared<engine::Clock>();
@@ -49,6 +47,8 @@ Engine::Engine(uint32_t width, uint32_t height)
     mCamera->setTarget(mPlayer.get());
     mClock->setTime(6, 0);
 
+    mLights.push_back(mPlayer);
+
     registerScript();
 
     if (mEnableThreading) {
@@ -65,21 +65,6 @@ Engine::~Engine()
     mRunning = false;
     for (auto& i: mThreads) {
         i->join();
-    }
-
-    mCamera.reset();
-    mClock.reset();
-    mPlayer.reset();
-    for(auto &i: mCharacters) {
-        i.reset();
-    }
-
-    if(mScriptContext != nullptr) {
-        mScriptContext->Release();
-    }
-
-    if(mScriptEngine != nullptr) {
-        mScriptEngine->ShutDownAndRelease();
     }
 
     Logger::debug() << "~Engine done";
@@ -309,7 +294,7 @@ void Engine::paint(Renderer& renderer)
         mMap->drawRow(renderer, dst, row, TilesetAttribute::AboveAll);
     }
 
-    mClock->draw(renderer);
+    mClock->draw(renderer, *mCamera.get(), mLights);
 
     std::stringstream str;
     str << std::setw(2) << std::setfill('0') << mClock->hour() << ":" << std::setw(2) << std::setfill('0') << mClock->minute();
@@ -345,6 +330,116 @@ void Engine::setSize(uint32_t width, uint32_t height)
     mCamera->setViewport({mWidth, mHeight});
 }
 
+bool Engine::registerScript()
+{
+    FunctionPtrHelper::init();
+
+    if (!mScript->create()) {
+        return false;
+    }
+
+    // This needs to be done after all other types have been registered.
+    registerClass();
+
+    mScript->engine()->RegisterGlobalFunction("void print(const string &in)", asFUNCTION(Logger::scriptPrint), asCALL_CDECL);
+
+    // The CScriptBuilder helper is an add-on that loads the file,
+    // performs a pre-processing pass if necessary, and then tells
+    // the engine to build a script module.
+    CScriptBuilder builder;
+    if (builder.StartNewModule(mScript->engine(), "MainModule") != 0) {
+        Logger::error() << ("Unrecoverable error while starting a new module.");
+        return false;
+    }
+
+    if (builder.AddSectionFromFile("assets/script/main.as") < 0) {
+        Logger::error() << ("Please correct the errors in the script and try again.");
+        return false;
+    }
+
+    if (builder.BuildModule() < 0) {
+        Logger::error() << ("Please correct the errors in the script and try again.");
+        return false;
+    }
+
+    // Find the function that is to be called. 
+    asIScriptModule *mod = mScript->engine()->GetModule("MainModule");
+    asIScriptFunction *func = mod->GetFunctionByDecl("void main()");
+    if (func == nullptr) {
+        Logger::error() << ("The script must have the function 'void main()'. Please add it and try again.");
+        return false;
+    }
+
+    // Create our context, prepare it, and then execute
+    if (!mScript->createContext()) {
+        return false;
+    }
+
+    mScript->context()->Prepare(func);
+    registerContext();
+
+    int r = mScript->context()->Execute();
+    if (r == asEXECUTION_EXCEPTION) {
+        Logger::error() << "An exception" << mScript->context()->GetExceptionString() << "occurred. Please correct the code and try again.";
+        return false;
+    }
+
+    return (r == asEXECUTION_FINISHED);
+}
+
+std::string Engine::className()
+{
+    return "Engine";
+}
+
+void Engine::registerClass()
+{
+    registerReference<Engine>(mScript->engine());
+    REGISTER_FUNC(mScript->engine(), Engine, Camera&, camera);
+    REGISTER_FUNC(mScript->engine(), Engine, Clock&, clock);
+    REGISTER_FUNC(mScript->engine(), Engine, Player&, player);
+    registerInstance<Engine>(mScript->engine(), "engine", this);
+}
+
+void Engine::registerContext()
+{
+    mCamera->setContext(mScript->context());
+    mClock->setContext(mScript->context());
+    mPlayer->setContext(mScript->context());
+}
+
+engine::Camera* Engine::camera()
+{
+    return mCamera.get();
+}
+
+engine::Clock* Engine::clock()
+{
+    return mClock.get();
+}
+
+engine::Player* Engine::player()
+{
+    return mPlayer.get();
+}
+
+Engine::ScriptCreator::ScriptCreator()
+    : mScriptEngine(nullptr)
+    , mScriptContext(nullptr)
+{
+}
+
+Engine::ScriptCreator::~ScriptCreator()
+{
+    if (mScriptContext != nullptr) {
+        mScriptContext->Release();
+    }
+
+    if (mScriptEngine != nullptr) {
+        mScriptEngine->ShutDownAndRelease();
+    }
+}
+
 void scriptMessageCallback(const asSMessageInfo *msg, void *param)
 {
     ((void) param);
@@ -361,11 +456,9 @@ void scriptMessageCallback(const asSMessageInfo *msg, void *param)
     Logger::error() << stream.str() << msg->message;
 }
 
-bool Engine::registerScript()
+bool Engine::ScriptCreator::create()
 {
-    FunctionPtrHelper::init();
-
-    // Create the script engine
+    assert(mScriptEngine == nullptr);
     mScriptEngine = asCreateScriptEngine();
     if (mScriptEngine->SetMessageCallback(asFUNCTION(scriptMessageCallback), nullptr, asCALL_CDECL) != 0) {
         Logger::error() << "Could not register message callback";
@@ -375,95 +468,31 @@ bool Engine::registerScript()
     RegisterStdString(mScriptEngine);
     RegisterScriptHandle(mScriptEngine);
 
-    registerGeneric();
+    // Generic objects
+    ScriptObject::registerCallback<ScriptCallback>(mScriptEngine);
+
     Character::registerClass(mScriptEngine);
     Clock::registerClass(mScriptEngine);
     Player::registerClass(mScriptEngine);
     Camera::registerClass(mScriptEngine);
 
-    // This needs to be done after all other types have been registered.
-    registerClass();
+    return true;
+}
 
-    mScriptEngine->RegisterGlobalFunction("void print(const string &in)", asFUNCTION(Logger::scriptPrint), asCALL_CDECL);
-
-    // The CScriptBuilder helper is an add-on that loads the file,
-    // performs a pre-processing pass if necessary, and then tells
-    // the engine to build a script module.
-    CScriptBuilder builder;
-    if (builder.StartNewModule(mScriptEngine, "MainModule") != 0) {
-        Logger::error() << ("Unrecoverable error while starting a new module.");
-        return false;
-    }
-
-    if (builder.AddSectionFromFile("assets/script/main.as") < 0) {
-        Logger::error() << ("Please correct the errors in the script and try again.");
-        return false;
-    }
-
-    if (builder.BuildModule() < 0) {
-        Logger::error() << ("Please correct the errors in the script and try again.");
-        return false;
-    }
-
-    // Find the function that is to be called. 
-    asIScriptModule *mod = mScriptEngine->GetModule("MainModule");
-    asIScriptFunction *func = mod->GetFunctionByDecl("void main()");
-    if (func == nullptr) {
-        Logger::error() << ("The script must have the function 'void main()'. Please add it and try again.");
-        return false;
-    }
-
-    // Create our context, prepare it, and then execute
+bool Engine::ScriptCreator::createContext()
+{
+    assert(mScriptContext == nullptr);
     mScriptContext = mScriptEngine->CreateContext();
-    mScriptContext->Prepare(func);
-    registerContext();
 
-    int r = mScriptContext->Execute();
-    if (r == asEXECUTION_EXCEPTION) {
-        Logger::error() << "An exception" << mScriptContext->GetExceptionString() << "occurred. Please correct the code and try again.";
-        return false;
-    }
-
-    return (r == asEXECUTION_FINISHED);
+    return true;
 }
 
-std::string Engine::className()
+asIScriptEngine* Engine::ScriptCreator::engine()
 {
-    return "Engine";
+    return mScriptEngine;
 }
 
-void Engine::registerGeneric()
+asIScriptContext* Engine::ScriptCreator::context()
 {
-    ScriptObject::registerCallback<ScriptCallback>(mScriptEngine);
-}
-
-void Engine::registerClass()
-{
-    registerReference<Engine>(mScriptEngine);
-    REGISTER_FUNC(mScriptEngine, Engine, Camera&, camera);
-    REGISTER_FUNC(mScriptEngine, Engine, Clock&, clock);
-    REGISTER_FUNC(mScriptEngine, Engine, Player&, player);
-    registerInstance<Engine>(mScriptEngine, "engine", this);
-}
-
-void Engine::registerContext()
-{
-    mCamera->setContext(mScriptContext);
-    mClock->setContext(mScriptContext);
-    mPlayer->setContext(mScriptContext);
-}
-
-engine::Camera* Engine::camera()
-{
-    return mCamera.get();
-}
-
-engine::Clock* Engine::clock()
-{
-    return mClock.get();
-}
-
-engine::Player* Engine::player()
-{
-    return mPlayer.get();
+    return mScriptContext;
 }

@@ -36,14 +36,14 @@ public:
 
     void velocity(float frameDiff, float x, float y);
 
-    virtual float x();
-    virtual float y();
-    virtual int width() const;
-    virtual int height() const;
+    virtual int32_t x();
+    virtual int32_t y();
+    virtual uint32_t width() const;
+    virtual uint32_t height() const;
 
     bool isMoving();
 
-    void moveTo(int x, int y, asIScriptFunction* fun = nullptr);
+    void moveTo(int32_t x, int32_t y, asIScriptFunction* fun = nullptr);
     void turnTo(Direction::Type direction);
 
     void setDirection(Direction::Type direction);

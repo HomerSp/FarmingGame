@@ -7,6 +7,21 @@ Player::Player()
 {
 }
 
+Types::Point<int32_t> Player::light()
+{
+    return Types::Point<int32_t>(x() + width() / 2, y() + height() * 0.75f);
+}
+
+int32_t Player::radius()
+{
+    return Character::width() * 4;
+}
+
+float Player::strength()
+{
+    return 0.25f;
+}
+
 Character* Player::character()
 {
     return this;

@@ -44,6 +44,24 @@ void QtRenderer::fillRect(const engine::Types::Rect<>& dst, const engine::Types:
     mPainter->fillRect(dstRect, c);
 }
 
+void QtRenderer::fillEllipse(const engine::Types::Rect<>& dst, const engine::Types::Color& fromColor, const engine::Types::Color& toColor)
+{
+    if (mPainter == nullptr) {
+        engine::Logger::critical() << "No painter set!!!";
+        return;
+    }
+
+    QRadialGradient gradient(dst.width / 2, dst.height / 2, dst.height / 2);
+    gradient.setColorAt(0, QColor(fromColor.r, fromColor.g, fromColor.b, fromColor.a));
+    gradient.setColorAt(1, QColor(toColor.r, toColor.g, toColor.b, toColor.a));
+
+    QPainterPath path;
+    path.addEllipse(QPointF(dst.width / 2, dst.height / 2), dst.width / 2, dst.height / 2);
+    mPainter->translate(dst.x - (dst.width / 2), dst.y - (dst.height / 2));
+    mPainter->fillPath(path, gradient);
+    mPainter->translate(-(dst.x - (dst.width / 2)), -(dst.y - (dst.height / 2)));
+}
+
 void QtRenderer::drawImage(const engine::Image& img, const engine::Types::Rect<>& src, const engine::Types::Rect<>& dst)
 {
     if (mPainter == nullptr) {
@@ -107,4 +125,51 @@ void QtRenderer::translate(float x, float y)
     }
 
     mPainter->translate(x, y);
+}
+
+void QtRenderer::save()
+{
+    if (mPainter == nullptr) {
+        engine::Logger::critical() << "No painter set!!!";
+        return;
+    }
+
+    mPainter->save();
+}
+
+void QtRenderer::restore()
+{
+    if (mPainter == nullptr) {
+        engine::Logger::critical() << "No painter set!!!";
+        return;
+    }
+
+    mPainter->restore();
+}
+
+void QtRenderer::eraseEllipses(const std::vector<engine::Types::Rect<>>& dst)
+{
+    if (mPainter == nullptr) {
+        engine::Logger::critical() << "No painter set!!!";
+        return;
+    }
+
+    QPainterPath screen;
+    screen.addRect(0, 0, width(), height());
+
+    QPainterPath clipped;
+    for (auto& i: dst) {
+        clipped.addEllipse(i.x - (i.width / 2), i.y - (i.height / 2), i.width, i.height);
+    }
+
+    mPainter->setClipPath(screen.subtracted(clipped));
+}
+
+ void QtRenderer::setPainter(QPainter* painter)
+{
+    mPainter = painter;
+
+    QPainterPath screen;
+    screen.addRect(0, 0, width(), height());
+    mPainter->setClipPath(screen);
 }

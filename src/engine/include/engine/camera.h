@@ -14,15 +14,15 @@ public:
     public:
         virtual ~Target() = default;
 
-        virtual float x() = 0;
-        virtual float y() = 0;
+        virtual int32_t x() = 0;
+        virtual int32_t y() = 0;
 
-        virtual int width() const
+        virtual uint32_t width() const
         {
             return 0;
         }
 
-        virtual int height() const
+        virtual uint32_t height() const
         {
             return 0;
         }
@@ -35,11 +35,11 @@ public:
 
     Camera(uint32_t width, uint32_t height);
 
-    float x();
-    float y();
+    int32_t x();
+    int32_t y();
 
-    int width() const;
-    int height() const;
+    uint32_t width() const;
+    uint32_t height() const;
 
     void follow(Target* target);
     void moveTo(int dstX, int dstY, asIScriptFunction* fun = nullptr);

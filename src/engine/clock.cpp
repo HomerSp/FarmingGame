@@ -50,7 +50,7 @@ uint32_t Clock::minute() const
     return static_cast<uint32_t>(std::floor(mCurrent)) % 60;
 }
 
-void Clock::draw(Renderer& renderer)
+void Clock::draw(Renderer& renderer, Camera& camera, const std::vector<std::shared_ptr<LightSource>> &sources)
 {
     uint32_t h = hour();
     if (h >= mSunrise && h < mSunset) {
@@ -66,17 +66,32 @@ void Clock::draw(Renderer& renderer)
     } else if (h >= mDawn && h < mSunrise) {
         float diff = ((static_cast<uint64_t>(std::floor(mCurrent)) % (24 * 60)) - (mDawn * 60)) / static_cast<float>((mSunrise - mDawn) * 60);
         float alpha = 175 - 175 * diff;
-        color.r = 255 * diff;
+        color.r = 150 * diff;
         color.a = std::floor(alpha);
     // Sunset
     } else if (h >= mSunset && h < mDusk) {
         float diff = ((static_cast<uint64_t>(std::floor(mCurrent)) % (24 * 60)) - (mSunset * 60)) / static_cast<float>((mDusk - mSunset) * 60);
         float alpha = 175 * diff;
-        color.r = 255 - 255 * diff;
+        color.r = 150 - 150 * diff;
         color.a = std::floor(alpha);
     }
 
+    renderer.save();
+
+    std::vector<Types::Rect<>> erase;
+    for (auto& source: sources) {
+        Types::Rect<> playerRc(source->light().x - camera.x(), source->light().y - camera.y(), source->radius(), source->radius());
+        Types::Color l = color;
+        l.r = l.r * (1.0f - source->strength());
+        l.a = l.a * (1.0f - source->strength());
+
+        renderer.fillEllipse(playerRc, l, color);
+        erase.push_back(playerRc);
+    }
+
+    renderer.eraseEllipses(erase);
     renderer.fillRect({0, 0, renderer.width(), renderer.height()}, color);
+    renderer.restore();
 }
 
 bool Clock::processAsync(float frameDiff)

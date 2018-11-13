@@ -5,6 +5,8 @@
 #include <mutex>
 #include <unordered_map>
 
+#include <engine/camera.h>
+#include <engine/character.h>
 #include <engine/listeners.h>
 #include <engine/renderer.h>
 #include <engine/scriptobject.h>
@@ -34,6 +36,14 @@ private:
     };
 
 public:
+    class LightSource {
+    public:
+        virtual Types::Point<int32_t> light() = 0;
+        virtual int32_t radius() = 0;
+        virtual float strength() = 0;
+    };
+
+public:
     Clock();
  
     uint32_t year() const;
@@ -44,7 +54,7 @@ public:
     uint32_t hour() const;
     uint32_t minute() const;
 
-    void draw(Renderer& renderer);
+    void draw(Renderer& renderer, Camera& camera, const std::vector<std::shared_ptr<LightSource>> &sources);
     bool processAsync(float frameDiff);
     void processListeners();
 

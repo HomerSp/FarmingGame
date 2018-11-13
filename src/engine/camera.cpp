@@ -14,24 +14,24 @@ Camera::Camera(uint32_t width, uint32_t height)
 {
 }
 
-float Camera::x()
+int32_t Camera::x()
 {
     std::lock_guard<std::mutex> lock(mMovementMutex);
-    return mPos.x;
+    return static_cast<int32_t>(mPos.x);
 }
 
-float Camera::y()
+int32_t Camera::y()
 {
     std::lock_guard<std::mutex> lock(mMovementMutex);
-    return mPos.y;
+    return static_cast<int32_t>(mPos.y);
 }
 
-int Camera::width() const
+uint32_t Camera::width() const
 {
     return mDimen.width;
 }
 
-int Camera::height() const
+uint32_t Camera::height() const
 {
     return mDimen.height;
 }

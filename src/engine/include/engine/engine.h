@@ -51,7 +51,6 @@ protected:
     void processAsync();
 
     bool registerScript();
-    void registerGeneric();
     void registerClass();
     void registerContext();
 
@@ -69,6 +68,25 @@ private:
     };
 
 private:
+    class ScriptCreator {
+    public:
+        ScriptCreator();
+        ~ScriptCreator();
+
+        bool create();
+        bool createContext();
+
+        asIScriptEngine* engine();
+        asIScriptContext* context();
+
+    private:
+        asIScriptEngine* mScriptEngine;
+        asIScriptContext* mScriptContext;
+    };
+
+private:
+    std::shared_ptr<ScriptCreator> mScript;
+
     std::atomic<bool> mRunning;
     std::atomic<bool> mNeedRepaint;
     std::atomic<bool> mHasFocus;
@@ -84,11 +102,10 @@ private:
     std::shared_ptr<engine::Player> mPlayer;
     std::vector<std::shared_ptr<engine::Character>> mCharacters;
 
+    std::vector<std::shared_ptr<engine::Clock::LightSource>> mLights;
+
     FrameTimer mFrameTimer;
     bool mEnableThreading;
     std::vector<std::unique_ptr<std::thread>> mThreads;
-
-    asIScriptEngine* mScriptEngine;
-    asIScriptContext* mScriptContext;
 };
 }

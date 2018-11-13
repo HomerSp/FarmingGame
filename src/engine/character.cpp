@@ -38,24 +38,24 @@ Character::Character(const std::string& name)
     mValid = true;
 }
 
-float Character::x()
+int32_t Character::x()
 {
     std::lock_guard<std::mutex> lock(mMovementMutex);
-    return mPos.x;
+    return static_cast<int32_t>(mPos.x);
 }
 
-float Character::y()
+int32_t Character::y()
 {
     std::lock_guard<std::mutex> lock(mMovementMutex);
-    return mPos.y;
+    return static_cast<int32_t>(mPos.y);
 }
 
-int Character::width() const
+uint32_t Character::width() const
 {
     return mCharset->width(mCharsetType);
 }
 
-int Character::height() const
+uint32_t Character::height() const
 {
     return mCharset->height(mCharsetType);
 }
