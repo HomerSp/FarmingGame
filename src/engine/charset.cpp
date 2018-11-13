@@ -84,11 +84,11 @@ int Charset::columns(Charset::Type type)
 
 Types::Rect<> Charset::collision(Charset::Type type)
 {
-    if (mNodes.find(type) == mNodes.end()) {
-        return Types::Rect<>();
+    if (mNodes.find(type) != mNodes.end()) {
+        return mNodes.find(type)->second->collision;
     }
 
-    return mNodes.find(type)->second->collision;
+    return {};
 }
 
 void Charset::addNode(Charset::Type type, Json::Value& val)

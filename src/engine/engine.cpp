@@ -1,6 +1,6 @@
 #include <cmath>
-#include <cstdlib>
 #include <iomanip>
+#include <random>
 #include <sstream>
 #include <thread>
 
@@ -27,7 +27,7 @@ Engine::Engine(uint32_t width, uint32_t height)
 {
     Logger::debug() << "Creating Engine";
 
-    srand(time(nullptr));
+    std::srand(std::time(nullptr));
 
     mCamera = std::make_shared<engine::Camera>(mWidth, mHeight);
     mClock = std::make_shared<engine::Clock>();
@@ -36,11 +36,14 @@ Engine::Engine(uint32_t width, uint32_t height)
     mPlayer->setX(std::floor((mMap->pixelWidth() - mPlayer->width()) / 2));
     mPlayer->setY(std::floor((mMap->pixelHeight() - mPlayer->height()) / 2));
 
+    std::random_device r;
+    std::default_random_engine gen(r()); //Standard mersenne_twister_engine seeded with rd()
+    std::uniform_int_distribution<> dis(0, static_cast<int>(Character::Direction::Up));
     for(uint32_t i = 0; i < 30; i++) {
         mCharacters.push_back(std::make_shared<engine::Character>("dude"));
         mCharacters.back()->setX(24 + (i * 48));
         mCharacters.back()->setY(200);
-        mCharacters.back()->setDirection(static_cast<Character::Direction::Type>(rand() % static_cast<int>(Character::Direction::Up + 1)));
+        mCharacters.back()->setDirection(static_cast<Character::Direction::Type>(dis(gen)));
     }
 
     mCamera->setTarget(mPlayer.get());
