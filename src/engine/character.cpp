@@ -38,13 +38,15 @@ Character::Character(const std::string& name)
     mValid = true;
 }
 
-float Character::x() const
+float Character::x()
 {
+    std::lock_guard<std::mutex> lock(mMovementMutex);
     return mPos.x;
 }
 
-float Character::y() const
+float Character::y()
 {
+    std::lock_guard<std::mutex> lock(mMovementMutex);
     return mPos.y;
 }
 
@@ -60,6 +62,7 @@ int Character::height() const
 
 void Character::draw(Renderer& renderer, const Types::Point<>& camera)
 {
+    std::lock_guard<std::mutex> lock(mMovementMutex);
     int cols = mCharset->columns(mCharsetType);
     int frame = std::floor(mFrame);
     if(frame >= cols) {
@@ -72,6 +75,7 @@ void Character::draw(Renderer& renderer, const Types::Point<>& camera)
 
 bool Character::animate(float frameDiff, bool reset)
 {
+    std::lock_guard<std::mutex> lock(mMovementMutex);
     float frame = mFrame;
     if (!reset) {
         int cols = mCharset->columns(mCharsetType);
@@ -90,123 +94,121 @@ bool Character::animate(float frameDiff, bool reset)
 
 bool Character::processAsync(float frameDiff, Map* map, std::vector<std::shared_ptr<Character>> *characters, Camera* camera)
 {
-    float posX = mPos.x, posY = mPos.y;
-    float velocityX = mVelocity.x, velocityY = mVelocity.y;
-    float targetX = mTarget.x, targetY = mTarget.y;
+    bool changed = false;
+    float posX, posY;
+    {
+        std::lock_guard<std::mutex> lock(mMovementMutex);
+        posX = mPos.x;
+        posY = mPos.y;
 
-    if (targetX != -1 || targetY != -1) {
-        float val = frameDiff * 5.0f;
-        int x = 0, y = 0;
-        if (targetX != -1) {
-            if (targetX < posX) {
-                x = -1;
-            } else if(targetX > posX) {
-                x = 1;
-            }
-        }
-
-        if (targetY != -1) {
-            if (targetY < posY) {
-                y = -1;
-            } else if (targetY > posY) {
-                y = 1;
-            }
-        }
-
-        updateVelocity(velocityX, x, val, x != 0);
-        updateVelocity(velocityY, y, val, y != 0);
-
-        if (x < 0) {
-            mDirectionTo = Direction::Left;
-        } else if(x > 0) {
-            mDirectionTo = Direction::Right;
-        }
-
-        if (y < 0) {
-            mDirectionTo = Direction::Up;
-        } else if(y > 0) {
-            mDirectionTo = Direction::Down;
-        }
-    }
-
-    if (mDirectionTo != mDirection && (velocityX != 0.0f || velocityY != 0.0f)) {
-        mDirectionTurn.store(mDirectionTurn + (frameDiff * 20.0f));
-        if (mDirectionTurn >= 1.0f) {
-            mDirectionTurn = 0.0f;
-
-            if (mDirection == Direction::Up && mDirectionTo == Direction::Down) {
-                mDirection = Direction::Left;
-            } else if (mDirection == Direction::Down && mDirectionTo == Direction::Up) {
-                mDirection = Direction::Right;
-            } else if (mDirection == Direction::Left && mDirectionTo == Direction::Right) {
-                mDirection = Direction::Up;
-            } else if (mDirection == Direction::Right && mDirectionTo == Direction::Left) {
-                mDirection = Direction::Down;
-            } else {
-                mDirection.store(mDirectionTo);
-            }
-        }
-    }
-
-    if (velocityX != 0.0f || velocityY != 0.0f) {
-        Types::Point<float> dst(velocityX * (frameDiff * 200.0f), velocityY * (frameDiff * 200.0f));
-        if (map != nullptr) {
-            Types::Rect<> col = mCharset->collision(mCharsetType);
-
-            Types::Point<float> pos(posX + col.x, posY + col.y);
-            Types::Dimension<> size(col.width, col.height);
-            map->checkCollision(pos, size, dst, velocityX, velocityY);
-        }
-
-        if (characters != nullptr && (dst.x != 0.0f || dst.y != 0.0f)) {
-            for(auto& i: *characters) {
-                // Skip characters that are outside the visible view
-                if (i->mPos.x < camera->x() || i->mPos.x > camera->x() + camera->width() || i->mPos.y < camera->y() || i->mPos.y > camera->y() + camera->height()) {
-                    continue;
+        if (mTarget.x != -1 || mTarget.y != -1) {
+            float val = frameDiff * 5.0f;
+            int x = 0, y = 0;
+            if (mTarget.x != -1) {
+                if (mTarget.x < posX) {
+                    x = -1;
+                } else if(mTarget.x > posX) {
+                    x = 1;
                 }
+            }
 
-                checkCollision(*(i.get()), dst);
+            if (mTarget.y != -1) {
+                if (mTarget.y < posY) {
+                    y = -1;
+                } else if (mTarget.y > posY) {
+                    y = 1;
+                }
+            }
+
+            updateVelocity(mVelocity.x, x, val, x != 0);
+            updateVelocity(mVelocity.y, y, val, y != 0);
+
+            if (x < 0) {
+                mDirectionTo = Direction::Left;
+            } else if(x > 0) {
+                mDirectionTo = Direction::Right;
+            }
+
+            if (y < 0) {
+                mDirectionTo = Direction::Up;
+            } else if(y > 0) {
+                mDirectionTo = Direction::Down;
             }
         }
 
-        if (targetX != -1 && (
-                (posX > targetX && posX + dst.x <= targetX) ||
-                (posX < targetX && posX + dst.x >= targetX)
-            )
-        ) {
-            posX = targetX;
-            targetX = -1;
-            velocityX = 0;
-        } else {
-            posX += dst.x;
+        if (mDirectionTo != mDirection && (mVelocity.x != 0.0f || mVelocity.y != 0.0f)) {
+            mDirectionTurn += frameDiff * 20.0f;
+            if (mDirectionTurn >= 1.0f) {
+                mDirectionTurn = 0.0f;
+
+                if (mDirection == Direction::Up && mDirectionTo == Direction::Down) {
+                    mDirection = Direction::Left;
+                } else if (mDirection == Direction::Down && mDirectionTo == Direction::Up) {
+                    mDirection = Direction::Right;
+                } else if (mDirection == Direction::Left && mDirectionTo == Direction::Right) {
+                    mDirection = Direction::Up;
+                } else if (mDirection == Direction::Right && mDirectionTo == Direction::Left) {
+                    mDirection = Direction::Down;
+                } else {
+                    mDirection = mDirectionTo;
+                }
+            }
         }
 
-        if (targetY != -1 && (
-                (posY > targetY && posY + dst.y <= targetY) ||
-                (posY < targetY && posY + dst.y >= targetY)
-            )
-        ) {
-            posY = targetY;
-            targetY = -1;
-            velocityY = 0;
-        } else {
-            posY += dst.y;
+        if (mVelocity.x != 0.0f || mVelocity.y != 0.0f) {
+            Types::Point<float> dst(mVelocity.x * (frameDiff * 200.0f), mVelocity.y * (frameDiff * 200.0f));
+            if (map != nullptr) {
+                Types::Rect<> col = mCharset->collision(mCharsetType);
+
+                Types::Point<float> pos(posX + col.x, posY + col.y);
+                Types::Dimension<> size(col.width, col.height);
+                map->checkCollision(pos, size, dst, mVelocity.x, mVelocity.y);
+            }
+
+            if (characters != nullptr && (dst.x != 0.0f || dst.y != 0.0f)) {
+                for(auto& i: *characters) {
+                    // Skip characters that are outside the visible view
+                    if (i->mPos.x < camera->x() || i->mPos.x > camera->x() + camera->width() || i->mPos.y < camera->y() || i->mPos.y > camera->y() + camera->height()) {
+                        continue;
+                    }
+
+                    checkCollision(*(i.get()), dst);
+                }
+            }
+
+            if (mTarget.x != -1 && (
+                    (posX > mTarget.x && posX + dst.x <= mTarget.x) ||
+                    (posX < mTarget.x && posX + dst.x >= mTarget.x)
+                )
+            ) {
+                posX = mTarget.x;
+                mTarget.x = -1;
+                mVelocity.x = 0;
+            } else {
+                posX += dst.x;
+            }
+
+            if (mTarget.y != -1 && (
+                    (posY > mTarget.y && posY + dst.y <= mTarget.y) ||
+                    (posY < mTarget.y && posY + dst.y >= mTarget.y)
+                )
+            ) {
+                posY = mTarget.y;
+                mTarget.y = -1;
+                mVelocity.y = 0;
+            } else {
+                posY += dst.y;
+            }
         }
+
+        changed = mPos.x != posX || mPos.y != posY;
+        mPos.x = posX;
+        mPos.y = posY;
     }
 
-    bool changed = mPos.x != posX || mPos.y != posY;
-    mPos.x = posX;
-    mPos.y = posY;
-    mTarget.x = targetX;
-    mTarget.y = targetY;
-    mVelocity.x = velocityX;
-    mVelocity.y = velocityY;
-
-    if (mVelocity.x != 0.0f || mVelocity.y != 0.0f) {
-        std::lock_guard<std::mutex> lock(mMoveMutex);
-        for(auto& i: mMoveListeners) {
-            i->check(mPos.x, mPos.y);
-        }
+    std::lock_guard<std::mutex> lock(mListenerMutex);
+    for(auto& i: mMoveListeners) {
+        i->check(posX, posY);
     }
 
     return changed;
@@ -214,60 +216,65 @@ bool Character::processAsync(float frameDiff, Map* map, std::vector<std::shared_
 
 void Character::processListeners()
 {
-    std::vector<Listeners::MoveListener*> toRemove;
-    for(auto& i: mMoveListeners) {
-        if (i->maybeTrigger(scriptContext())) {
-            toRemove.emplace_back(i.get());
+    std::vector<Listeners::MoveListener *> listeners;
+    {
+        std::lock_guard<std::mutex> lock(mListenerMutex);
+        for (auto& i: mMoveListeners) {
+            listeners.emplace_back(i.get());
         }
     }
 
-    std::lock_guard<std::mutex> lock(mMoveMutex);
-    auto it = toRemove.begin();
-    while (it != toRemove.end()) {
-        auto it2 = mMoveListeners.begin();
-        while (it2 != mMoveListeners.end()) {
-            if (it2->get() == *it) {
-                mMoveListeners.erase(it2);
-                break;
-            }
-
-            it2++;
+    auto it = listeners.begin();
+    while (it != listeners.end()) {
+        if (!(*it)->maybeTrigger(scriptContext())) {
+            it = listeners.erase(it);
+        } else {
+            it++;
         }
+    }
 
-        it++;
+    std::lock_guard<std::mutex> lock(mListenerMutex);
+    for (auto i: listeners) {
+        auto moveIt = mMoveListeners.begin();
+        while (moveIt != mMoveListeners.end()) {
+            if (i == moveIt->get()) {
+                moveIt = mMoveListeners.erase(moveIt);
+            } else {
+                moveIt++;
+            }
+        }
     }
 }
 
 void Character::velocity(float frameDiff, float x, float y)
 {
-    float velocityX = mVelocity.x, velocityY = mVelocity.y;
-
+    std::lock_guard<std::mutex> lock(mMovementMutex);
     float val = frameDiff * 5.0f;
-    updateVelocity(velocityX, x, val, mTarget.x != -1);
-    updateVelocity(velocityY, y, val, mTarget.y != -1);
-
-    mVelocity.x = velocityX;
-    mVelocity.y = velocityY;
+    updateVelocity(mVelocity.x, x, val, mTarget.x != -1);
+    updateVelocity(mVelocity.y, y, val, mTarget.y != -1);
 }
 
-bool Character::isMoving() const
+bool Character::isMoving()
 {
+    std::lock_guard<std::mutex> lock(mMovementMutex);
     return mVelocity.x != 0.0f || mVelocity.y != 0.0f;
 }
 
 void Character::moveTo(int x, int y, asIScriptFunction* fun)
 {
     if (fun != nullptr) {
-        std::lock_guard<std::mutex> lock(mMoveMutex);
+        std::lock_guard<std::mutex> lock(mListenerMutex);
         mMoveListeners.push_back(std::make_shared<Listeners::MoveListener>(fun, x, y));
     }
 
+    std::lock_guard<std::mutex> lock(mMovementMutex);
     mTarget.x = x;
     mTarget.y = y;
 }
 
 void Character::turnTo(Direction::Type direction)
 {
+    std::lock_guard<std::mutex> lock(mMovementMutex);
     if (mDirection != direction && mDirectionTo != direction) {
         mDirectionTo = direction;
         mDirectionTurn = 0.0f;
@@ -276,27 +283,32 @@ void Character::turnTo(Direction::Type direction)
 
 void Character::setDirection(Direction::Type direction)
 {
+    std::lock_guard<std::mutex> lock(mMovementMutex);
     mDirection = mDirectionTo = direction;
     mDirectionTurn = 0.0f;
 }
 
 void Character::setSpeed(float speed)
 {
+    std::lock_guard<std::mutex> lock(mMovementMutex);
     mSpeed = speed;
 }
 
 void Character::setFriction(float friction)
 {
+    std::lock_guard<std::mutex> lock(mMovementMutex);
     mFriction = friction;
 }
 
 void Character::setX(float x)
 {
+    std::lock_guard<std::mutex> lock(mMovementMutex);
     mPos.x = x;
 }
 
 void Character::setY(float y)
 {
+    std::lock_guard<std::mutex> lock(mMovementMutex);
     mPos.y = y;
 }
 

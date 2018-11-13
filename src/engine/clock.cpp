@@ -86,7 +86,7 @@ bool Clock::processAsync(float frameDiff)
 
     bool changed = false;
     if (std::floor(mCurrent) != val) {
-        std::lock_guard<std::mutex> lock(mChangeMutex);
+        std::lock_guard<std::mutex> lock(mListenerMutex);
         for(auto& i: mChangeListeners) {
             i->check(mCurrent);
         }
@@ -99,8 +99,18 @@ bool Clock::processAsync(float frameDiff)
 
 void Clock::processListeners()
 {
-    for(auto& i: mChangeListeners) {
-        i->maybeTrigger(scriptContext());
+    std::vector<ChangeListener *> listeners;
+    {
+        std::lock_guard<std::mutex> lock(mListenerMutex);
+        for (auto& i: mChangeListeners) {
+            listeners.emplace_back(i.get());
+        }
+    }
+
+    auto it = listeners.begin();
+    while (it != listeners.end()) {
+        (*it)->maybeTrigger(scriptContext());
+        it++;
     }
 }
 
@@ -118,7 +128,7 @@ void Clock::setTime(int h, int m)
 void Clock::on(const std::string& type, const std::string& format, asIScriptFunction* func)
 {
     if (type == "change") {
-        std::lock_guard<std::mutex> lock(mChangeMutex);
+        std::lock_guard<std::mutex> lock(mListenerMutex);
         mChangeListeners.push_back(std::make_shared<ChangeListener>(func, format));
     } else {
         Logger::warning() << "Clock on unknown trigger" << type;

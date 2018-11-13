@@ -14,8 +14,8 @@ public:
     public:
         virtual ~Target() = default;
 
-        virtual float x() const = 0;
-        virtual float y() const = 0;
+        virtual float x() = 0;
+        virtual float y() = 0;
 
         virtual int width() const
         {
@@ -35,13 +35,13 @@ public:
 
     Camera(uint32_t width, uint32_t height);
 
-    float x() const;
-    float y() const;
+    float x();
+    float y();
 
     int width() const;
     int height() const;
 
-    void follow(const Target* target);
+    void follow(Target* target);
     void moveTo(int dstX, int dstY, asIScriptFunction* fun = nullptr);
 
     bool processAsync(float frameDiff, Map* map);
@@ -55,14 +55,13 @@ public:
     static std::string className();
 
 private:
-    std::mutex mTargetMutex;
-    Target const* mTarget;
-
+    Target* mTarget;
     Types::Dimension<uint32_t> mDimen;
-    std::atomic<float> mPosX, mPosY;
-    std::atomic<float> mTargetPosX, mTargetPosY;
+    Types::Point<float> mPos;
+    Types::Point<float> mTargetPos;
+    std::mutex mMovementMutex;
 
-    std::mutex mMoveMutex;
+    std::mutex mListenerMutex;
     std::vector<std::shared_ptr<Listeners::MoveListener>> mMoveListeners;
 };
 }

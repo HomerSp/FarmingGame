@@ -57,14 +57,10 @@ Listeners::MoveListener::MoveListener(asIScriptFunction* fun, int x, int y)
 {
 }
 
-bool Listeners::MoveListener::check(int x, int y, bool canReachX, bool canReachY)
+bool Listeners::MoveListener::check(int x, int y, bool force)
 {
-    if (canTrigger() || (canReachX && x != mTarget.x) || (canReachY && y != mTarget.y)) {
+    if (canTrigger() || (!force && x != mTarget.x) || (!force && y != mTarget.y)) {
         return false;
-    }
-
-    if (!canReachX && !canReachY) {
-        Logger::warning() << "MoveListener can't reach target" << mTarget.x << mTarget.y;
     }
 
     setCanTrigger(true);

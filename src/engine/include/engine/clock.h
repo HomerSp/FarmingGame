@@ -67,7 +67,7 @@ private:
     uint32_t mSunset;
     uint32_t mDusk;
 
-    std::mutex mChangeMutex;
+    std::mutex mListenerMutex;
     std::vector<std::shared_ptr<ChangeListener>> mChangeListeners;
 };
 } 

@@ -37,7 +37,7 @@ Engine::Engine(uint32_t width, uint32_t height)
     mPlayer->setY(std::floor((mMap->pixelHeight() - mPlayer->height()) / 2));
 
     std::random_device r;
-    std::default_random_engine gen(r()); //Standard mersenne_twister_engine seeded with rd()
+    std::default_random_engine gen(r());
     std::uniform_int_distribution<> dis(0, static_cast<int>(Character::Direction::Up));
     for(uint32_t i = 0; i < 30; i++) {
         mCharacters.push_back(std::make_shared<engine::Character>("dude"));

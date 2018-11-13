@@ -36,12 +36,12 @@ public:
 
     void velocity(float frameDiff, float x, float y);
 
-    virtual float x() const;
-    virtual float y() const;
+    virtual float x();
+    virtual float y();
     virtual int width() const;
     virtual int height() const;
 
-    bool isMoving() const;
+    bool isMoving();
 
     void moveTo(int x, int y, asIScriptFunction* fun = nullptr);
     void turnTo(Direction::Type direction);
@@ -72,19 +72,20 @@ private:
     Charset::Type mCharsetType;
     std::shared_ptr<engine::Image> mPortrait;
 
-    std::atomic<float> mFrame;
+    float mFrame;
 
-    std::atomic<float> mDirectionTurn;
-    std::atomic<Direction::Type> mDirectionTo;
-    std::atomic<Direction::Type> mDirection;
+    float mDirectionTurn;
+    Direction::Type mDirectionTo;
+    Direction::Type mDirection;
 
-    std::atomic<float> mSpeed;
-    Types::Point<std::atomic<float>, float> mPos;
-    Types::Point<std::atomic<float>, float> mVelocity;
-    Types::Point<std::atomic<int>, int> mTarget;
-    std::atomic<float> mFriction;
+    float mSpeed;
+    Types::Point<float> mPos;
+    Types::Point<float> mVelocity;
+    Types::Point<int> mTarget;
+    float mFriction;
+    std::mutex mMovementMutex;
 
-    std::mutex mMoveMutex;
+    std::mutex mListenerMutex;
     std::vector<std::shared_ptr<Listeners::MoveListener>> mMoveListeners;
 };
 }

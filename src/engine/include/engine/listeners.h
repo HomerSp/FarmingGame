@@ -32,7 +32,7 @@ public:
     public:
         MoveListener(asIScriptFunction* fun, int x, int y);
         
-        bool check(int x, int y, bool canReachX = true, bool canReachY = true);
+        bool check(int x, int y, bool force = false);
 
     private:
         Types::Point<> mTarget;

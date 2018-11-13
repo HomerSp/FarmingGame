@@ -9,21 +9,21 @@ using namespace engine;
 Camera::Camera(uint32_t width, uint32_t height)
     : mTarget(nullptr)
     , mDimen(width, height)
-    , mPosX(0.0f)
-    , mPosY(0.0f)
-    , mTargetPosX(0.0f)
-    , mTargetPosY(0.0f)
+    , mPos(0.0f, 0.0f)
+    , mTargetPos(-1, -1)
 {
 }
 
-float Camera::x() const
+float Camera::x()
 {
-    return mPosX;
+    std::lock_guard<std::mutex> lock(mMovementMutex);
+    return mPos.x;
 }
 
-float Camera::y() const
+float Camera::y()
 {
-    return mPosY;
+    std::lock_guard<std::mutex> lock(mMovementMutex);
+    return mPos.y;
 }
 
 int Camera::width() const
@@ -36,120 +36,120 @@ int Camera::height() const
     return mDimen.height;
 }
 
-void Camera::follow(Camera::Target const* target)
+void Camera::follow(Camera::Target* target)
 {
-    std::lock_guard<std::mutex> lock(mTargetMutex);
+    std::lock_guard<std::mutex> lock(mMovementMutex);
     mTarget = target;
-    mTargetPosX = 0;
-    mTargetPosY = 0;
+    mTargetPos.x = 0;
+    mTargetPos.y = 0;
 }
 
 void Camera::moveTo(int dstX, int dstY, asIScriptFunction* fun)
 {
     if (fun != nullptr) {
-        std::lock_guard<std::mutex> lock(mMoveMutex);
+        std::lock_guard<std::mutex> lock(mListenerMutex);
         mMoveListeners.push_back(std::make_shared<Listeners::MoveListener>(fun, dstX, dstY));
     }
 
-    std::lock_guard<std::mutex> lock(mTargetMutex);
+    std::lock_guard<std::mutex> lock(mMovementMutex);
     mTarget = nullptr;
-    mTargetPosX = dstX;
-    mTargetPosY = dstY;
+    mTargetPos.x = dstX;
+    mTargetPos.y = dstY;
 }
 
 bool Camera::processAsync(float frameDiff, Map* map)
 {
-    Camera::Target const* target;
-    float posX, posY, targetPosX, targetPosY;
+    bool forced = false, changed = false;
+    float posX, posY;
     {
-        std::lock_guard<std::mutex> lock(mTargetMutex);
-        target = mTarget;
-    }
+        std::lock_guard<std::mutex> lock(mMovementMutex);
 
-    posX = mPosX;
-    posY = mPosY;
-    targetPosX = mTargetPosX;
-    targetPosY = mTargetPosY;
+        posX = mPos.x;
+        posY = mPos.y;
+        float targetPosX = mTargetPos.x;
+        float targetPosY = mTargetPos.y;
 
-    if (target != nullptr && targetPosX == -1 && targetPosY == -1) {
-        posX =  target->x() + std::floor(target->width() / 2) - std::floor(mDimen.width / 2);
-        posY = target->y() + std::floor(target->height() * 0.75f) - std::floor(mDimen.height / 2);
-    } else {
         float targetX = 0;
         float targetY = 0;
-        if (target != nullptr) {
-            targetX = target->x() + std::floor(target->width() / 2) - std::floor(mDimen.width / 2);
-            targetY = target->y() + std::floor(target->height() * 0.75f) - std::floor(mDimen.height / 2);
+        if (mTarget != nullptr) {
+            targetX =  mTarget->x() + std::floor(mTarget->width() / 2) - std::floor(mDimen.width / 2);
+            targetY = mTarget->y() + std::floor(mTarget->height() * 0.75f) - std::floor(mDimen.height / 2);
         } else {
             targetX = targetPosX;
             targetY = targetPosY;
         }
 
-        if (posX < 0 && posY < 0) {
+        if (mTarget == nullptr || targetPosX >= 0 || targetPosY >= 0) {
+            if (posX < 0 && posY < 0) {
+                posX = targetX;
+                posY = targetY;
+            }
+
+            float val = frameDiff * 200.0f;
+            if (posX < targetX) {
+                if (posX + val >= targetX) {
+                    posX = targetX;
+                } else {
+                    posX += val;
+                }
+            } else if (posX > targetX) {
+                if (posX - val <= targetX) {
+                    posX = targetX;
+                } else {
+                    posX -= val;
+                }
+            }
+
+            if (posY < targetY) {
+                if (posY + val >= targetY) {
+                    posY = targetY;
+                } else {
+                    posY += val;
+                }
+            } else if (posY > targetY) {
+                if (posY - val <= targetY) {
+                    posY = targetY;
+                } else {
+                    posY -= val;
+                }
+            }
+        } else {
             posX = targetX;
             posY = targetY;
         }
 
-        float val = frameDiff * 200.0f;
-        if (posX < targetX) {
-            if (posX + val >= targetX) {
-                posX = targetX;
-            } else {
-                posX += val;
-            }
-        } else if (posX > targetX) {
-            if (posX - val <= targetX) {
-                posX = targetX;
-            } else {
-                posX -= val;
-            }
+        if (posX < 0) {
+            posX = 0;
+            targetPosX = -1;
+        } else if (posX > map->pixelWidth() - mDimen.width) {
+            posX = map->pixelWidth() - mDimen.width;
+            targetPosX = -1;
         }
 
-        if (posY < targetY) {
-            if (posY + val >= targetY) {
-                posY = targetY;
-            } else {
-                posY += val;
-            }
-        } else if (posY > targetY) {
-            if (posY - val <= targetY) {
-                posY = targetY;
-            } else {
-                posY -= val;
-            }
+        if (posY < 0) {
+            posY = 0;
+            targetPosY = -1;
+        } else if (posY > map->pixelHeight() - mDimen.height) {
+            posY = map->pixelHeight() - mDimen.height;
+            targetPosY = -1;
         }
 
+        forced = mTargetPos.x >= 0 && targetPosX < 0 && mTargetPos.y >= 0 && targetPosY < 0;
         if (posX == targetX && posY == targetY) {
             targetPosX = -1;
             targetPosY = -1;
         }
+
+        changed = mPos.x != posX || mPos.y != posY;
+        mPos.x = posX;
+        mPos.y = posY;
+        mTargetPos.x = targetPosX;
+        mTargetPos.y = targetPosY;
     }
 
-    if (posX < 0) {
-        posX = 0;
-        targetPosX = -1;
-    } else if (posX > map->pixelWidth() - mDimen.width) {
-        posX = map->pixelWidth() - mDimen.width;
-        targetPosX = -1;
-    }
-
-    if (posY < 0) {
-        posY = 0;
-        targetPosY = -1;
-    } else if (posY > map->pixelHeight() - mDimen.height) {
-        posY = map->pixelHeight() - mDimen.height;
-        targetPosY = -1;
-    }
-
-    bool changed = mPosX != posX || mPosY != posY;
-    mPosX = posX;
-    mPosY = posY;
-    mTargetPosX = targetPosX;
-    mTargetPosY = targetPosY;
-
-    std::lock_guard<std::mutex> lock(mMoveMutex);
+    std::lock_guard<std::mutex> lock(mListenerMutex);
     for(auto &i: mMoveListeners) {
-        i->check(mPosX, mPosY, mTargetPosX >= 0, mTargetPosY >= 0);
+        i->check(posX, posY, forced);
     }
 
     return changed;
@@ -157,49 +157,55 @@ bool Camera::processAsync(float frameDiff, Map* map)
 
 void Camera::processListeners()
 {
-    std::vector<Listeners::MoveListener *> toRemove;
-    for(auto& i: mMoveListeners) {
-        if (i->maybeTrigger(scriptContext())) {
-            toRemove.emplace_back(i.get());
+    std::vector<Listeners::MoveListener *> listeners;
+    {
+        std::lock_guard<std::mutex> lock(mListenerMutex);
+        for (auto& i: mMoveListeners) {
+            listeners.emplace_back(i.get());
         }
     }
 
-    std::lock_guard<std::mutex> lock(mMoveMutex);
-    auto it = toRemove.begin();
-    while (it != toRemove.end()) {
-        auto it2 = mMoveListeners.begin();
-        while (it2 != mMoveListeners.end()) {
-            if (it2->get() == *it) {
-                mMoveListeners.erase(it2);
-                break;
-            }
-
-            it2++;
+    auto it = listeners.begin();
+    while (it != listeners.end()) {
+        if (!(*it)->maybeTrigger(scriptContext())) {
+            it = listeners.erase(it);
+        } else {
+            it++;
         }
+    }
 
-        it++;
+    std::lock_guard<std::mutex> lock(mListenerMutex);
+    for (auto i: listeners) {
+        auto moveIt = mMoveListeners.begin();
+        while (moveIt != mMoveListeners.end()) {
+            if (i == moveIt->get()) {
+                moveIt = mMoveListeners.erase(moveIt);
+            } else {
+                moveIt++;
+            }
+        }
     }
 }
 
 void Camera::setPosition(int x, int y)
 {
-    std::lock_guard<std::mutex> lock(mTargetMutex);
+    std::lock_guard<std::mutex> lock(mMovementMutex);
     mTarget = nullptr;
-    mTargetPosX = -1;
-    mTargetPosY = -1;
-    mPosX = x;
-    mPosY = y;
+    mTargetPos.x = -1;
+    mTargetPos.y = -1;
+    mPos.x = x;
+    mPos.y = y;
 }
 
 void Camera::setTarget(Camera::Target* target)
 {
-    std::lock_guard<std::mutex> lock(mTargetMutex);
+    std::lock_guard<std::mutex> lock(mMovementMutex);
     mTarget = target;
-    mTargetPosX = -1;
-    mTargetPosY = -1;
+    mTargetPos.x = -1;
+    mTargetPos.y = -1;
     if (mTarget != nullptr) {
-        mPosX = -1;
-        mPosY = -1;
+        mPos.x = -1;
+        mPos.y = -1;
     }
 }
 
