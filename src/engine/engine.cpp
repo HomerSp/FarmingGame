@@ -39,10 +39,10 @@ Engine::Engine(uint32_t width, uint32_t height)
     std::random_device r;
     std::default_random_engine gen(r());
     std::uniform_int_distribution<> dis(0, static_cast<int>(Character::Direction::Up));
-    for(uint32_t i = 0; i < 30; i++) {
+    for(uint32_t i = 0; i < 24 * 10; i++) {
         mCharacters.push_back(std::make_shared<engine::Character>("dude"));
-        mCharacters.back()->setX(24 + (i * 48));
-        mCharacters.back()->setY(200);
+        mCharacters.back()->setX((8 * 48) + ((i % 24) * 48));
+        mCharacters.back()->setY(48 + (std::floor(i / 24) * 48));
         mCharacters.back()->setDirection(static_cast<Character::Direction::Type>(dis(gen)));
     }
 
@@ -283,19 +283,19 @@ void Engine::paint(Renderer& renderer)
 
     Types::Dimension<> d = mMap->getTileDimension();
 
-    std::vector<Character*> drawCharacters;
+    std::multimap<int, Character*> drawCharacters;
     for (auto& i: mCharacters) {
-        drawCharacters.push_back(i.get());
+        drawCharacters.emplace(std::make_pair(i->y(), i.get()));
     }
 
-    drawCharacters.push_back(mPlayer.get());
+    drawCharacters.emplace(std::make_pair(mPlayer->y(), mPlayer.get()));
 
     int startY = std::ceil(mCamera->y() / d.height);
     for (int row = startY - 1; row <= startY + std::ceil(mHeight / d.height); row++) {
         auto it = drawCharacters.begin();
         while (it != drawCharacters.end()) {
-            if (row * d.height >= (*it)->y()) {
-                (*it)->draw(renderer, Types::Point<>(mCamera->x(), mCamera->y()));
+            if (row * d.height >= it->first) {
+                it->second->draw(renderer, Types::Point<>(mCamera->x(), mCamera->y()));
                 it = drawCharacters.erase(it);
             } else {
                 it++;
