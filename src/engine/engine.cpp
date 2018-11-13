@@ -47,7 +47,7 @@ Engine::Engine(uint32_t width, uint32_t height)
     }
 
     mCamera->setTarget(mPlayer.get());
-    mClock->setTime(8, 0);
+    mClock->setTime(6, 0);
 
     registerScript();
 
@@ -291,7 +291,7 @@ void Engine::paint(Renderer& renderer)
     drawCharacters.emplace(std::make_pair(mPlayer->y(), mPlayer.get()));
 
     int startY = std::ceil(mCamera->y() / d.height);
-    for (int row = startY - 1; row <= startY + std::ceil(mHeight / d.height); row++) {
+    for (int row = startY - 1; row <= startY + std::ceil(mHeight / d.height) + 1; row++) {
         auto it = drawCharacters.begin();
         while (it != drawCharacters.end()) {
             if (row * d.height >= it->first) {
