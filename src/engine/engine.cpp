@@ -27,6 +27,7 @@ Engine::Engine(uint32_t width, uint32_t height)
 
     mScript = std::make_shared<Engine::ScriptCreator>();
 
+    mScreenEffects = std::make_shared<engine::ScreenEffects>();
     mCamera = std::make_shared<engine::Camera>(mWidth, mHeight);
     mClock = std::make_shared<engine::Clock>();
     mMap = std::make_shared<engine::Map>("map");
@@ -294,7 +295,7 @@ void Engine::paint(Renderer& renderer)
         mMap->drawRow(renderer, dst, row, TilesetAttribute::AboveAll);
     }
 
-    mClock->draw(renderer, *mCamera.get(), mLights);
+    mScreenEffects->draw(renderer, *mClock.get(), *mCamera.get(), mLights);
 
     std::stringstream str;
     str << std::setw(2) << std::setfill('0') << mClock->hour() << ":" << std::setw(2) << std::setfill('0') << mClock->minute();

@@ -14,6 +14,7 @@
 #include <engine/keys.h>
 #include <engine/map.h>
 #include <engine/player.h>
+#include <engine/screeneffects.h>
 #include <engine/scriptobject.h>
 
 namespace engine {
@@ -96,13 +97,14 @@ private:
     std::mutex mDownKeysMutex;
     engine::KeyList mDownKeys;
 
+    std::shared_ptr<engine::ScreenEffects> mScreenEffects;
     std::shared_ptr<engine::Camera> mCamera;
     std::shared_ptr<engine::Clock> mClock;
     std::shared_ptr<engine::Map> mMap;
     std::shared_ptr<engine::Player> mPlayer;
     std::vector<std::shared_ptr<engine::Character>> mCharacters;
 
-    std::vector<std::shared_ptr<engine::Clock::LightSource>> mLights;
+    std::vector<std::shared_ptr<engine::ScreenEffects::LightSource>> mLights;
 
     FrameTimer mFrameTimer;
     bool mEnableThreading;

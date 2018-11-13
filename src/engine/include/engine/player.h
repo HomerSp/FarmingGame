@@ -1,10 +1,10 @@
 #pragma once
 
 #include <engine/character.h>
-#include <engine/clock.h>
+#include <engine/screeneffects.h>
 
 namespace engine {
-class Player : public Character, public Clock::LightSource {
+class Player : public Character, public ScreenEffects::LightSource {
 public:
     Player();
 

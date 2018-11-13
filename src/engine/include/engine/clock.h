@@ -36,16 +36,9 @@ private:
     };
 
 public:
-    class LightSource {
-    public:
-        virtual Types::Point<int32_t> light() = 0;
-        virtual int32_t radius() = 0;
-        virtual float strength() = 0;
-    };
-
-public:
     Clock();
  
+    double current() const;
     uint32_t year() const;
     uint32_t month() const;
     uint32_t day() const;
@@ -54,7 +47,11 @@ public:
     uint32_t hour() const;
     uint32_t minute() const;
 
-    void draw(Renderer& renderer, Camera& camera, const std::vector<std::shared_ptr<LightSource>> &sources);
+    uint32_t dawn() const;
+    uint32_t sunrise() const;
+    uint32_t sunset() const;
+    uint32_t dusk() const;
+
     bool processAsync(float frameDiff);
     void processListeners();
 

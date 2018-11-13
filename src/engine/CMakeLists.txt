@@ -25,6 +25,7 @@ set(HEADERS
 	include/engine/map.h
     include/engine/player.h
     include/engine/renderer.h
+    include/engine/screeneffects.h
 	include/engine/scriptobject.h
 	include/engine/tileset.h
 	include/engine/time.h
@@ -47,6 +48,7 @@ set(SOURCES
     map.cpp
     player.cpp
     renderer.cpp
+    screeneffects.cpp
     scriptobject.cpp
     tileset.cpp
     time.cpp
