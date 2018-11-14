@@ -1,10 +1,26 @@
 #pragma once
 
+#include <QImage>
 #include <QPainter>
 
+#include <engine/image.h>
 #include <engine/renderer.h>
 
 class QtRenderer : public engine::Renderer {
+public:
+    class QtImage : public engine::Image {
+    public:
+        QtImage(const std::string& path);
+
+        const QImage& image() const;
+
+        virtual uint32_t width() const;
+        virtual uint32_t height() const;
+
+    private:
+        std::shared_ptr<QImage> mImage;
+    };
+
 public:
     QtRenderer();
     virtual ~QtRenderer() = default;
@@ -26,6 +42,8 @@ public:
     void eraseEllipses(const std::vector<engine::Types::Rect<>>& dst);
 
     void setPainter(QPainter* painter);
+
+    std::shared_ptr<engine::Image> nativeImage(const std::string& path);
 
 private:
     QPainter* mPainter;

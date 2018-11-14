@@ -69,10 +69,10 @@ void QtRenderer::drawImage(const engine::Image& img, const engine::Types::Rect<>
         return;
     }
 
-    QImage i(img.data(), img.width(), img.height(), QImage::Format_ARGB32);
+    const QtImage& native = dynamic_cast<const QtImage&>(img);
     QRectF srcRect(src.x, src.y, src.width, src.height);
     QRectF dstRect(dst.x, dst.y, dst.width, dst.height);
-    mPainter->drawImage(srcRect, i, dstRect);
+    mPainter->drawImage(srcRect, native.image(), dstRect);
 }
 
 void QtRenderer::drawText(const engine::Types::Point<>& dst, const std::string& text, const engine::Types::Color& color, int size, engine::Types::TextAlign align)
@@ -172,4 +172,30 @@ void QtRenderer::eraseEllipses(const std::vector<engine::Types::Rect<>>& dst)
     QPainterPath screen;
     screen.addRect(0, 0, width(), height());
     mPainter->setClipPath(screen);
+}
+
+std::shared_ptr<engine::Image> QtRenderer::nativeImage(const std::string& path)
+{
+    return std::make_shared<QtImage>(path);
+}
+
+QtRenderer::QtImage::QtImage(const std::string& path)
+    : Image()
+{
+    mImage = std::make_shared<QImage>(QString(path.c_str()));
+}
+
+const QImage& QtRenderer::QtImage::image() const
+{
+    return *mImage.get();
+}
+
+uint32_t QtRenderer::QtImage::width() const
+{
+    return mImage->width();
+}
+
+uint32_t QtRenderer::QtImage::height() const
+{
+    return mImage->height();
 }

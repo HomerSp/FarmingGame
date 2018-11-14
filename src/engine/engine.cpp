@@ -8,22 +8,26 @@
 #include <scripthandle/scripthandle.h>
 #include <scriptstdstring/scriptstdstring.h>
 
+#include <engine/assetmanager.h>
 #include <engine/engine.h>
 #include <engine/logger.h>
 
 using namespace engine;
 
-Engine::Engine(uint32_t width, uint32_t height)
+Engine::Engine(uint32_t width, uint32_t height, std::shared_ptr<Renderer> renderer)
     : mRunning(true)
     , mNeedRepaint(false)
     , mHasFocus(true)
     , mWidth(width)
     , mHeight(height)
+    , mRenderer(renderer)
     , mMap(nullptr)
     , mPlayer(nullptr)
     , mEnableThreading(true)
 {
     Logger::debug() << "Creating Engine";
+
+    AssetManager::get()->setRenderer(mRenderer);
 
     mScript = std::make_shared<Engine::ScriptCreator>();
 
@@ -246,8 +250,9 @@ void Engine::processAsync()
     }
 }
 
-void Engine::paint(Renderer& renderer)
+void Engine::paint()
 {
+    Renderer& renderer = *mRenderer;
     renderer.fillRect(Types::Rect<>(0, 0, mWidth, mHeight), Types::Color(0, 0, 0));
 
     // Centre small maps.

@@ -10,8 +10,8 @@ MapItemView::MapItemView(QQuickItem* parent)
     setFocus(true);
     setClip(true);
 
-    mEngine = std::make_shared<engine::Engine>(width(), height());
     mRenderer = std::make_shared<QtRenderer>();
+    mEngine = std::make_shared<engine::Engine>(width(), height(), mRenderer);
 
     setImplicitWidth(width() + mEngine->bufferWidth());
     setImplicitHeight(height() + mEngine->bufferHeight());
@@ -71,7 +71,7 @@ void MapItemView::geometryChanged(const QRectF& newGeometry, const QRectF& oldGe
 void MapItemView::paint(QPainter* painter)
 {
     mRenderer->setPainter(painter);
-    mEngine->paint(*mRenderer);
+    mEngine->paint();
 }
 
 void MapItemView::process()

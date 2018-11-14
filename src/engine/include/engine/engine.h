@@ -20,14 +20,14 @@
 namespace engine {
 class Engine : public ScriptObject {
 public:
-    Engine(uint32_t width, uint32_t height);
+    Engine(uint32_t width, uint32_t height, std::shared_ptr<Renderer> renderer);
     ~Engine();
 
     int bufferWidth() const;
     int bufferHeight() const;
 
     bool process();
-    void paint(Renderer& renderer);
+    void paint();
 
     void setKeyMap(const std::unordered_map<int, Keys::Type>& keys);
     void setKeyDown(int key);
@@ -96,6 +96,8 @@ private:
 
     std::mutex mDownKeysMutex;
     engine::KeyList mDownKeys;
+
+    std::shared_ptr<Renderer> mRenderer;
 
     std::shared_ptr<engine::ScreenEffects> mScreenEffects;
     std::shared_ptr<engine::Camera> mCamera;

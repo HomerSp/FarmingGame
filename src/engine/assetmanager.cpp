@@ -44,10 +44,10 @@ std::shared_ptr<engine::Image> AssetManager::image(Type type, const std::string&
 {
     std::string path = AssetManager::imagePath(type, name);
     if (path.length() > 0) {
-        return std::make_shared<engine::Image>(path);
+        return mRenderer->nativeImage(path);
     }
 
-    return std::make_shared<engine::Image>();
+    return nullptr;
 }
 
 std::shared_ptr<engine::CollisionMap> AssetManager::collision(Type type, const std::string& name)
@@ -109,4 +109,9 @@ std::string AssetManager::collisionPath(Type type, const std::string& name)
         return "";
     }
     return ret + "/" + name + ".png";
+}
+
+void AssetManager::setRenderer(std::shared_ptr<Renderer> renderer)
+{
+    mRenderer = renderer;
 }

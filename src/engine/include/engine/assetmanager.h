@@ -7,6 +7,7 @@
 
 #include <engine/collisionmap.h>
 #include <engine/image.h>
+#include <engine/renderer.h>
 
 namespace engine {
 class AssetManager {
@@ -28,6 +29,8 @@ public:
     std::string imagePath(Type type, const std::string& name);
     std::string collisionPath(Type type, const std::string& name);
 
+    void setRenderer(std::shared_ptr<Renderer> renderer);
+
 protected:
     AssetManager();
 
@@ -35,5 +38,6 @@ private:
     static std::shared_ptr<AssetManager> sInstance;
 
     std::string mBase;
+    std::shared_ptr<Renderer> mRenderer;
 };
 }

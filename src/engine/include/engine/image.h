@@ -9,23 +9,10 @@ namespace engine {
 class Image {
 public:
     Image();
-    Image(const Types::Dimension<uint32_t> &d);
-    Image(const std::string& path);
     
-    const unsigned char* data() const;
-    uint32_t dataSize() const;
-    uint32_t width() const;
-    uint32_t height() const;
+    virtual uint32_t width() const = 0;
+    virtual uint32_t height() const = 0;
 
-    void setDimensions(const Types::Dimension<uint32_t> &d);
-
-    bool operator!() const
-    {
-        return mDimen.width == 0;
-    }
-
-private:
-	Types::Dimension<uint32_t> mDimen;
-    std::vector<unsigned char> mData;
+    bool operator!() const;
 };
 }
