@@ -8,7 +8,7 @@ class Player : public Character, public ScreenEffects::LightSource {
 public:
     Player();
 
-    virtual Types::Point<int32_t> light();
+    virtual Types::Point<int32_t> position();
     virtual int32_t radius();
     virtual float strength();
 

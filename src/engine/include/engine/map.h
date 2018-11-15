@@ -5,6 +5,7 @@
 #include <unordered_set>
 
 #include <engine/renderer.h>
+#include <engine/screeneffects.h>
 #include <engine/tileset.h>
 #include <engine/types.h>
 
@@ -17,6 +18,8 @@ public:
 
     void draw(Renderer& renderer, const Types::Rect<>& dst, bool clip);
     void drawRow(Renderer& renderer, const Types::Rect<>& dst, int row, TilesetAttribute::Type type, bool clip);
+
+    void toggleLights(bool on);
 
     bool updateCollisionMap(CollisionMap& map);
 
@@ -34,6 +37,7 @@ private:
     std::unordered_map<int, std::unordered_map<int, std::shared_ptr<TilesetNode>>> mNodes;
     std::unordered_map<int, std::unordered_map<int, std::shared_ptr<TilesetNode>>> mAboveRowNodes;
     std::unordered_map<int, std::unordered_map<int, std::shared_ptr<TilesetNode>>> mAboveAllNodes;
+    std::vector<TilesetNode*> mLightNodes;
 };
 
 class Map {
@@ -47,35 +51,35 @@ public:
 
     void checkCollision(const Types::Point<float>& pos, const Types::Dimension<>& size, Types::Point<float>& dst, float& velocityX, float& velocityY) const;
 
-    uint32_t width() const
-    {
-        return mDimensions.width;
-    }
+    void toggleLights(bool on);
 
-    uint32_t pixelWidth() const
-    {
-        return mDimensions.width * getTileDimension().width;
-    }
+    uint32_t width() const;
+    uint32_t pixelWidth() const;
 
-    uint32_t height() const
-    {
-        return mDimensions.height;
-    }
-
-    uint32_t pixelHeight() const
-    {
-        return mDimensions.height * getTileDimension().height;
-    }
+    uint32_t height() const;
+    uint32_t pixelHeight() const;
 
     Types::Dimension<> getTileDimension() const;
 
-    bool operator!() const
-    {
-        return !mValid;
-    }
+    bool operator!() const;
 
 protected:
     bool isColliding(const Types::Point<float>& pos, const Types::Dimension<>& size, Types::Pair& diff, int8_t& rDiff, bool vertical) const;
+
+private:
+	class MapLightSource : public ScreenEffects::LightSource {
+	public:
+		MapLightSource(Types::Point<int32_t> pos, int32_t radius, float strength);
+
+		virtual Types::Point<int32_t> position();
+        virtual int32_t radius();
+        virtual float strength();
+
+    private:
+		Types::Point<int32_t> mPosition;
+		int32_t mRadius;
+		float mStrength;
+	};
 
 private:
     bool mValid;

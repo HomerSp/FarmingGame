@@ -51,6 +51,10 @@ TilesetType::TilesetType(Types::Dimension<>& tileDimension, const std::string& t
         break;
     }
 
+    if (mAttributes[TilesetAttribute::Toggle]) {
+        mSize.width *= 2;
+    }
+
     if (!mAttributes[TilesetAttribute::AboveRow] && !mAttributes[TilesetAttribute::AboveAll]) {
         mAttributes[TilesetAttribute::AboveNone] = true;
     }
@@ -93,6 +97,8 @@ std::shared_ptr<TilesetNode> TilesetType::toNode(Types::Map2D& tiles, uint32_t x
     node->anim = Types::Point<>((mTileType == TileTypeAuto) ? (mTileDimension.width * 2) : 0, (mTileType == TileTypeAutoHoriz) ? mTileDimension.height : 0);
     node->frames = mFrames;
     node->current = 0;
+    node->toggleWidth = (mAttributes[TilesetAttribute::Toggle]) ? (mSize.width / 2) : 0;
+    node->toggled = false;
 
     switch (mTileType) {
     case TileTypeSingle: {
@@ -423,6 +429,10 @@ Tileset::Tileset(const std::string& name)
                         attrs[TilesetAttribute::AboveRow] = true;
                     } else if (key == "above_all") {
                         attrs[TilesetAttribute::AboveAll] = true;
+                    } else if (key == "toggle") {
+                        attrs[TilesetAttribute::Toggle] = true;
+                    } else if (key == "light_source") {
+                        attrs[TilesetAttribute::LightSource] = true;
                     } else {
                         Logger::warning() << "Unknown attribute" << key << "for tileset" << name;
                     }
@@ -460,6 +470,10 @@ void Tileset::draw(Renderer& renderer, TilesetNode& node, const Types::Point<>& 
         dst.y = (pos.y * mTileDimension.height) + (dy * (mTileDimension.height / 2));
 
         Types::Rect<> src(po.x + (node.anim.x * std::floor(node.current)), po.y + (node.anim.y * std::floor(node.current)), dst.width, dst.height);
+        if (node.toggled) {
+            src.x += node.toggleWidth;
+        }
+
         renderer.drawImage(*mImage, dst, src);
 
         dx++;

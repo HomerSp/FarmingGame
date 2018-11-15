@@ -19,6 +19,8 @@ public:
     Types::Point<> anim;
     int frames;
     std::atomic<float> current;
+    uint32_t toggleWidth;
+    bool toggled;
 };
 
 struct TilesetAttribute {
@@ -28,6 +30,9 @@ public:
         AboveRow,
         AboveAll,
         Water,
+        Toggle,
+        LightSource,
+
         Last,
     } Type;
 };

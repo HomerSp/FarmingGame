@@ -174,7 +174,7 @@ void QtRenderer::eraseEllipses(const std::vector<engine::Types::Rect<>>& dst)
     mPainter->setClipPath(screen);
 }
 
-std::shared_ptr<engine::Image> QtRenderer::nativeImage(const std::string& path)
+std::shared_ptr<engine::Image> QtRenderer::loadImage(const std::string& path)
 {
     return std::make_shared<QtImage>(path);
 }

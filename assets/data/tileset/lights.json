@@ -1,0 +1,31 @@
+{
+    "image": "Lights",
+    "dimen": [48, 48],
+    "collision": "Lights",
+    "nodes": [
+        // 1 - Lamppost 1
+        {
+            "tile": "single",
+            "base": 2,
+            "count": [1, 3],
+            "source": [24, 34, 96],
+            "attributes": [
+                "above_row",
+                "light_source",
+                "toggle"
+            ]
+        },
+        // 2 - Lamppost 2
+        {
+            "tile": "single",
+            "base": 2,
+            "count": [1, 3],
+            "source": [24, 34, 96],
+            "attributes": [
+                "above_row",
+                "light_source",
+                "toggle"
+            ]
+        }
+    ]
+}

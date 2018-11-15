@@ -3,11 +3,13 @@
 #include <mutex>
 
 #include <engine/listeners.h>
-#include <engine/map.h>
 #include <engine/scriptobject.h>
 #include <engine/types.h>
 
 namespace engine {
+
+class Map;
+
 class Camera : public ScriptObject {
 public:
     class Target {

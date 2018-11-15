@@ -4,7 +4,6 @@ using namespace engine;
 
 ScreenEffects::ScreenEffects()
 {
-
 }
 
 void ScreenEffects::draw(Renderer& renderer, Clock& clock, Camera& camera, const std::vector<std::shared_ptr<LightSource>> &sources)
@@ -37,7 +36,7 @@ void ScreenEffects::draw(Renderer& renderer, Clock& clock, Camera& camera, const
 
     std::vector<Types::Rect<>> erase;
     for (auto& source: sources) {
-        Types::Rect<> playerRc(source->light().x - camera.x(), source->light().y - camera.y(), source->radius(), source->radius());
+        Types::Rect<> playerRc(source->position().x - camera.x(), source->position().y - camera.y(), source->radius(), source->radius());
         Types::Color l = color;
         l.r = l.r * (1.0f - source->strength());
         l.a = l.a * (1.0f - source->strength());

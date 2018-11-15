@@ -2,6 +2,7 @@
 
 #include <engine/clock.h>
 #include <engine/logger.h>
+#include <engine/map.h>
 #include <engine/time.h>
 
 using namespace engine;
@@ -75,7 +76,13 @@ uint32_t Clock::dusk() const
     return mDusk;
 }
 
-bool Clock::processAsync(float frameDiff)
+bool Clock::daylight() const
+{
+    uint32_t h = static_cast<uint32_t>(std::floor(mCurrent / 60)) % 24;
+    return h >= mSunrise && h < mSunset;
+}
+
+bool Clock::processAsync(float frameDiff, Map* map)
 {
     uint64_t val = std::floor(mCurrent);
     mCurrent.store(mCurrent + (frameDiff));
@@ -89,6 +96,8 @@ bool Clock::processAsync(float frameDiff)
 
         changed = true;
     }
+
+    map->toggleLights(!daylight());
 
     return changed;
 }

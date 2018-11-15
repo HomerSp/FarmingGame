@@ -7,7 +7,7 @@ Player::Player()
 {
 }
 
-Types::Point<int32_t> Player::light()
+Types::Point<int32_t> Player::position()
 {
     return Types::Point<int32_t>(x() + width() / 2, y() + height() * 0.75f);
 }

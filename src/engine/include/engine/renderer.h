@@ -24,7 +24,7 @@ public:
 
     virtual void eraseEllipses(const std::vector<engine::Types::Rect<>>& dst) = 0;
 
-    virtual std::shared_ptr<Image> nativeImage(const std::string& path) = 0;
+    virtual std::shared_ptr<Image> loadImage(const std::string& path) = 0;
 
 private:
 };

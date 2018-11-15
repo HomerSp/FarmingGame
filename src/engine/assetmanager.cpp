@@ -44,7 +44,7 @@ std::shared_ptr<engine::Image> AssetManager::image(Type type, const std::string&
 {
     std::string path = AssetManager::imagePath(type, name);
     if (path.length() > 0) {
-        return mRenderer->nativeImage(path);
+        return mRenderer->loadImage(path);
     }
 
     return nullptr;

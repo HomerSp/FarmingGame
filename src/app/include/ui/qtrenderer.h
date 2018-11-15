@@ -43,7 +43,7 @@ public:
 
     void setPainter(QPainter* painter);
 
-    std::shared_ptr<engine::Image> nativeImage(const std::string& path);
+    std::shared_ptr<engine::Image> loadImage(const std::string& path);
 
 private:
     QPainter* mPainter;

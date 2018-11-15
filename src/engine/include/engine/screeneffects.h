@@ -6,11 +6,15 @@
 #include <engine/types.h>
 
 namespace engine {
+
+class Camera;
+class Clock;
+
 class ScreenEffects {
 public:
     class LightSource {
     public:
-        virtual Types::Point<int32_t> light() = 0;
+        virtual Types::Point<int32_t> position() = 0;
         virtual int32_t radius() = 0;
         virtual float strength() = 0;
     };

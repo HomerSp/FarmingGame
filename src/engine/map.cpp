@@ -27,14 +27,38 @@ MapLayer::MapLayer(Types::Map2D data, std::shared_ptr<Tileset> tileset, uint32_t
         return;
     }
 
+    for(auto &nodeY: mNodes) {
+        for (auto &nodeX: nodeY.second) {
+            if(nodeX.second->toggleWidth > 0) {
+                mLightNodes.push_back(nodeX.second.get());
+            }
+        }
+    }
+
+    for(auto &nodeY: mAboveRowNodes) {
+        for (auto &nodeX: nodeY.second) {
+            if(nodeX.second->toggleWidth > 0) {
+                mLightNodes.push_back(nodeX.second.get());
+            }
+        }
+    }
+
+    for(auto &nodeY: mAboveAllNodes) {
+        for (auto &nodeX: nodeY.second) {
+            if(nodeX.second->toggleWidth > 0) {
+                mLightNodes.push_back(nodeX.second.get());
+            }
+        }
+    }
+
     mValid = true;
 }
 
 bool MapLayer::animate(float frameDiff)
 {
     bool changed = false;
-    for(auto nodeY: mNodes) {
-        for (auto nodeX: nodeY.second) {
+    for(auto &nodeY: mNodes) {
+        for (auto &nodeX: nodeY.second) {
             if (nodeX.second->frames > 0) {
                 float c = nodeX.second->current;
                 c += 5.0f * frameDiff;
@@ -52,7 +76,7 @@ bool MapLayer::animate(float frameDiff)
 
 void MapLayer::draw(Renderer& renderer, const Types::Rect<>& dst, bool clip)
 {
-    for (auto nodeY: mNodes) {
+    for (auto &nodeY: mNodes) {
         if (nodeY.first >= dst.y - 1 && nodeY.first <= dst.y + dst.height + 1) {
             drawRow(renderer, dst, nodeY.first, TilesetAttribute::AboveNone, clip);
         }
@@ -81,10 +105,17 @@ void MapLayer::drawRow(Renderer& renderer, const Types::Rect<>& dst, int row, Ti
     }
 
     auto nodeRow = nodes->at(row);
-    for (auto node : nodeRow) {
+    for (auto &node : nodeRow) {
         if (!clip || (node.first >= dst.x - 1 && node.first <= dst.x + dst.width + 1)) {
             mTileset->draw(renderer, *node.second, { node.first - dst.x, row - dst.y });
         }
+    }
+}
+
+void MapLayer::toggleLights(bool on)
+{
+    for (auto node: mLightNodes) {
+        node->toggled = on;
     }
 }
 
@@ -95,14 +126,14 @@ bool MapLayer::updateCollisionMap(CollisionMap& map)
         return false;
     }
 
-    for(auto nodeY: mNodes) {
-        for (auto nodeX: nodeY.second) {
+    for(auto &nodeY: mNodes) {
+        for (auto &nodeX: nodeY.second) {
             mTileset->updateCollisionMap(*tilesetCollisionMap, map, *nodeX.second, nodeX.first, nodeY.first);
         }
     }
 
-    for(auto nodeY: mAboveRowNodes) {
-        for (auto nodeX: nodeY.second) {
+    for(auto &nodeY: mAboveRowNodes) {
+        for (auto &nodeX: nodeY.second) {
             mTileset->updateCollisionMap(*tilesetCollisionMap, map, *nodeX.second, nodeX.first, nodeY.first);
         }
     }
@@ -305,6 +336,13 @@ void Map::checkCollision(const Types::Point<float>& pos, const Types::Dimension<
     }
 }
 
+void Map::toggleLights(bool on)
+{
+    for (auto& layer : mLayers) {
+        layer->toggleLights(on);
+    }
+}
+
 bool Map::isColliding(const Types::Point<float>& pos, const Types::Dimension<>& size, Types::Pair& diff, int8_t& rDiff, bool vertical) const
 {
     rDiff = 0;
@@ -338,6 +376,26 @@ bool Map::isColliding(const Types::Point<float>& pos, const Types::Dimension<>& 
     return found;
 }
 
+uint32_t Map::width() const
+{
+    return mDimensions.width;
+}
+
+uint32_t Map::pixelWidth() const
+{
+    return mDimensions.width * getTileDimension().width;
+}
+
+uint32_t Map::height() const
+{
+    return mDimensions.height;
+}
+
+uint32_t Map::pixelHeight() const
+{
+    return mDimensions.height * getTileDimension().height;
+}
+
 Types::Dimension<> Map::getTileDimension() const
 {
     for (auto tileset : mTilesets) {
@@ -345,4 +403,31 @@ Types::Dimension<> Map::getTileDimension() const
     }
 
     return { 32, 32 };
+}
+
+bool Map::operator!() const
+{
+    return !mValid;
+}
+
+Map::MapLightSource::MapLightSource(Types::Point<int32_t> pos, int32_t radius, float strength)
+    : mPosition(std::move(pos))
+    , mRadius(radius)
+    , mStrength(strength)
+{
+}
+
+Types::Point<int32_t> Map::MapLightSource::position()
+{
+    return mPosition;
+}
+
+int32_t Map::MapLightSource::radius()
+{
+    return mRadius;
+}
+
+float Map::MapLightSource::strength()
+{
+    return mStrength;
 }

@@ -5,14 +5,14 @@
 #include <mutex>
 #include <unordered_map>
 
-#include <engine/camera.h>
-#include <engine/character.h>
 #include <engine/listeners.h>
-#include <engine/renderer.h>
 #include <engine/scriptobject.h>
 #include <engine/types.h>
 
 namespace engine {
+
+class Map;
+
 class Clock : public ScriptObject {
 private:
     class ChangeListener : public Listeners::Listener {
@@ -52,7 +52,9 @@ public:
     uint32_t sunset() const;
     uint32_t dusk() const;
 
-    bool processAsync(float frameDiff);
+    bool daylight() const;
+
+    bool processAsync(float frameDiff, Map* map);
     void processListeners();
 
     void fastForward(float v) {

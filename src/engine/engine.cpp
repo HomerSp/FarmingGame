@@ -49,6 +49,11 @@ Engine::Engine(uint32_t width, uint32_t height, std::shared_ptr<Renderer> render
         mCharacters.back()->setDirection(static_cast<Character::Direction::Type>(dis(gen)));
     }
 
+    mCharacters.push_back(std::make_shared<engine::Character>("horse"));
+    mCharacters.back()->setX(48);
+    mCharacters.back()->setY(48);
+    mCharacters.back()->setDirection(Character::Direction::Right);
+
     mCamera->setTarget(mPlayer.get());
     mClock->setTime(6, 0);
 
@@ -228,7 +233,7 @@ void Engine::processAsync()
         if (mCamera->processAsync(mFrameTimer[FRAMETIMER_CAMERA], mMap.get())) {
             mNeedRepaint = true;
         }
-        if (mClock->processAsync(mFrameTimer[FRAMETIMER_CLOCK])) {
+        if (mClock->processAsync(mFrameTimer[FRAMETIMER_CLOCK], mMap.get())) {
             mNeedRepaint = true;
         }
         if (mPlayer->processAsync(mFrameTimer[FRAMETIMER_HERO_MOVEMENT], mMap.get(), &mCharacters, mCamera.get())) {

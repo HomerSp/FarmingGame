@@ -7,7 +7,6 @@
 
 #include <engine/camera.h>
 #include <engine/charset.h>
-#include <engine/image.h>
 #include <engine/listeners.h>
 #include <engine/map.h>
 #include <engine/renderer.h>
