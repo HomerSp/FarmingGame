@@ -44,22 +44,22 @@ void QtRenderer::fillRect(const engine::Types::Rect<>& dst, const engine::Types:
     mPainter->fillRect(dstRect, c);
 }
 
-void QtRenderer::fillEllipse(const engine::Types::Rect<>& dst, const engine::Types::Color& fromColor, const engine::Types::Color& toColor)
+void QtRenderer::fillEllipse(const engine::Types::Ellipse& dst, const engine::Types::Color& fromColor, const engine::Types::Color& toColor)
 {
     if (mPainter == nullptr) {
         engine::Logger::critical() << "No painter set!!!";
         return;
     }
 
-    QRadialGradient gradient(dst.width / 2, dst.height / 2, dst.height / 2);
+    QRadialGradient gradient(dst.radius / 2, dst.radius / 2, dst.radius / 2);
     gradient.setColorAt(0, QColor(fromColor.r, fromColor.g, fromColor.b, fromColor.a));
     gradient.setColorAt(1, QColor(toColor.r, toColor.g, toColor.b, toColor.a));
 
     QPainterPath path;
-    path.addEllipse(QPointF(dst.width / 2, dst.height / 2), dst.width / 2, dst.height / 2);
-    mPainter->translate(dst.x - (dst.width / 2), dst.y - (dst.height / 2));
+    path.addEllipse(QPointF(dst.radius / 2, dst.radius / 2), dst.radius / 2, dst.radius / 2);
+    mPainter->translate(dst.x - (dst.radius / 2), dst.y - (dst.radius / 2));
     mPainter->fillPath(path, gradient);
-    mPainter->translate(-(dst.x - (dst.width / 2)), -(dst.y - (dst.height / 2)));
+    mPainter->translate(-(dst.x - (dst.radius / 2)), -(dst.y - (dst.radius / 2)));
 }
 
 void QtRenderer::drawImage(const engine::Image& img, const engine::Types::Rect<>& src, const engine::Types::Rect<>& dst)
@@ -117,6 +117,34 @@ void QtRenderer::drawText(const engine::Types::Point<>& dst, const std::string& 
     }
 }
 
+void QtRenderer::drawOverlay(const engine::Types::Point<>& dst, const engine::Types::Overlay& overlay)
+{
+    QImage o(overlay.width, overlay.height, QImage::Format_ARGB32);
+    o.fill(0);
+
+    QPainter p(&o);
+    p.setPen(Qt::NoPen);
+    p.fillRect(QRectF(0, 0, overlay.width, overlay.height), QColor(overlay.background.r, overlay.background.g, overlay.background.b, overlay.background.a));
+    p.setCompositionMode(QPainter::CompositionMode_SourceIn);
+    for(auto& e: overlay.ellipses) {
+        QRadialGradient gradient(e.radius / 2, e.radius / 2, e.radius / 2);
+        gradient.setColorAt(0, QColor(e.color.r, e.color.g, e.color.b, e.color.a));
+        gradient.setColorAt(1, QColor(overlay.background.r, overlay.background.g, overlay.background.b, 255));
+
+        p.save();
+        p.setBrush(gradient);
+        p.translate(e.x - (e.radius / 2), e.y - (e.radius / 2));
+        p.drawEllipse(0, 0, e.radius, e.radius);
+        p.restore();
+    }
+
+    p.end();
+
+    QRectF srcRect(0, 0, overlay.width, overlay.height);
+    QRectF dstRect(dst.x, dst.y, overlay.width, overlay.height);
+    mPainter->drawImage(srcRect, o, dstRect);
+}
+
 void QtRenderer::translate(float x, float y)
 {
     if (mPainter == nullptr) {
@@ -147,7 +175,23 @@ void QtRenderer::restore()
     mPainter->restore();
 }
 
-void QtRenderer::eraseEllipses(const std::vector<engine::Types::Rect<>>& dst)
+void QtRenderer::setClipEllipses(const std::vector<engine::Types::Ellipse>& dst)
+{
+    if (mPainter == nullptr) {
+        engine::Logger::critical() << "No painter set!!!";
+        return;
+    }
+
+    QPainterPath clipped;
+    clipped.setFillRule(Qt::WindingFill);
+    for (auto& i: dst) {
+        clipped.addEllipse(i.x - (i.radius / 2), i.y - (i.radius / 2), i.radius, i.radius);
+    }
+
+    mPainter->setClipPath(clipped);
+}
+
+void QtRenderer::setClipEllipsesScreen(const std::vector<engine::Types::Ellipse>& dst, const engine::Types::Rect<>& rc)
 {
     if (mPainter == nullptr) {
         engine::Logger::critical() << "No painter set!!!";
@@ -155,11 +199,12 @@ void QtRenderer::eraseEllipses(const std::vector<engine::Types::Rect<>>& dst)
     }
 
     QPainterPath screen;
-    screen.addRect(0, 0, width(), height());
+    screen.addRect(rc.x, rc.y, rc.width, rc.height);
 
     QPainterPath clipped;
+    clipped.setFillRule(Qt::WindingFill);
     for (auto& i: dst) {
-        clipped.addEllipse(i.x - (i.width / 2), i.y - (i.height / 2), i.width, i.height);
+        clipped.addEllipse(i.x - (i.radius / 2), i.y - (i.radius / 2), i.radius, i.radius);
     }
 
     mPainter->setClipPath(screen.subtracted(clipped));

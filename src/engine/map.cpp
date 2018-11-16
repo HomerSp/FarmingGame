@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <cmath>
 #include <fstream>
 
@@ -143,6 +144,40 @@ bool MapLayer::updateCollisionMap(CollisionMap& map)
     return true;
 }
 
+bool MapLayer::updateLightSources(std::vector<std::shared_ptr<MapLightSource>>& sources)
+{
+    std::vector<uint32_t> added;
+    if (!updateLightSources(sources, mNodes, added)) {
+        return false;
+    }
+    if (!updateLightSources(sources, mAboveRowNodes, added)) {
+        return false;
+    }
+    if (!updateLightSources(sources, mAboveAllNodes, added)) {
+        return false;
+    }
+
+    return true;
+}
+
+bool MapLayer::updateLightSources(std::vector<std::shared_ptr<MapLightSource>>& sources, std::map<int, std::map<int, std::shared_ptr<TilesetNode>>>& nodes, std::vector<uint32_t> &added)
+{
+    Types::Dimension<> d = mTileset->getTileDimension();
+    for(auto &nodeY: nodes) {
+        for (auto &nodeX: nodeY.second) {
+            TilesetNode* node = nodeX.second.get();
+            if (node->type->hasAttribute(TilesetAttribute::LightSource) && std::find(added.begin(), added.end(), node->type->index()) == added.end()) {
+                Types::Point<> base = node->type->lightBase();
+                std::shared_ptr<MapLightSource> s = std::make_shared<MapLightSource>(Types::Point<int32_t>(base.x + nodeX.first * d.width, base.y + nodeY.first * d.height), node->type->lightRadius(), node->type->lightStrength());
+                sources.push_back(s);
+                added.push_back(node->type->index());
+            }
+        }
+    }
+
+    return true;
+}
+
 Map::Map(const std::string& name)
     : mValid(false)
     , mDimensions(0, 0)
@@ -215,8 +250,11 @@ Map::Map(const std::string& name)
     mCollisionMap = std::make_shared<CollisionMap>(pixelWidth(), pixelHeight());
     for (const auto& layer : mLayers) {
         if (!layer->updateCollisionMap(*mCollisionMap.get())) {
-            Logger::critical() << "Could not load collision map for" << name;
-            return;
+            Logger::warning() << "Could not load collision map for" << name;
+        }
+
+        if (!layer->updateLightSources(mLights)) {
+            Logger::warning() << "Could not load light sources for" << name;
         }
     }
 
@@ -338,6 +376,13 @@ void Map::checkCollision(const Types::Point<float>& pos, const Types::Dimension<
     }
 }
 
+void Map::addLightSources(std::vector<std::shared_ptr<ScreenEffects::LightSource>>& sources)
+{
+    for (auto& s: mLights) {
+        sources.push_back(s);
+    }
+}
+
 void Map::toggleLights(bool on)
 {
     for (auto& layer : mLayers) {
@@ -412,24 +457,24 @@ bool Map::operator!() const
     return !mValid;
 }
 
-Map::MapLightSource::MapLightSource(Types::Point<int32_t> pos, int32_t radius, float strength)
+MapLightSource::MapLightSource(Types::Point<int32_t> pos, int32_t radius, float strength)
     : mPosition(std::move(pos))
     , mRadius(radius)
     , mStrength(strength)
 {
 }
 
-Types::Point<int32_t> Map::MapLightSource::position()
+Types::Point<int32_t> MapLightSource::position()
 {
     return mPosition;
 }
 
-int32_t Map::MapLightSource::radius()
+int32_t MapLightSource::radius()
 {
     return mRadius;
 }
 
-float Map::MapLightSource::strength()
+float MapLightSource::strength()
 {
     return mStrength;
 }

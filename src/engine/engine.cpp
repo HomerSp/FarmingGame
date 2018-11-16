@@ -59,6 +59,7 @@ Engine::Engine(uint32_t width, uint32_t height, std::shared_ptr<Renderer> render
     mClock->setTime(6, 0);
 
     mLights.push_back(mPlayer);
+    mMap->addLightSources(mLights);
 
     registerScript();
 

@@ -1,5 +1,6 @@
 #include <engine/camera.h>
 #include <engine/clock.h>
+#include <engine/logger.h>
 #include <engine/renderer.h>
 #include <engine/screeneffects.h>
 
@@ -35,20 +36,13 @@ void ScreenEffects::draw(Renderer& renderer, Clock& clock, Camera& camera, const
         color.a = std::floor(alpha);
     }
 
-    renderer.save();
-
-    std::vector<Types::Rect<>> erase;
+    Types::Overlay overlay(renderer.width(), renderer.height(), color);
     for (auto& source: sources) {
-        Types::Rect<> playerRc(source->position().x - camera.x(), source->position().y - camera.y(), source->radius(), source->radius());
         Types::Color l = color;
         l.r = l.r * (1.0f - source->strength());
         l.a = l.a * (1.0f - source->strength());
-
-        renderer.fillEllipse(playerRc, l, color);
-        erase.push_back(playerRc);
+        overlay.addEllipse(Types::FilledEllipse(source->position().x - camera.x(), source->position().y - camera.y(), source->radius(), l));
     }
 
-    renderer.eraseEllipses(erase);
-    renderer.fillRect({0, 0, renderer.width(), renderer.height()}, color);
-    renderer.restore();
+    renderer.drawOverlay({0, 0}, overlay);
 }

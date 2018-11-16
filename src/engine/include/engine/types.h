@@ -3,6 +3,7 @@
 #include <bitset>
 #include <cstdint>
 #include <unordered_map>
+#include <vector>
 
 namespace engine {
 class Types {
@@ -71,6 +72,32 @@ public:
 
         int first;
         int second;
+    };
+
+    struct Ellipse {
+    public:
+        Ellipse(int32_t x, int32_t y, uint32_t radius);
+
+        int32_t x, y;
+        uint32_t radius;
+    };
+
+    struct FilledEllipse : public Ellipse {
+    public:
+        FilledEllipse(int32_t x, int32_t y, uint32_t radius, Types::Color c);
+
+        Types::Color color;
+    };
+
+    struct Overlay {
+    public:
+        Overlay(uint32_t w, uint32_t h, Types::Color bg);
+
+        void addEllipse(const Types::FilledEllipse &ellipse);
+
+        uint32_t width, height;
+        Types::Color background;
+        std::vector<Types::FilledEllipse> ellipses;
     };
 
     struct TextAlign {

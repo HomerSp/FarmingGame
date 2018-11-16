@@ -12,8 +12,9 @@
 
 using namespace engine;
 
-TilesetType::TilesetType(Types::Dimension<>& tileDimension, const std::string& tileType, const std::bitset<TilesetAttribute::Last>& attrs, uint32_t x, uint32_t y, int frames, Types::Cells count, uint32_t base)
+TilesetType::TilesetType(uint32_t index, Types::Dimension<>& tileDimension, const std::string& tileType, const std::bitset<TilesetAttribute::Last>& attrs, uint32_t x, uint32_t y, int frames, Types::Cells count, uint32_t base)
     : mValid(false)
+    , mIndex(index)
     , mTileDimension(tileDimension)
     , mTileType(TileTypeSingle)
     , mAttributes(attrs)
@@ -74,6 +75,41 @@ bool TilesetType::hasAttribute(TilesetAttribute::Type type) const
     return mAttributes[type];
 }
 
+void TilesetType::setLightBase(Types::Point<> base)
+{
+    mLightBase = std::move(base);
+}
+
+void TilesetType::setLightRadius(int radius)
+{
+    mLightRadius = radius;
+}
+
+void TilesetType::setLightStrength(float strength)
+{
+    mLightStrength = strength;
+}
+
+uint32_t TilesetType::index() const
+{
+    return mIndex;
+}
+
+Types::Point<> TilesetType::lightBase() const
+{
+    return mLightBase;
+}
+
+int TilesetType::lightRadius() const
+{
+    return mLightRadius;
+}
+
+float TilesetType::lightStrength() const
+{
+    return mLightStrength;;
+}
+
 bool TilesetType::operator!() const
 {
     return !mValid;
@@ -101,6 +137,7 @@ std::shared_ptr<TilesetNode> TilesetType::toNode(Types::Map2D& tiles, uint32_t x
     node->current = 0;
     node->toggleWidth = (mAttributes[TilesetAttribute::Toggle]) ? (mSize.width / 2) : 0;
     node->toggled = false;
+    node->type = this;
 
     switch (mTileType) {
     case TileTypeSingle: {
@@ -441,9 +478,24 @@ Tileset::Tileset(const std::string& name)
                 }
             }
 
-            std::shared_ptr<TilesetType> type = std::make_shared<TilesetType>(mTileDimension, nodeObj["tile"].asString(), attrs, x, y, frames, count, base);
+            std::shared_ptr<TilesetType> type = std::make_shared<TilesetType>(index, mTileDimension, nodeObj["tile"].asString(), attrs, x, y, frames, count, base);
             if (!*type) {
                 return;
+            }
+
+            if (attrs[TilesetAttribute::LightSource] && nodeObj.isMember("light")) {
+                Json::Value lightObj = nodeObj["light"];
+                if (lightObj.isMember("base") && lightObj["base"].size() == 2) {
+                    type->setLightBase(Types::Point<>(lightObj["base"][0].asInt(), lightObj["base"][1].asInt()));
+                }
+
+                if (lightObj.isMember("radius")) {
+                    type->setLightRadius(lightObj["radius"].asInt());
+                }
+
+                if (lightObj.isMember("strength")) {
+                    type->setLightStrength(lightObj["strength"].asInt() / 100.0f);
+                }
             }
 
             mTypes[index++] = type;
@@ -520,7 +572,7 @@ void Tileset::updateCollisionMap(CollisionMap& tilesetMap, CollisionMap& map, Ti
     }
 }
 
-bool Tileset::updateTiles(Types::Map2D& tiles, std::unordered_map<int, std::unordered_map<int, std::shared_ptr<TilesetNode>>>& map, uint32_t width, uint32_t height, TilesetAttribute::Type type)
+bool Tileset::updateTiles(Types::Map2D& tiles, std::map<int, std::map<int, std::shared_ptr<TilesetNode>>>& map, uint32_t width, uint32_t height, TilesetAttribute::Type type)
 {
     for (uint32_t x = 0; x < width; x++) {
         for (uint32_t y = 0; y < height; y++) {

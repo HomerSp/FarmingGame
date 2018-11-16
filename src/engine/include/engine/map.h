@@ -1,5 +1,6 @@
 #pragma once
 
+#include <map>
 #include <memory>
 #include <unordered_map>
 #include <unordered_set>
@@ -13,6 +14,20 @@ namespace engine {
 class Renderer;
 class Tileset;
 
+class MapLightSource : public ScreenEffects::LightSource {
+public:
+    MapLightSource(Types::Point<int32_t> pos, int32_t radius, float strength);
+
+    virtual Types::Point<int32_t> position();
+    virtual int32_t radius();
+    virtual float strength();
+
+private:
+    Types::Point<int32_t> mPosition;
+    int32_t mRadius;
+    float mStrength;
+};
+
 class MapLayer {
 public:
     MapLayer(Types::Map2D data, std::shared_ptr<Tileset> tileset, uint32_t width, uint32_t height);
@@ -25,11 +40,15 @@ public:
     void toggleLights(bool on);
 
     bool updateCollisionMap(CollisionMap& map);
+    bool updateLightSources(std::vector<std::shared_ptr<MapLightSource>>& sources);
 
     bool operator!() const
     {
         return !mValid;
     }
+
+protected:
+	bool updateLightSources(std::vector<std::shared_ptr<MapLightSource>>& sources, std::map<int, std::map<int, std::shared_ptr<TilesetNode>>>& nodes, std::vector<uint32_t> &added);
 
 private:
     bool mValid;
@@ -37,9 +56,9 @@ private:
     std::shared_ptr<Tileset> mTileset;
     Types::Dimension<uint32_t> mDimensions;
 
-    std::unordered_map<int, std::unordered_map<int, std::shared_ptr<TilesetNode>>> mNodes;
-    std::unordered_map<int, std::unordered_map<int, std::shared_ptr<TilesetNode>>> mAboveRowNodes;
-    std::unordered_map<int, std::unordered_map<int, std::shared_ptr<TilesetNode>>> mAboveAllNodes;
+    std::map<int, std::map<int, std::shared_ptr<TilesetNode>>> mNodes;
+    std::map<int, std::map<int, std::shared_ptr<TilesetNode>>> mAboveRowNodes;
+    std::map<int, std::map<int, std::shared_ptr<TilesetNode>>> mAboveAllNodes;
     std::vector<TilesetNode*> mLightNodes;
 };
 
@@ -53,6 +72,8 @@ public:
     void drawRow(Renderer& renderer, const Types::Rect<>& dst, int row, TilesetAttribute::Type type, bool clip = true);
 
     void checkCollision(const Types::Point<float>& pos, const Types::Dimension<>& size, Types::Point<float>& dst, float& velocityX, float& velocityY) const;
+
+    void addLightSources(std::vector<std::shared_ptr<ScreenEffects::LightSource>>& sources);
 
     void toggleLights(bool on);
 
@@ -70,25 +91,11 @@ protected:
     bool isColliding(const Types::Point<float>& pos, const Types::Dimension<>& size, Types::Pair& diff, int8_t& rDiff, bool vertical) const;
 
 private:
-	class MapLightSource : public ScreenEffects::LightSource {
-	public:
-		MapLightSource(Types::Point<int32_t> pos, int32_t radius, float strength);
-
-		virtual Types::Point<int32_t> position();
-        virtual int32_t radius();
-        virtual float strength();
-
-    private:
-		Types::Point<int32_t> mPosition;
-		int32_t mRadius;
-		float mStrength;
-	};
-
-private:
     bool mValid;
     std::unordered_map<std::string, std::shared_ptr<Tileset>> mTilesets;
     std::vector<std::shared_ptr<MapLayer>> mLayers;
     std::shared_ptr<CollisionMap> mCollisionMap;
     Types::Dimension<uint32_t> mDimensions;
+    std::vector<std::shared_ptr<MapLightSource>> mLights;
 };
 }

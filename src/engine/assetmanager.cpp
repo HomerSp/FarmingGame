@@ -18,8 +18,7 @@ AssetManager::AssetManager()
 std::shared_ptr<AssetManager> AssetManager::get()
 {
     if (!sInstance) {
-        struct make_shared_enabler : public AssetManager {
-        };
+        struct make_shared_enabler : public AssetManager {};
         sInstance = std::make_shared<make_shared_enabler>();
     }
 

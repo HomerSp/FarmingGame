@@ -8,7 +8,11 @@
             "tile": "single",
             "base": 2,
             "count": [1, 3],
-            "source": [24, 34, 96],
+            "light": {
+                "base": [24, 34],
+                "radius": 512,
+                "strength": 100
+            },
             "attributes": [
                 "above_row",
                 "light_source",
@@ -20,7 +24,11 @@
             "tile": "single",
             "base": 2,
             "count": [1, 3],
-            "source": [24, 34, 96],
+            "light": {
+                "base": [24, 34],
+                "radius": 512,
+                "strength": 100
+            },
             "attributes": [
                 "above_row",
                 "light_source",
