@@ -1,7 +1,5 @@
 #include <map>
 
-#include <lodepng.h>
-
 #include <engine/image.h>
 #include <engine/logger.h>
 

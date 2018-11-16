@@ -1,14 +1,12 @@
 #pragma once
 
-#include <engine/camera.h>
-#include <engine/clock.h>
-#include <engine/renderer.h>
 #include <engine/types.h>
 
 namespace engine {
 
 class Camera;
 class Clock;
+class Renderer;
 
 class ScreenEffects {
 public:

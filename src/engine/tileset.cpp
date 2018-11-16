@@ -4,8 +4,10 @@
 #include <json/json.h>
 
 #include <engine/assetmanager.h>
+#include <engine/collisionmap.h>
 #include <engine/image.h>
 #include <engine/logger.h>
+#include <engine/renderer.h>
 #include <engine/tileset.h>
 
 using namespace engine;

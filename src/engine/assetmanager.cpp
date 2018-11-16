@@ -1,7 +1,10 @@
 #include <fstream>
 
 #include <engine/assetmanager.h>
+#include <engine/collisionmap.h>
+#include <engine/image.h>
 #include <engine/logger.h>
+#include <engine/renderer.h>
 
 using namespace engine;
 

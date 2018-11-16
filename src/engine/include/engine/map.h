@@ -4,12 +4,15 @@
 #include <unordered_map>
 #include <unordered_set>
 
-#include <engine/renderer.h>
 #include <engine/screeneffects.h>
 #include <engine/tileset.h>
 #include <engine/types.h>
 
 namespace engine {
+
+class Renderer;
+class Tileset;
+
 class MapLayer {
 public:
     MapLayer(Types::Map2D data, std::shared_ptr<Tileset> tileset, uint32_t width, uint32_t height);

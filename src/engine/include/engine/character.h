@@ -3,17 +3,17 @@
 #include <memory>
 #include <mutex>
 
-#include <png++/png.hpp>
-
 #include <engine/camera.h>
 #include <engine/charset.h>
 #include <engine/listeners.h>
-#include <engine/map.h>
-#include <engine/renderer.h>
 #include <engine/scriptobject.h>
 #include <engine/types.h>
 
 namespace engine {
+
+class Map;
+class Renderer;
+
 class Character : public Camera::Target, public ScriptObject {
 public:
     struct Direction {

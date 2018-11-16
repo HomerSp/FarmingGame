@@ -1,9 +1,14 @@
 #pragma once
 
-#include <engine/image.h>
+#include <memory>
+#include <vector>
+
 #include <engine/types.h>
 
 namespace engine {
+
+class Image;
+
 class Renderer {
 public:
     Renderer() = default;

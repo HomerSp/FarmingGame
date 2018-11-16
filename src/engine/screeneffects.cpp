@@ -1,3 +1,6 @@
+#include <engine/camera.h>
+#include <engine/clock.h>
+#include <engine/renderer.h>
 #include <engine/screeneffects.h>
 
 using namespace engine;

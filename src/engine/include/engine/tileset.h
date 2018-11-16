@@ -6,13 +6,14 @@
 #include <unordered_map>
 #include <unordered_set>
 
-#include <png++/png.hpp>
-
-#include <engine/collisionmap.h>
-#include <engine/renderer.h>
 #include <engine/types.h>
 
 namespace engine {
+
+class CollisionMap;
+class Image;
+class Renderer;
+
 struct TilesetNode {
 public:
     Types::Point<> pos[4];

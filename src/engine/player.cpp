@@ -1,3 +1,4 @@
+#include <engine/character.h>
 #include <engine/player.h>
 
 using namespace engine;

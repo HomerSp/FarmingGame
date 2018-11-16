@@ -1,9 +1,11 @@
 #pragma once
 
-#include <engine/character.h>
 #include <engine/screeneffects.h>
 
 namespace engine {
+
+class Character;
+
 class Player : public Character, public ScreenEffects::LightSource {
 public:
     Player();

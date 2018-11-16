@@ -6,6 +6,8 @@
 #include <engine/assetmanager.h>
 #include <engine/character.h>
 #include <engine/logger.h>
+#include <engine/map.h>
+#include <engine/renderer.h>
 
 using namespace engine;
 
