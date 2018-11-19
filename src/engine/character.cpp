@@ -103,6 +103,7 @@ bool Character::processAsync(float frameDiff, Map* map, std::vector<std::shared_
         posX = mPos.x;
         posY = mPos.y;
 
+        // Do we have a target? Process that
         if (mTarget.x != -1 || mTarget.y != -1) {
             float val = frameDiff * 5.0f;
             int x = 0, y = 0;
@@ -138,6 +139,7 @@ bool Character::processAsync(float frameDiff, Map* map, std::vector<std::shared_
             }
         }
 
+        // Check if we need to change the direction of the charset
         if (mDirectionTo != mDirection && (mVelocity.x != 0.0f || mVelocity.y != 0.0f)) {
             mDirectionTurn += frameDiff * 20.0f;
             if (mDirectionTurn >= 1.0f) {
@@ -157,8 +159,11 @@ bool Character::processAsync(float frameDiff, Map* map, std::vector<std::shared_
             }
         }
 
+        // If we have any velocity we need to process that.
         if (mVelocity.x != 0.0f || mVelocity.y != 0.0f) {
             Types::Point<float> dst(mVelocity.x * (frameDiff * 200.0f), mVelocity.y * (frameDiff * 200.0f));
+
+            // Check collisions with the map if we have one
             if (map != nullptr) {
                 Types::Rect<> col = mCharset->collision(mCharsetType);
 
@@ -167,6 +172,7 @@ bool Character::processAsync(float frameDiff, Map* map, std::vector<std::shared_
                 map->checkCollision(pos, size, dst, mVelocity.x, mVelocity.y);
             }
 
+            // Check collisions with other characters.
             if (characters != nullptr && (dst.x != 0.0f || dst.y != 0.0f)) {
                 for(auto& i: *characters) {
                     // Skip characters that are outside the visible view
@@ -178,6 +184,7 @@ bool Character::processAsync(float frameDiff, Map* map, std::vector<std::shared_
                 }
             }
 
+            // Check if we have reached the x target.
             if (mTarget.x != -1 && (
                     (posX > mTarget.x && posX + dst.x <= mTarget.x) ||
                     (posX < mTarget.x && posX + dst.x >= mTarget.x)
@@ -190,6 +197,7 @@ bool Character::processAsync(float frameDiff, Map* map, std::vector<std::shared_
                 posX += dst.x;
             }
 
+            // Check if we have reached the y target.
             if (mTarget.y != -1 && (
                     (posY > mTarget.y && posY + dst.y <= mTarget.y) ||
                     (posY < mTarget.y && posY + dst.y >= mTarget.y)
@@ -203,11 +211,14 @@ bool Character::processAsync(float frameDiff, Map* map, std::vector<std::shared_
             }
         }
 
+        // Only set changed if we have actually moved, as this will
+        // trigger a repaint.
         changed = mPos.x != posX || mPos.y != posY;
         mPos.x = posX;
         mPos.y = posY;
     }
 
+    // Check any listeners we may have set.
     std::lock_guard<std::mutex> lock(mListenerMutex);
     for(auto& i: mMoveListeners) {
         i->check(posX, posY);
@@ -322,23 +333,48 @@ void Character::checkCollision(const Character& other, Types::Point<float>& dst)
     Types::Quad<float> quad1(mPos.x + col.x, mPos.y + col.y, mPos.x + col.x + col.width, mPos.y + col.y + col.height);
     Types::Quad<float> quad2(other.mPos.x + othercol.x, other.mPos.y + othercol.y, other.mPos.x + othercol.x + othercol.width, other.mPos.y + othercol.y + othercol.height);
 
+    // Check x collision.
     if (dst.x != 0.0f && ((quad1.y1 >= quad2.y1 && quad1.y1 < quad2.y2) || (quad1.y2 >= quad2.y1 && quad1.y2 < quad2.y2))) {
-        // Left
-        if (dst.x < 0.0f && quad1.x1 + dst.x <= quad2.x2 && quad1.x1 + dst.x > quad2.x1) {
-            dst.x = quad2.x2 - quad1.x1;
-        // Right
-        } else if(dst.x > 0.0f && quad1.x2 + dst.x >= quad2.x1 && quad1.x2 + dst.x < quad2.x2) {
-            dst.x = quad2.x1 - quad1.x2;
+        // Moving Left
+        if (dst.x < 0.0f) {
+            // We may be moving more than one pixel at a time, which can cause us to move through objects
+            // if the distance is longer than the collision object.
+            for (float x = dst.x; x <= 0.0f; x += 1.0f) {
+                if (quad1.x1 + x <= quad2.x2 && quad1.x1 + x > quad2.x1) {
+                    dst.x = quad2.x2 - quad1.x1;
+                    break;
+                }
+            }
+        // Moving Right
+        } else if(dst.x > 0.0f) {
+            for (float x = dst.x; x >= 0.0f; x -= 1.0f) {
+                if (quad1.x2 + x >= quad2.x1 && quad1.x2 + x < quad2.x2) {
+                    dst.x = quad2.x1 - quad1.x2;
+                    break;
+                }
+            }
         }
     }
 
+    // Check y collision.
     if (dst.y != 0.0f && ((quad1.x1 >= quad2.x1 && quad1.x1 < quad2.x2) || (quad1.x2 >= quad2.x1 && quad1.x2 < quad2.x2))) {
-        // Top
-        if (dst.y < 0.0f && quad1.y1 + dst.y <= quad2.y2 && quad1.y1 + dst.y > quad2.y1) {
-            dst.y = quad2.y2 - quad1.y1;
-        // Bottom
-        } else if(dst.y > 0.0f && quad1.y2 + dst.y >= quad2.y1 && quad1.y2 + dst.y < quad2.y2) {
-            dst.y = quad2.y1 - quad1.y2;
+        // Moving Up
+        if (dst.y < 0.0f) {
+            for (float y = dst.y; y <= 0.0f; y += 1.0f) {
+                if (quad1.y1 + y <= quad2.y2 && quad1.y1 + y > quad2.y1) {
+                    dst.y = quad2.y2 - quad1.y1;
+                    break;
+                }
+            }
+            
+        // Moving Down
+        } else if(dst.y > 0.0f) {
+            for (float y = dst.y; y >= 0.0f; y -= 1.0f) {
+                if (quad1.y2 + y >= quad2.y1 && quad1.y2 + y < quad2.y2) {
+                    dst.y = quad2.y1 - quad1.y2;
+                    break;
+                }
+            }
         }
     }
 }
