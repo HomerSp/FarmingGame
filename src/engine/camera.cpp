@@ -58,6 +58,13 @@ void Camera::moveTo(int dstX, int dstY, asIScriptFunction* fun)
     mTargetPos.y = dstY;
 }
 
+bool Camera::contains(Character& character, const Types::Dimension<>& buf)
+{
+    std::lock_guard<std::mutex> lock(mMovementMutex);
+    return character.x() >= mPos.x - buf.width && character.x() < mPos.x + mDimen.width + buf.width
+        && character.y() >= mPos.y - buf.height && character.y() < mPos.y + mDimen.height + buf.height;
+}
+
 bool Camera::processAsync(float frameDiff, Map* map)
 {
     bool forced = false, changed = false;

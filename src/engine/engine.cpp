@@ -120,9 +120,12 @@ void Engine::animateAsync()
             mNeedRepaint = true;
         }
 
+        Types::Dimension<> d = mMap->getTileDimension();
         double diff = mFrameTimer[FRAMETIMER_CHARACTERS_ANIMATION];
         for(auto &i: mCharacters) {
-            i->animate(diff, false);
+            if (mCamera->contains(*i, d)) {
+                i->animate(diff, false);
+            }
         }
 
         if (!mEnableThreading) {
@@ -280,15 +283,17 @@ void Engine::paint()
     mMap->draw(renderer, dst);
 
     Types::Dimension<> d = mMap->getTileDimension();
+    int startY = std::ceil(mCamera->y() / d.height);
 
     std::multimap<int, Character*> drawCharacters;
     for (auto& i: mCharacters) {
-        drawCharacters.emplace(std::make_pair(i->y(), i.get()));
+        if (mCamera->contains(*i, d)) {
+            drawCharacters.emplace(std::make_pair(i->y(), i.get()));
+        }
     }
 
     drawCharacters.emplace(std::make_pair(mPlayer->y(), mPlayer.get()));
 
-    int startY = std::ceil(mCamera->y() / d.height);
     for (int row = startY - 1; row <= startY + std::ceil(mHeight / d.height) + 1; row++) {
         auto it = drawCharacters.begin();
         while (it != drawCharacters.end()) {

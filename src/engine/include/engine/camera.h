@@ -8,6 +8,7 @@
 
 namespace engine {
 
+class Character;
 class Map;
 
 class Camera : public ScriptObject {
@@ -45,6 +46,8 @@ public:
 
     void follow(Target* target);
     void moveTo(int dstX, int dstY, asIScriptFunction* fun = nullptr);
+
+    bool contains(Character& character, const Types::Dimension<>& buf);
 
     bool processAsync(float frameDiff, Map* map);
     void processListeners();
