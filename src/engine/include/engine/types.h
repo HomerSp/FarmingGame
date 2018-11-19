@@ -76,15 +76,15 @@ public:
 
     struct Ellipse {
     public:
-        Ellipse(int32_t x, int32_t y, uint32_t radius);
+        Ellipse(int32_t x, int32_t y, int32_t radius);
 
         int32_t x, y;
-        uint32_t radius;
+        int32_t radius;
     };
 
     struct FilledEllipse : public Ellipse {
     public:
-        FilledEllipse(int32_t x, int32_t y, uint32_t radius, Types::Color c);
+        FilledEllipse(int32_t x, int32_t y, int32_t radius, Types::Color c);
 
         Types::Color color;
     };

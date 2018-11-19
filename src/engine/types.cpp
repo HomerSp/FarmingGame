@@ -22,14 +22,14 @@ Types::Pair::Pair(int first, int second)
 {
 }
 
-Types::Ellipse::Ellipse(int32_t x, int32_t y, uint32_t radius)
+Types::Ellipse::Ellipse(int32_t x, int32_t y, int32_t radius)
     : x(x)
     , y(y)
     , radius(radius)
 {
 }
 
-Types::FilledEllipse::FilledEllipse(int32_t x, int32_t y, uint32_t radius, Types::Color c)
+Types::FilledEllipse::FilledEllipse(int32_t x, int32_t y, int32_t radius, Types::Color c)
     : Ellipse(x, y, radius)
     , color(std::move(c))
 {

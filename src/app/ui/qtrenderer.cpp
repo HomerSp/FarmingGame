@@ -62,7 +62,7 @@ void QtRenderer::fillEllipse(const engine::Types::Ellipse& dst, const engine::Ty
     mPainter->translate(-(dst.x - (dst.radius / 2)), -(dst.y - (dst.radius / 2)));
 }
 
-void QtRenderer::drawImage(const engine::Image& img, const engine::Types::Rect<>& src, const engine::Types::Rect<>& dst)
+void QtRenderer::drawImage(const engine::Image& img, const engine::Types::Rect<>& dst, const engine::Types::Rect<>& src)
 {
     if (mPainter == nullptr) {
         engine::Logger::critical() << "No painter set!!!";
@@ -72,7 +72,7 @@ void QtRenderer::drawImage(const engine::Image& img, const engine::Types::Rect<>
     const QtImage& native = dynamic_cast<const QtImage&>(img);
     QRectF srcRect(src.x, src.y, src.width, src.height);
     QRectF dstRect(dst.x, dst.y, dst.width, dst.height);
-    mPainter->drawImage(srcRect, native.image(), dstRect);
+    mPainter->drawImage(dstRect, native.image(), srcRect);
 }
 
 void QtRenderer::drawText(const engine::Types::Point<>& dst, const std::string& text, const engine::Types::Color& color, int size, engine::Types::TextAlign align)
@@ -119,15 +119,23 @@ void QtRenderer::drawText(const engine::Types::Point<>& dst, const std::string& 
 
 void QtRenderer::drawOverlay(const engine::Types::Point<>& dst, const engine::Types::Overlay& overlay)
 {
-    QImage o(overlay.width, overlay.height, QImage::Format_ARGB32);
+    int bufferSize = 0;
+    for(auto& e: overlay.ellipses) {
+        if (e.radius > bufferSize) {
+            bufferSize = e.radius;
+        }
+    }
+
+    QImage o(overlay.width + (bufferSize * 2), overlay.height + (bufferSize * 2), QImage::Format_ARGB32);
     o.fill(0);
 
     QPainter p(&o);
+    p.translate(bufferSize, bufferSize);
     p.setPen(Qt::NoPen);
     p.fillRect(QRectF(0, 0, overlay.width, overlay.height), QColor(overlay.background.r, overlay.background.g, overlay.background.b, overlay.background.a));
     p.setCompositionMode(QPainter::CompositionMode_SourceIn);
     for(auto& e: overlay.ellipses) {
-        QRadialGradient gradient(e.radius / 2, e.radius / 2, e.radius / 2);
+        QRadialGradient gradient(QPointF(e.radius / 2, e.radius / 2), e.radius / 2, QPointF(e.radius / 2, e.radius / 2));
         gradient.setColorAt(0, QColor(e.color.r, e.color.g, e.color.b, e.color.a));
         gradient.setColorAt(1, QColor(overlay.background.r, overlay.background.g, overlay.background.b, 255));
 
@@ -140,9 +148,9 @@ void QtRenderer::drawOverlay(const engine::Types::Point<>& dst, const engine::Ty
 
     p.end();
 
-    QRectF srcRect(0, 0, overlay.width, overlay.height);
+    QRectF srcRect(bufferSize, bufferSize, overlay.width, overlay.height);
     QRectF dstRect(dst.x, dst.y, overlay.width, overlay.height);
-    mPainter->drawImage(srcRect, o, dstRect);
+    mPainter->drawImage(dstRect, o, srcRect);
 }
 
 void QtRenderer::translate(float x, float y)
