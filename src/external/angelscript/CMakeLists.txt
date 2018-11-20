@@ -1,7 +1,9 @@
 cmake_minimum_required(VERSION 3.1.0)
 
+set(TARGET_FLAGS -fno-strict-aliasing -Wno-unused-variable -Wno-error=unused-but-set-variable)
+
 add_subdirectory(src/sdk/angelscript/projects/cmake)
-target_compile_options(angelscript PUBLIC -fno-strict-aliasing -Wno-unused-but-set-variable -Wno-unused-variable)
+target_compile_options(angelscript PUBLIC ${TARGET_FLAGS})
 
 set(PROJECT "angelscript_addon")
 project(${PROJECT})
@@ -28,4 +30,4 @@ source_group("Source Files" FILES ${SOURCES})
 add_library( ${PROJECT} STATIC
              ${SOURCES} )
 
-target_compile_options(angelscript_addon PUBLIC -fno-strict-aliasing -Wno-unused-but-set-variable -Wno-unused-variable)
+target_compile_options(angelscript_addon PUBLIC ${TARGET_FLAGS})
