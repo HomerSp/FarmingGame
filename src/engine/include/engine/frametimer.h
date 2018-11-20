@@ -10,10 +10,9 @@ class FrameTimer {
 public:
     FrameTimer();
 
-    void reset(int from = -1, int to = -1);
-    double operator[](size_t i);
+    uint64_t diff();
 
 private:
-    std::unordered_map<size_t, std::pair<bool, std::chrono::time_point<std::chrono::steady_clock>>> mSaved;
+    std::chrono::time_point<std::chrono::steady_clock> mLast;
 };
 }

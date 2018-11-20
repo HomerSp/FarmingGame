@@ -56,19 +56,6 @@ protected:
     void registerContext();
 
 private:
-    enum {
-        FRAMETIMER_CLOCK = 0,
-        FRAMETIMER_CAMERA,
-        FRAMETIMER_HERO_VELOCITY,
-        FRAMETIMER_HERO_MOVEMENT,
-        FRAMETIMER_HERO_ANIMATION,
-        FRAMETIMER_MAP_ANIMATION,
-        FRAMETIMER_FASTFORWARD,
-        FRAMETIMER_CHARACTERS_ANIMATION,
-        FRAMETIMER_CHARACTERS_PROCESS,
-    };
-
-private:
     class ScriptCreator {
     public:
         ScriptCreator();
@@ -108,7 +95,6 @@ private:
 
     std::vector<std::shared_ptr<engine::ScreenEffects::LightSource>> mLights;
 
-    FrameTimer mFrameTimer;
     bool mEnableThreading;
     std::vector<std::unique_ptr<std::thread>> mThreads;
 };

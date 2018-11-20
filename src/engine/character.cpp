@@ -75,13 +75,13 @@ void Character::draw(Renderer& renderer, const Types::Point<>& camera)
     mCharset->draw(renderer, pos, mCharsetType, mDirection, frame);
 }
 
-bool Character::animate(float frameDiff, bool reset)
+bool Character::animate(uint64_t frameDiff, bool reset)
 {
     std::lock_guard<std::mutex> lock(mMovementMutex);
     float frame = mFrame;
     if (!reset) {
         int cols = mCharset->columns(mCharsetType);
-        frame += frameDiff * 5.0f;
+        frame += frameDiff * 0.005f;
         if (frame >= cols + cols - 2) {
             frame = 0;
         }
@@ -94,7 +94,7 @@ bool Character::animate(float frameDiff, bool reset)
     return changed;
 }
 
-bool Character::processAsync(float frameDiff, Map* map, std::vector<std::shared_ptr<Character>> *characters, Camera* camera)
+bool Character::processAsync(uint64_t frameDiff, Map* map, std::vector<std::shared_ptr<Character>> *characters, Camera* camera)
 {
     bool changed = false;
     float posX, posY;
@@ -105,7 +105,7 @@ bool Character::processAsync(float frameDiff, Map* map, std::vector<std::shared_
 
         // Do we have a target? Process that
         if (mTarget.x != -1 || mTarget.y != -1) {
-            float val = frameDiff * 5.0f;
+            float val = frameDiff * 0.005f;
             int x = 0, y = 0;
             if (mTarget.x != -1) {
                 if (mTarget.x < posX) {
@@ -141,7 +141,7 @@ bool Character::processAsync(float frameDiff, Map* map, std::vector<std::shared_
 
         // Check if we need to change the direction of the charset
         if (mDirectionTo != mDirection && (mVelocity.x != 0.0f || mVelocity.y != 0.0f)) {
-            mDirectionTurn += frameDiff * 20.0f;
+            mDirectionTurn += frameDiff * 0.020f;
             if (mDirectionTurn >= 1.0f) {
                 mDirectionTurn = 0.0f;
 
@@ -161,7 +161,7 @@ bool Character::processAsync(float frameDiff, Map* map, std::vector<std::shared_
 
         // If we have any velocity we need to process that.
         if (mVelocity.x != 0.0f || mVelocity.y != 0.0f) {
-            Types::Point<float> dst(mVelocity.x * (frameDiff * 200.0f), mVelocity.y * (frameDiff * 200.0f));
+            Types::Point<float> dst(mVelocity.x * (frameDiff * 0.2f), mVelocity.y * (frameDiff * 0.2f));
 
             // Check collisions with the map if we have one
             if (map != nullptr) {
@@ -259,10 +259,10 @@ void Character::processListeners()
     }
 }
 
-void Character::velocity(float frameDiff, float x, float y)
+void Character::velocity(uint64_t frameDiff, float x, float y)
 {
     std::lock_guard<std::mutex> lock(mMovementMutex);
-    float val = frameDiff * 5.0f;
+    float val = frameDiff * 0.005f;
     updateVelocity(mVelocity.x, x, val, mTarget.x != -1);
     updateVelocity(mVelocity.y, y, val, mTarget.y != -1);
 }

@@ -65,7 +65,7 @@ bool Camera::contains(Character& character, const Types::Dimension<>& buf)
         && character.y() >= mPos.y - buf.height && character.y() < mPos.y + mDimen.height + buf.height;
 }
 
-bool Camera::processAsync(float frameDiff, Map* map)
+bool Camera::processAsync(uint64_t frameDiff, Map* map)
 {
     bool forced = false, changed = false;
     float posX, posY;
@@ -93,7 +93,7 @@ bool Camera::processAsync(float frameDiff, Map* map)
                 posY = targetY;
             }
 
-            float val = frameDiff * 200.0f;
+            float val = frameDiff * 000.2f;
             if (posX < targetX) {
                 if (posX + val >= targetX) {
                     posX = targetX;

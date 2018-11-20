@@ -29,11 +29,11 @@ public:
 
     void draw(Renderer& renderer, const Types::Point<>& camera);
 
-    bool animate(float frameDiff, bool reset = false);
-    bool processAsync(float frameDiff, Map* map, std::vector<std::shared_ptr<Character>> *characters = nullptr, Camera* camera = nullptr);
+    bool animate(uint64_t frameDiff, bool reset = false);
+    bool processAsync(uint64_t frameDiff, Map* map, std::vector<std::shared_ptr<Character>> *characters = nullptr, Camera* camera = nullptr);
     void processListeners();
 
-    void velocity(float frameDiff, float x, float y);
+    void velocity(uint64_t frameDiff, float x, float y);
 
     virtual int32_t x();
     virtual int32_t y();

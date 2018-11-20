@@ -110,18 +110,20 @@ bool Engine::process()
 
 void Engine::animateAsync()
 {
+    FrameTimer frameTimer;
     while (mRunning) {
+        uint64_t diff = frameTimer.diff();
+
         // Process animations
-        if (mPlayer->animate(mFrameTimer[FRAMETIMER_HERO_ANIMATION], !mPlayer->isMoving())) {
+        if (mPlayer->animate(diff, !mPlayer->isMoving())) {
             mNeedRepaint = true;
         }
 
-        if (mMap->animate(mFrameTimer[FRAMETIMER_MAP_ANIMATION])) {
+        if (mMap->animate(diff)) {
             mNeedRepaint = true;
         }
 
         Types::Dimension<> d = mMap->getTileDimension();
-        double diff = mFrameTimer[FRAMETIMER_CHARACTERS_ANIMATION];
         for(auto &i: mCharacters) {
             if (mCamera->contains(*i, d)) {
                 i->animate(diff, false);
@@ -138,7 +140,10 @@ void Engine::animateAsync()
 
 void Engine::processAsync()
 {
+    FrameTimer frameTimer;
     while (mRunning) {
+        uint64_t diff = frameTimer.diff();
+
         engine::KeyList downKeys;
         {
             std::lock_guard<std::mutex> lock(mDownKeysMutex);
@@ -146,7 +151,6 @@ void Engine::processAsync()
         }
 
         if (downKeys.contains(Keys::TestPause)) {
-            mFrameTimer.reset(FRAMETIMER_CLOCK, FRAMETIMER_HERO_MOVEMENT);
             if (!mEnableThreading) {
                 break;
             }
@@ -156,9 +160,7 @@ void Engine::processAsync()
         }
 
         if (downKeys.contains(engine::Keys::TestFastForward)) {
-            mClock->fastForward(50.0f * mFrameTimer[FRAMETIMER_FASTFORWARD]);
-        } else {
-            mFrameTimer.reset(FRAMETIMER_FASTFORWARD);
+            mClock->fastForward(diff * 0.05f);
         }
 
         if (downKeys.contains(engine::Keys::TestSlowMode)) {
@@ -232,20 +234,19 @@ void Engine::processAsync()
             mPlayer->setSpeed(1.0f);
         }
 
-        mPlayer->velocity(mFrameTimer[FRAMETIMER_HERO_VELOCITY], x, y);
+        mPlayer->velocity(diff, x, y);
 
         // Process movement, etc
-        if (mCamera->processAsync(mFrameTimer[FRAMETIMER_CAMERA], mMap.get())) {
+        if (mCamera->processAsync(diff, mMap.get())) {
             mNeedRepaint = true;
         }
-        if (mClock->processAsync(mFrameTimer[FRAMETIMER_CLOCK], mMap.get())) {
+        if (mClock->processAsync(diff, mMap.get())) {
             mNeedRepaint = true;
         }
-        if (mPlayer->processAsync(mFrameTimer[FRAMETIMER_HERO_MOVEMENT], mMap.get(), &mCharacters, mCamera.get())) {
+        if (mPlayer->processAsync(diff, mMap.get(), &mCharacters, mCamera.get())) {
             mNeedRepaint = true;
         }
 
-        double diff = mFrameTimer[FRAMETIMER_CHARACTERS_PROCESS];
         for(auto &i: mCharacters) {
             if (i->processAsync(diff, mMap.get())) {
                 mNeedRepaint = true;

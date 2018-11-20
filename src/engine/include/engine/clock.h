@@ -54,7 +54,7 @@ public:
 
     bool daylight() const;
 
-    bool processAsync(float frameDiff, Map* map);
+    bool processAsync(uint64_t frameDiff, Map* map);
     void processListeners();
 
     void fastForward(float v) {

@@ -82,10 +82,10 @@ bool Clock::daylight() const
     return h >= mSunrise && h < mSunset;
 }
 
-bool Clock::processAsync(float frameDiff, Map* map)
+bool Clock::processAsync(uint64_t frameDiff, Map* map)
 {
     uint64_t val = std::floor(mCurrent);
-    mCurrent.store(mCurrent + (frameDiff));
+    mCurrent.store(mCurrent + (frameDiff / 1000.0f));
 
     bool changed = false;
     if (std::floor(mCurrent) != val) {

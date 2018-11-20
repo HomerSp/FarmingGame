@@ -49,7 +49,7 @@ public:
 
     bool contains(Character& character, const Types::Dimension<>& buf);
 
-    bool processAsync(float frameDiff, Map* map);
+    bool processAsync(uint64_t frameDiff, Map* map);
     void processListeners();
 
     void setPosition(int x, int y);
