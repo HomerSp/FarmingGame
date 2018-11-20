@@ -18,7 +18,7 @@ public:
     };
 
 public:
-    ScreenEffects();
+    ScreenEffects() = default;
 
     void draw(Renderer& renderer, Clock& clock, Camera& camera, const std::vector<std::shared_ptr<LightSource>> &sources);
 };

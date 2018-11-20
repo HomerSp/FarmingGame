@@ -22,6 +22,9 @@ TilesetType::TilesetType(uint32_t index, Types::Dimension<>& tileDimension, cons
     , mFrames(frames)
     , mCount(count)
     , mBase(base)
+    , mLightBase(-1, -1)
+    , mLightRadius(0)
+    , mLightStrength(0.0f)
 {
     if (tileType == "automatic") {
         mTileType = TileTypeAuto;
@@ -77,7 +80,7 @@ bool TilesetType::hasAttribute(TilesetAttribute::Type type) const
 
 void TilesetType::setLightBase(Types::Point<> base)
 {
-    mLightBase = std::move(base);
+    mLightBase = base;
 }
 
 void TilesetType::setLightRadius(int radius)

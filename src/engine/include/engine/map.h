@@ -17,6 +17,7 @@ class Tileset;
 class MapLightSource : public ScreenEffects::LightSource {
 public:
     MapLightSource(Types::Point<int32_t> pos, int32_t radius, float strength);
+    virtual ~MapLightSource() = default;
 
     virtual Types::Point<int32_t> position();
     virtual int32_t radius();

@@ -31,14 +31,14 @@ Types::Ellipse::Ellipse(int32_t x, int32_t y, int32_t radius)
 
 Types::FilledEllipse::FilledEllipse(int32_t x, int32_t y, int32_t radius, Types::Color c)
     : Ellipse(x, y, radius)
-    , color(std::move(c))
+    , color(c)
 {
 }
 
 Types::Overlay::Overlay(uint32_t w, uint32_t h, Types::Color bg)
     : width(w)
     , height(h)
-    , background(std::move(bg))
+    , background(bg)
 {
 }
 

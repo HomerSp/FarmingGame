@@ -115,5 +115,5 @@ std::string AssetManager::collisionPath(Type type, const std::string& name)
 
 void AssetManager::setRenderer(std::shared_ptr<Renderer> renderer)
 {
-    mRenderer = renderer;
+    mRenderer = std::move(renderer);
 }

@@ -44,24 +44,6 @@ void QtRenderer::fillRect(const engine::Types::Rect<>& dst, const engine::Types:
     mPainter->fillRect(dstRect, c);
 }
 
-void QtRenderer::fillEllipse(const engine::Types::Ellipse& dst, const engine::Types::Color& fromColor, const engine::Types::Color& toColor)
-{
-    if (mPainter == nullptr) {
-        engine::Logger::critical() << "No painter set!!!";
-        return;
-    }
-
-    QRadialGradient gradient(dst.radius / 2, dst.radius / 2, dst.radius / 2);
-    gradient.setColorAt(0, QColor(fromColor.r, fromColor.g, fromColor.b, fromColor.a));
-    gradient.setColorAt(1, QColor(toColor.r, toColor.g, toColor.b, toColor.a));
-
-    QPainterPath path;
-    path.addEllipse(QPointF(dst.radius / 2, dst.radius / 2), dst.radius / 2, dst.radius / 2);
-    mPainter->translate(dst.x - (dst.radius / 2), dst.y - (dst.radius / 2));
-    mPainter->fillPath(path, gradient);
-    mPainter->translate(-(dst.x - (dst.radius / 2)), -(dst.y - (dst.radius / 2)));
-}
-
 void QtRenderer::drawImage(const engine::Image& img, const engine::Types::Rect<>& dst, const engine::Types::Rect<>& src)
 {
     if (mPainter == nullptr) {
@@ -69,7 +51,7 @@ void QtRenderer::drawImage(const engine::Image& img, const engine::Types::Rect<>
         return;
     }
 
-    const QtImage& native = dynamic_cast<const QtImage&>(img);
+    const auto& native = dynamic_cast<const QtImage&>(img);
     QRectF srcRect(src.x, src.y, src.width, src.height);
     QRectF dstRect(dst.x, dst.y, dst.width, dst.height);
     mPainter->drawImage(dstRect, native.image(), srcRect);
@@ -135,13 +117,13 @@ void QtRenderer::drawOverlay(const engine::Types::Point<>& dst, const engine::Ty
     p.fillRect(QRectF(0, 0, overlay.width, overlay.height), QColor(overlay.background.r, overlay.background.g, overlay.background.b, overlay.background.a));
     p.setCompositionMode(QPainter::CompositionMode_SourceIn);
     for(auto& e: overlay.ellipses) {
-        QRadialGradient gradient(QPointF(e.radius / 2, e.radius / 2), e.radius / 2, QPointF(e.radius / 2, e.radius / 2));
+        QRadialGradient gradient(QPointF(e.radius / 2.0f, e.radius / 2.0f), e.radius / 2.0f, QPointF(e.radius / 2.0f, e.radius / 2.0f));
         gradient.setColorAt(0, QColor(e.color.r, e.color.g, e.color.b, e.color.a));
         gradient.setColorAt(1, QColor(overlay.background.r, overlay.background.g, overlay.background.b, 255));
 
         p.save();
         p.setBrush(gradient);
-        p.translate(e.x - (e.radius / 2), e.y - (e.radius / 2));
+        p.translate(e.x - (e.radius / 2.0f), e.y - (e.radius / 2.0f));
         p.drawEllipse(0, 0, e.radius, e.radius);
         p.restore();
     }
@@ -183,42 +165,7 @@ void QtRenderer::restore()
     mPainter->restore();
 }
 
-void QtRenderer::setClipEllipses(const std::vector<engine::Types::Ellipse>& dst)
-{
-    if (mPainter == nullptr) {
-        engine::Logger::critical() << "No painter set!!!";
-        return;
-    }
-
-    QPainterPath clipped;
-    clipped.setFillRule(Qt::WindingFill);
-    for (auto& i: dst) {
-        clipped.addEllipse(i.x - (i.radius / 2), i.y - (i.radius / 2), i.radius, i.radius);
-    }
-
-    mPainter->setClipPath(clipped);
-}
-
-void QtRenderer::setClipEllipsesScreen(const std::vector<engine::Types::Ellipse>& dst, const engine::Types::Rect<>& rc)
-{
-    if (mPainter == nullptr) {
-        engine::Logger::critical() << "No painter set!!!";
-        return;
-    }
-
-    QPainterPath screen;
-    screen.addRect(rc.x, rc.y, rc.width, rc.height);
-
-    QPainterPath clipped;
-    clipped.setFillRule(Qt::WindingFill);
-    for (auto& i: dst) {
-        clipped.addEllipse(i.x - (i.radius / 2), i.y - (i.radius / 2), i.radius, i.radius);
-    }
-
-    mPainter->setClipPath(screen.subtracted(clipped));
-}
-
- void QtRenderer::setPainter(QPainter* painter)
+void QtRenderer::setPainter(QPainter* painter)
 {
     mPainter = painter;
 
@@ -233,7 +180,6 @@ std::shared_ptr<engine::Image> QtRenderer::loadImage(const std::string& path)
 }
 
 QtRenderer::QtImage::QtImage(const std::string& path)
-    : Image()
 {
     mImage = std::make_shared<QImage>(QString(path.c_str()));
 }

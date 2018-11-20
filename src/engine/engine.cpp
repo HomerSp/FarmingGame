@@ -21,7 +21,7 @@ Engine::Engine(uint32_t width, uint32_t height, std::shared_ptr<Renderer> render
     , mHasFocus(true)
     , mWidth(width)
     , mHeight(height)
-    , mRenderer(renderer)
+    , mRenderer(std::move(renderer))
     , mMap(nullptr)
     , mPlayer(nullptr)
     , mEnableThreading(true)

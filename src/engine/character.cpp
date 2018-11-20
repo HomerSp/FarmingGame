@@ -335,20 +335,22 @@ void Character::checkCollision(const Character& other, Types::Point<float>& dst)
 
     // Check x collision.
     if (dst.x != 0.0f && ((quad1.y1 >= quad2.y1 && quad1.y1 < quad2.y2) || (quad1.y2 >= quad2.y1 && quad1.y2 < quad2.y2))) {
+        float d = dst.x - std::floor(dst.x);
         // Moving Left
         if (dst.x < 0.0f) {
             // We may be moving more than one pixel at a time, which can cause us to move through objects
             // if the distance is longer than the collision object.
-            for (float x = dst.x; x <= 0.0f; x += 1.0f) {
-                if (quad1.x1 + x <= quad2.x2 && quad1.x1 + x > quad2.x1) {
+            for (int x = std::floor(dst.x); x <= 0; x += 1) {
+                if (quad1.x1 + x + d <= quad2.x2 && quad1.x1 + x + d > quad2.x1) {
                     dst.x = quad2.x2 - quad1.x1;
                     break;
                 }
             }
         // Moving Right
         } else if(dst.x > 0.0f) {
-            for (float x = dst.x; x >= 0.0f; x -= 1.0f) {
-                if (quad1.x2 + x >= quad2.x1 && quad1.x2 + x < quad2.x2) {
+            float d = dst.x - std::floor(dst.x);
+            for (int x = std::floor(dst.x); x >= 0; x -= 1) {
+                if (quad1.x2 + x + d >= quad2.x1 && quad1.x2 + x + d < quad2.x2) {
                     dst.x = quad2.x1 - quad1.x2;
                     break;
                 }
@@ -358,10 +360,11 @@ void Character::checkCollision(const Character& other, Types::Point<float>& dst)
 
     // Check y collision.
     if (dst.y != 0.0f && ((quad1.x1 >= quad2.x1 && quad1.x1 < quad2.x2) || (quad1.x2 >= quad2.x1 && quad1.x2 < quad2.x2))) {
+        float d = dst.y - std::floor(dst.y);
         // Moving Up
         if (dst.y < 0.0f) {
-            for (float y = dst.y; y <= 0.0f; y += 1.0f) {
-                if (quad1.y1 + y <= quad2.y2 && quad1.y1 + y > quad2.y1) {
+            for (int y = std::floor(dst.y); y <= 0; y += 1) {
+                if (quad1.y1 + y + d <= quad2.y2 && quad1.y1 + y + d > quad2.y1) {
                     dst.y = quad2.y2 - quad1.y1;
                     break;
                 }
@@ -369,8 +372,8 @@ void Character::checkCollision(const Character& other, Types::Point<float>& dst)
             
         // Moving Down
         } else if(dst.y > 0.0f) {
-            for (float y = dst.y; y >= 0.0f; y -= 1.0f) {
-                if (quad1.y2 + y >= quad2.y1 && quad1.y2 + y < quad2.y2) {
+            for (int y = std::floor(dst.y); y >= 0; y -= 1) {
+                if (quad1.y2 + y + d >= quad2.y1 && quad1.y2 + y + d < quad2.y2) {
                     dst.y = quad2.y1 - quad1.y2;
                     break;
                 }

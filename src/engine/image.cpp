@@ -5,10 +5,6 @@
 
 using namespace engine;
 
-Image::Image()
-{
-}
-
 bool Image::operator!() const
 {
     return width() == 0;

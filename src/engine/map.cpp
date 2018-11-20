@@ -458,7 +458,7 @@ bool Map::operator!() const
 }
 
 MapLightSource::MapLightSource(Types::Point<int32_t> pos, int32_t radius, float strength)
-    : mPosition(std::move(pos))
+    : mPosition(pos)
     , mRadius(radius)
     , mStrength(strength)
 {

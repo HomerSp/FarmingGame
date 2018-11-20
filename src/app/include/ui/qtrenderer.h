@@ -11,6 +11,7 @@ public:
     class QtImage : public engine::Image {
     public:
         QtImage(const std::string& path);
+        virtual ~QtImage() = default;
 
         const QImage& image() const;
 
@@ -29,7 +30,6 @@ public:
     int height();
 
     void fillRect(const engine::Types::Rect<>& dst, const engine::Types::Color& color);
-    void fillEllipse(const engine::Types::Ellipse& dst, const engine::Types::Color& fromColor, const engine::Types::Color& toColor);
 
     void drawImage(const engine::Image& img, const engine::Types::Rect<>& dst, const engine::Types::Rect<>& src);
     void drawText(const engine::Types::Point<>& dst, const std::string& text, const engine::Types::Color& color, int size, engine::Types::TextAlign align);
@@ -39,9 +39,6 @@ public:
 
     void save();
     void restore();
-
-    void setClipEllipses(const std::vector<engine::Types::Ellipse>& dst);
-    void setClipEllipsesScreen(const std::vector<engine::Types::Ellipse>& dst, const engine::Types::Rect<>& rc);
 
     void setPainter(QPainter* painter);
 

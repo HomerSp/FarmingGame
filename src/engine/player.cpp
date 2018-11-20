@@ -10,7 +10,7 @@ Player::Player()
 
 Types::Point<int32_t> Player::position()
 {
-    return Types::Point<int32_t>(x() + width() / 2, y() + height() * 0.75f);
+    return {static_cast<int32_t>(x() + width() / 2), static_cast<int32_t>(y() + height() * 0.75f)};
 }
 
 int32_t Player::radius()
