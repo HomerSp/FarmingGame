@@ -52,7 +52,7 @@ Engine::Engine(uint32_t width, uint32_t height, std::shared_ptr<Renderer> render
 
     mCharacters.push_back(std::make_shared<engine::Character>("horse"));
     mCharacters.back()->setX(48);
-    mCharacters.back()->setY(48);
+    mCharacters.back()->setY(96);
     mCharacters.back()->setDirection(Character::Direction::Right);
 
     mCamera->setTarget(mPlayer.get());

@@ -141,7 +141,7 @@ bool Character::processAsync(uint64_t frameDiff, Map* map, std::vector<std::shar
 
         // Check if we need to change the direction of the charset
         if (mDirectionTo != mDirection && (mVelocity.x != 0.0f || mVelocity.y != 0.0f)) {
-            mDirectionTurn += frameDiff * 0.020f;
+            mDirectionTurn += frameDiff * 0.02f;
             if (mDirectionTurn >= 1.0f) {
                 mDirectionTurn = 0.0f;
 
@@ -328,54 +328,49 @@ void Character::setY(float y)
 void Character::checkCollision(const Character& other, Types::Point<float>& dst)
 {
     Types::Rect<> col = mCharset->collision(mCharsetType);
-    Types::Rect<> othercol = other.mCharset->collision(other.mCharsetType);
+    Types::Quad<float> charQuad(mPos.x + col.x, mPos.y + col.y, mPos.x + col.x + col.width, mPos.y + col.y + col.height);
 
-    Types::Quad<float> quad1(mPos.x + col.x, mPos.y + col.y, mPos.x + col.x + col.width, mPos.y + col.y + col.height);
-    Types::Quad<float> quad2(other.mPos.x + othercol.x, other.mPos.y + othercol.y, other.mPos.x + othercol.x + othercol.width, other.mPos.y + othercol.y + othercol.height);
+    Types::Rect<> othercol = other.mCharset->collision(other.mCharsetType);
+    Types::Quad<float> otherQuad(other.mPos.x + othercol.x, other.mPos.y + othercol.y, other.mPos.x + othercol.x + othercol.width, other.mPos.y + othercol.y + othercol.height);
 
     // Check x collision.
-    if (dst.x != 0.0f && ((quad1.y1 >= quad2.y1 && quad1.y1 < quad2.y2) || (quad1.y2 >= quad2.y1 && quad1.y2 < quad2.y2))) {
+    if (dst.x != 0.0f && ((charQuad.y1 >= otherQuad.y1 && charQuad.y1 < otherQuad.y2) || (charQuad.y2 >= otherQuad.y1 && charQuad.y2 < otherQuad.y2))) {
         float d = dst.x - std::floor(dst.x);
         // Moving Left
         if (dst.x < 0.0f) {
             // We may be moving more than one pixel at a time, which can cause us to move through objects
             // if the distance is longer than the collision object.
-            for (int x = std::floor(dst.x); x <= 0; x += 1) {
-                if (quad1.x1 + x + d <= quad2.x2 && quad1.x1 + x + d > quad2.x1) {
-                    dst.x = quad2.x2 - quad1.x1;
-                    break;
+            for (int32_t i = std::floor(dst.x); i <= 0; i++) {
+                if (charQuad.x1 + i + d <= otherQuad.x2 && charQuad.x1 + i + d > otherQuad.x1) {
+                    dst.x = 0.0f;
                 }
             }
         // Moving Right
         } else if(dst.x > 0.0f) {
-            float d = dst.x - std::floor(dst.x);
-            for (int x = std::floor(dst.x); x >= 0; x -= 1) {
-                if (quad1.x2 + x + d >= quad2.x1 && quad1.x2 + x + d < quad2.x2) {
-                    dst.x = quad2.x1 - quad1.x2;
-                    break;
+            for (int32_t i = std::floor(dst.x); i >= 0; i--) {
+                if (charQuad.x2 + i + d >= otherQuad.x1 && charQuad.x2 + i + d < otherQuad.x2) {
+                    dst.x = 0.0f;
                 }
             }
         }
     }
 
     // Check y collision.
-    if (dst.y != 0.0f && ((quad1.x1 >= quad2.x1 && quad1.x1 < quad2.x2) || (quad1.x2 >= quad2.x1 && quad1.x2 < quad2.x2))) {
+    if (dst.y != 0.0f && ((charQuad.x1 >= otherQuad.x1 && charQuad.x1 < otherQuad.x2) || (charQuad.x2 >= otherQuad.x1 && charQuad.x2 < otherQuad.x2))) {
         float d = dst.y - std::floor(dst.y);
         // Moving Up
         if (dst.y < 0.0f) {
-            for (int y = std::floor(dst.y); y <= 0; y += 1) {
-                if (quad1.y1 + y + d <= quad2.y2 && quad1.y1 + y + d > quad2.y1) {
-                    dst.y = quad2.y2 - quad1.y1;
-                    break;
+            for (int32_t i = std::floor(dst.y); i <= 0; i++) {
+                if (charQuad.y1 + i + d <= otherQuad.y2 && charQuad.y1 + i + d > otherQuad.y1) {
+                    dst.y = 0.0f;
                 }
             }
             
         // Moving Down
         } else if(dst.y > 0.0f) {
-            for (int y = std::floor(dst.y); y >= 0; y -= 1) {
-                if (quad1.y2 + y + d >= quad2.y1 && quad1.y2 + y + d < quad2.y2) {
-                    dst.y = quad2.y1 - quad1.y2;
-                    break;
+            for (int32_t i = std::floor(dst.y); i >= 0; i--) {
+                if (charQuad.y2 + i + d >= otherQuad.y1 && charQuad.y2 + i + d < otherQuad.y2) {
+                    dst.y = 0.0f;
                 }
             }
         }
