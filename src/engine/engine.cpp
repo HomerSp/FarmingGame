@@ -160,7 +160,11 @@ void Engine::processAsync()
         }
 
         if (downKeys.contains(engine::Keys::TestFastForward)) {
-            mClock->fastForward(diff * 0.05f);
+            if (downKeys.contains(engine::Keys::Run)) {
+                mClock->fastForward(diff * 0.5f);
+            } else {
+                mClock->fastForward(diff * 0.05f);
+            }
         }
 
         if (downKeys.contains(engine::Keys::TestSlowMode)) {
