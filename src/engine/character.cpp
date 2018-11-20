@@ -81,7 +81,7 @@ bool Character::animate(uint64_t frameDiff, bool reset)
     float frame = mFrame;
     if (!reset) {
         int cols = mCharset->columns(mCharsetType);
-        frame += frameDiff * 0.005f;
+        frame += frameDiff / 200.0f;
         if (frame >= cols + cols - 2) {
             frame = 0;
         }
@@ -105,7 +105,7 @@ bool Character::processAsync(uint64_t frameDiff, Map* map, std::vector<std::shar
 
         // Do we have a target? Process that
         if (mTarget.x != -1 || mTarget.y != -1) {
-            float val = frameDiff * 0.005f;
+            float val = frameDiff / 200.0f;
             int x = 0, y = 0;
             if (mTarget.x != -1) {
                 if (mTarget.x < posX) {
@@ -141,7 +141,7 @@ bool Character::processAsync(uint64_t frameDiff, Map* map, std::vector<std::shar
 
         // Check if we need to change the direction of the charset
         if (mDirectionTo != mDirection && (mVelocity.x != 0.0f || mVelocity.y != 0.0f)) {
-            mDirectionTurn += frameDiff * 0.02f;
+            mDirectionTurn += frameDiff / 50.0f;
             if (mDirectionTurn >= 1.0f) {
                 mDirectionTurn = 0.0f;
 
@@ -161,7 +161,7 @@ bool Character::processAsync(uint64_t frameDiff, Map* map, std::vector<std::shar
 
         // If we have any velocity we need to process that.
         if (mVelocity.x != 0.0f || mVelocity.y != 0.0f) {
-            Types::Point<float> dst(mVelocity.x * (frameDiff * 0.2f), mVelocity.y * (frameDiff * 0.2f));
+            Types::Point<float> dst(mVelocity.x * (frameDiff / 5.0f), mVelocity.y * (frameDiff / 5.0f));
 
             // Check collisions with the map if we have one
             if (map != nullptr) {
@@ -262,7 +262,7 @@ void Character::processListeners()
 void Character::velocity(uint64_t frameDiff, float x, float y)
 {
     std::lock_guard<std::mutex> lock(mMovementMutex);
-    float val = frameDiff * 0.005f;
+    float val = frameDiff / 200.0f;
     updateVelocity(mVelocity.x, x, val, mTarget.x != -1);
     updateVelocity(mVelocity.y, y, val, mTarget.y != -1);
 }

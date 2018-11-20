@@ -64,7 +64,7 @@ bool MapLayer::animate(uint64_t frameDiff)
         for (auto &nodeX: nodeY.second) {
             if (nodeX.second->frames > 0) {
                 float c = nodeX.second->current;
-                c += frameDiff * 0.005f;
+                c += frameDiff / 200.0f;
                 if (c >= nodeX.second->frames) {
                     c = 0;
                 }
