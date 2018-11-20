@@ -293,16 +293,16 @@ void Engine::paint()
     std::multimap<int, Character*> drawCharacters;
     for (auto& i: mCharacters) {
         if (mCamera->contains(*i, d)) {
-            drawCharacters.emplace(std::make_pair(i->y(), i.get()));
+            drawCharacters.emplace(std::make_pair(i->y() + i->height(), i.get()));
         }
     }
 
-    drawCharacters.emplace(std::make_pair(mPlayer->y(), mPlayer.get()));
+    drawCharacters.emplace(std::make_pair(mPlayer->y() + mPlayer->height(), mPlayer.get()));
 
     for (int row = startY - 1; row <= startY + std::ceil(mHeight / d.height) + 1; row++) {
         auto it = drawCharacters.begin();
         while (it != drawCharacters.end()) {
-            if (row * d.height >= it->first) {
+            if (row * d.height >= it->first - d.height) {
                 it->second->draw(renderer, Types::Point<>(mCamera->x(), mCamera->y()));
                 it = drawCharacters.erase(it);
             } else {
