@@ -61,8 +61,8 @@ void Camera::moveTo(int dstX, int dstY, asIScriptFunction* fun)
 bool Camera::contains(Character& character, const Types::Dimension<>& buf)
 {
     std::lock_guard<std::mutex> lock(mMovementMutex);
-    return character.x() >= mPos.x - buf.width && character.x() < mPos.x + mDimen.width + buf.width
-        && character.y() >= mPos.y - buf.height && character.y() < mPos.y + mDimen.height + buf.height;
+    return character.x() + character.width() >= mPos.x - buf.width && character.x() < mPos.x + mDimen.width + buf.width
+        && character.y() + character.height() >= mPos.y - buf.height && character.y() < mPos.y + mDimen.height + buf.height;
 }
 
 bool Camera::processAsync(uint64_t frameDiff, Map* map)
@@ -93,7 +93,7 @@ bool Camera::processAsync(uint64_t frameDiff, Map* map)
                 posY = targetY;
             }
 
-            float val = frameDiff * 000.2f;
+            float val = frameDiff * 0.2f;
             if (posX < targetX) {
                 if (posX + val >= targetX) {
                     posX = targetX;
