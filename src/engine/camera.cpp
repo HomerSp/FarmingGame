@@ -67,95 +67,89 @@ bool Camera::contains(Character& character, const Types::Dimension<>& buf)
 
 bool Camera::processAsync(uint64_t frameDiff, Map* map)
 {
-    bool forced = false, changed = false;
-    float posX, posY;
-    {
-        std::lock_guard<std::mutex> lock(mMovementMutex);
+    std::lock_guard<std::mutex> lock(mMovementMutex);
 
-        posX = mPos.x;
-        posY = mPos.y;
-        float targetPosX = mTargetPos.x;
-        float targetPosY = mTargetPos.y;
+    float posX = mPos.x;
+    float posY = mPos.y;
+    float targetPosX = mTargetPos.x;
+    float targetPosY = mTargetPos.y;
+    float targetX = targetPosX;
+    float targetY = targetPosY;
+    if (mTarget != nullptr) {
+        targetX =  mTarget->x() + std::floor(mTarget->width() / 2) - std::floor(mDimen.width / 2);
+        targetY = mTarget->y() + std::floor(mTarget->height() * 0.75f) - std::floor(mDimen.height / 2);
+    }
 
-        float targetX = 0;
-        float targetY = 0;
-        if (mTarget != nullptr) {
-            targetX =  mTarget->x() + std::floor(mTarget->width() / 2) - std::floor(mDimen.width / 2);
-            targetY = mTarget->y() + std::floor(mTarget->height() * 0.75f) - std::floor(mDimen.height / 2);
-        } else {
-            targetX = targetPosX;
-            targetY = targetPosY;
-        }
-
-        if (mTarget == nullptr || targetPosX >= 0 || targetPosY >= 0) {
-            if (posX < 0 && posY < 0) {
-                posX = targetX;
-                posY = targetY;
-            }
-
-            float val = frameDiff / 5.0f;
-            if (posX < targetX) {
-                if (posX + val >= targetX) {
-                    posX = targetX;
-                } else {
-                    posX += val;
-                }
-            } else if (posX > targetX) {
-                if (posX - val <= targetX) {
-                    posX = targetX;
-                } else {
-                    posX -= val;
-                }
-            }
-
-            if (posY < targetY) {
-                if (posY + val >= targetY) {
-                    posY = targetY;
-                } else {
-                    posY += val;
-                }
-            } else if (posY > targetY) {
-                if (posY - val <= targetY) {
-                    posY = targetY;
-                } else {
-                    posY -= val;
-                }
-            }
-        } else {
+    // Check if we are supposed to move the camera smoothly (ie, if we have a target)
+    if (mTarget == nullptr || targetPosX >= 0 || targetPosY >= 0) {
+        if (posX < 0 && posY < 0) {
             posX = targetX;
             posY = targetY;
         }
 
-        if (posX < 0) {
-            posX = 0;
-            targetPosX = -1;
-        } else if (posX > map->pixelWidth() - mDimen.width) {
-            posX = map->pixelWidth() - mDimen.width;
-            targetPosX = -1;
+        float val = frameDiff / 5.0f;
+        if (posX < targetX) {
+            if (posX + val >= targetX) {
+                posX = targetX;
+            } else {
+                posX += val;
+            }
+        } else if (posX > targetX) {
+            if (posX - val <= targetX) {
+                posX = targetX;
+            } else {
+                posX -= val;
+            }
         }
 
-        if (posY < 0) {
-            posY = 0;
-            targetPosY = -1;
-        } else if (posY > map->pixelHeight() - mDimen.height) {
-            posY = map->pixelHeight() - mDimen.height;
-            targetPosY = -1;
+        if (posY < targetY) {
+            if (posY + val >= targetY) {
+                posY = targetY;
+            } else {
+                posY += val;
+            }
+        } else if (posY > targetY) {
+            if (posY - val <= targetY) {
+                posY = targetY;
+            } else {
+                posY -= val;
+            }
         }
-
-        forced = mTargetPos.x >= 0 && targetPosX < 0 && mTargetPos.y >= 0 && targetPosY < 0;
-        if (posX == targetX && posY == targetY) {
-            targetPosX = -1;
-            targetPosY = -1;
-        }
-
-        changed = mPos.x != posX || mPos.y != posY;
-        mPos.x = posX;
-        mPos.y = posY;
-        mTargetPos.x = targetPosX;
-        mTargetPos.y = targetPosY;
+    } else {
+        posX = targetX;
+        posY = targetY;
     }
 
-    std::lock_guard<std::mutex> lock(mListenerMutex);
+    if (posX < 0) {
+        posX = 0;
+        targetPosX = -1;
+    } else if (posX > map->pixelWidth() - mDimen.width) {
+        posX = map->pixelWidth() - mDimen.width;
+        targetPosX = -1;
+    }
+
+    if (posY < 0) {
+        posY = 0;
+        targetPosY = -1;
+    } else if (posY > map->pixelHeight() - mDimen.height) {
+        posY = map->pixelHeight() - mDimen.height;
+        targetPosY = -1;
+    }
+
+    // forced will be true if we can't actually reach the target position.
+    bool forced = mTargetPos.x >= 0 && targetPosX < 0 && mTargetPos.y >= 0 && targetPosY < 0;
+    if (posX == targetX && posY == targetY) {
+        targetPosX = -1;
+        targetPosY = -1;
+    }
+
+    bool changed = mPos.x != posX || mPos.y != posY;
+    mPos.x = posX;
+    mPos.y = posY;
+    mTargetPos.x = targetPosX;
+    mTargetPos.y = targetPosY;
+
+    std::lock_guard<std::mutex> listenerLock(mListenerMutex);
     for(auto &i: mMoveListeners) {
         i->check(posX, posY, forced);
     }

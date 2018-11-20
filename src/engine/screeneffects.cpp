@@ -7,7 +7,7 @@
 using namespace engine;
 
 ScreenEffects::ScreenEffects()
-    : mRadiusMod(0.0f)
+    : mRadiusMod(2.0f)
 {
 }
 
@@ -37,19 +37,14 @@ void ScreenEffects::draw(Renderer& renderer, Clock& clock, Camera& camera, const
         color.a = std::floor(alpha);
     }
 
-    int32_t mod;
-    if (mRadiusMod > 1.0f) {
-        mod = static_cast<int32_t>((1.0f - (mRadiusMod - 1.0f)) * 16.0f);
-    } else {
-        mod = static_cast<int32_t>(mRadiusMod * 16.0f);
-    }
+    int32_t radiusMod = std::abs(static_cast<int32_t>((mRadiusMod - 1.0f) * 32.0f));
 
     Types::Overlay overlay(renderer.width(), renderer.height(), color);
     for (auto& source: sources) {
         Types::Color l = color;
         l.r = l.r * (1.0f - source->strength());
         l.a = l.a * (1.0f - source->strength());
-        overlay.addEllipse(Types::FilledEllipse(source->position().x - camera.x(), source->position().y - camera.y(), source->radius() + mod, l));
+        overlay.addEllipse(Types::FilledEllipse(source->position().x - camera.x(), source->position().y - camera.y(), source->radius() + radiusMod, l));
     }
 
     renderer.drawOverlay({0, 0}, overlay);
@@ -57,9 +52,9 @@ void ScreenEffects::draw(Renderer& renderer, Clock& clock, Camera& camera, const
 
 bool ScreenEffects::processAsync(uint64_t frameDiff)
 {
-    float m = mRadiusMod + (frameDiff / 1000.0f);
-    if (m >= 2.0f) {
-        m = 0.0f;
+    float m = mRadiusMod - (frameDiff / 1000.0f);
+    if (m < 0.0f) {
+        m = 2.0f;
     }
 
     bool changed = std::floor(m) != std::floor(mRadiusMod);
