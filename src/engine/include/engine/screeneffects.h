@@ -1,5 +1,7 @@
 #pragma once
 
+#include <atomic>
+
 #include <engine/types.h>
 
 namespace engine {
@@ -18,8 +20,13 @@ public:
     };
 
 public:
-    ScreenEffects() = default;
+    ScreenEffects();
 
     void draw(Renderer& renderer, Clock& clock, Camera& camera, const std::vector<std::shared_ptr<LightSource>> &sources);
+
+    bool processAsync(uint64_t frameDiff);
+
+private:
+    std::atomic<float> mRadiusMod;
 };
 }

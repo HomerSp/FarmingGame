@@ -257,6 +257,10 @@ void Engine::processAsync()
             }
         }
 
+        if (mScreenEffects->processAsync(diff)) {
+            mNeedRepaint = true;
+        }
+
         if (!mEnableThreading) {
             break;
         }
