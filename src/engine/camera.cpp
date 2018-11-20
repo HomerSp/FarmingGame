@@ -93,7 +93,7 @@ bool Camera::processAsync(uint64_t frameDiff, Map* map)
                 posY = targetY;
             }
 
-            float val = frameDiff * 5.0f;
+            float val = frameDiff / 5.0f;
             if (posX < targetX) {
                 if (posX + val >= targetX) {
                     posX = targetX;
