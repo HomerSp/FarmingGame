@@ -49,10 +49,13 @@ bool CollisionMap::get(uint32_t x, uint32_t y, uint32_t width, uint32_t height, 
     }
 
     if (x >= mWidth || x + width - 1 >= mWidth || y >= mHeight || y + height - 1 >= mHeight) {
-        diff->x1 = (x + width) - mWidth - 1;
-        diff->y1 = (y + height) - mHeight - 1;
-        diff->x2 = mWidth - (x + width) + 1;
-        diff->y2 = mHeight - (y + height) + 1;
+        if (diff != nullptr) {
+            diff->x1 = (x + width) - mWidth - 1;
+            diff->y1 = (y + height) - mHeight - 1;
+            diff->x2 = mWidth - (x + width) + 1;
+            diff->y2 = mHeight - (y + height) + 1;
+        }
+        
         return true;
     }
 
@@ -134,6 +137,7 @@ void CollisionMap::set(uint32_t x, uint32_t y, bool b)
     }
 }
 
+#ifdef DEBUG
 void CollisionMap::save(const std::string& path)
 {
     std::vector<uint8_t> buffer;
@@ -169,3 +173,4 @@ void CollisionMap::save(const std::string& path)
 
     lodepng::save_file(buffer, path);
 }
+#endif

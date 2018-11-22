@@ -15,7 +15,9 @@ public:
 
     void set(uint32_t x, uint32_t y, bool b);
 
+#ifdef DEBUG
     void save(const std::string& path);
+#endif
 
     bool operator!()
     {
