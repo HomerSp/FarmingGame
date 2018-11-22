@@ -13,9 +13,9 @@ int main(int argc, char* argv[])
 
     Utils::createParentDir(args[2]);
 
-    std::vector<unsigned char> imageData;
-    unsigned w, h;
-    std::vector<unsigned char> buffer;
+    std::vector<uint8_t> imageData;
+    uint32_t w, h;
+    std::vector<uint8_t> buffer;
 
     lodepng::load_file(buffer, args[1]);
     if (lodepng::decode(imageData, w, h, buffer) != 0) {
@@ -39,7 +39,7 @@ int main(int argc, char* argv[])
     state.encoder.zlibsettings.lazymatching = 1;
     state.encoder.zlibsettings.windowsize = 32768;
 
-    std::vector<unsigned char> temp;
+    std::vector<uint8_t> temp;
     state.encoder.filter_strategy = LFS_ZERO;
     state.encoder.zlibsettings.minmatch = 3;
     state.encoder.zlibsettings.btype = 2;

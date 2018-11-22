@@ -16,7 +16,7 @@ public:
     public:
         virtual Types::Point<int32_t> position() = 0;
         virtual int32_t radius() = 0;
-        virtual float strength() = 0;
+        virtual float_t strength() = 0;
     };
 
 public:
@@ -27,6 +27,6 @@ public:
     bool processAsync(uint64_t frameDiff);
 
 private:
-    std::atomic<float> mRadiusMod;
+    std::atomic<float_t> mRadiusMod;
 };
 }

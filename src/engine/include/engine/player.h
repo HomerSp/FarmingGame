@@ -12,7 +12,7 @@ public:
 
     virtual Types::Point<int32_t> position();
     virtual int32_t radius();
-    virtual float strength();
+    virtual float_t strength();
 
     Character* character();
 

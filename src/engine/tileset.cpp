@@ -12,27 +12,31 @@
 
 using namespace engine;
 
-TilesetType::TilesetType(uint32_t index, Types::Dimension<>& tileDimension, const std::string& tileType, const std::bitset<TilesetAttribute::Last>& attrs, uint32_t x, uint32_t y, int frames, Types::Cells count, uint32_t base)
+TilesetType::TilesetType(uint32_t index, Types::Dimension<>& tileDimension, const std::string& tileType, uint32_t x, uint32_t y)
     : mValid(false)
     , mIndex(index)
     , mTileDimension(tileDimension)
     , mTileType(TileTypeSingle)
-    , mAttributes(attrs)
+    , mTileAbove(TilesetAbove::None)
     , mSize(x, y, tileDimension.width, tileDimension.height)
-    , mFrames(frames)
-    , mCount(count)
-    , mBase(base)
+    , mFrames(0)
+    , mCount({1, 1})
+    , mBase(0)
     , mLightBase(-1, -1)
     , mLightRadius(0)
     , mLightStrength(0.0f)
 {
-    if (tileType == "automatic") {
+    switch (Types::hash(tileType.c_str())) {
+    case Types::hash("automatic"):
         mTileType = TileTypeAuto;
-    } else if (tileType == "automatic_horizontal") {
+        break;
+    case Types::hash("automatic_horizontal"):
         mTileType = TileTypeAutoHoriz;
-    } else if (tileType == "single") {
+        break;
+    case Types::hash("single"):
         mTileType = TileTypeSingle;
-    } else {
+        break;
+    default:
         Logger::critical() << "Invalid tileset node tile" << tileType;
         return;
     }
@@ -40,29 +44,13 @@ TilesetType::TilesetType(uint32_t index, Types::Dimension<>& tileDimension, cons
     switch (mTileType) {
     case TileTypeAuto:
         mSize.width = tileDimension.width * 2;
-        if (frames > 0) {
-            mSize.width *= frames;
-        }
         mSize.height = tileDimension.height * 3;
         break;
     case TileTypeAutoHoriz:
         mSize.width *= 2;
-        if (frames > 0) {
-            mSize.height *= frames;
-        }
         break;
     default:
-        mSize.width *= mCount.cols;
-        mSize.height *= mCount.rows;
         break;
-    }
-
-    if (mAttributes[TilesetAttribute::Toggle]) {
-        mSize.width *= 2;
-    }
-
-    if (!mAttributes[TilesetAttribute::AboveRow] && !mAttributes[TilesetAttribute::AboveAll]) {
-        mAttributes[TilesetAttribute::AboveNone] = true;
     }
 
     mValid = true;
@@ -78,19 +66,9 @@ bool TilesetType::hasAttribute(TilesetAttribute::Type type) const
     return mAttributes[type];
 }
 
-void TilesetType::setLightBase(Types::Point<> base)
+TilesetAbove::Type TilesetType::above() const
 {
-    mLightBase = base;
-}
-
-void TilesetType::setLightRadius(int radius)
-{
-    mLightRadius = radius;
-}
-
-void TilesetType::setLightStrength(float strength)
-{
-    mLightStrength = strength;
+    return mTileAbove;
 }
 
 uint32_t TilesetType::index() const
@@ -103,12 +81,12 @@ Types::Point<> TilesetType::lightBase() const
     return mLightBase;
 }
 
-int TilesetType::lightRadius() const
+int32_t TilesetType::lightRadius() const
 {
     return mLightRadius;
 }
 
-float TilesetType::lightStrength() const
+float_t TilesetType::lightStrength() const
 {
     return mLightStrength;;
 }
@@ -118,19 +96,81 @@ bool TilesetType::operator!() const
     return !mValid;
 }
 
-bool TilesetType::checkBase(Types::Map2D& tiles, TilesetAttribute::Type type, uint32_t x, uint32_t y)
+bool TilesetType::checkBase(Types::Map2D& tiles, TilesetAbove::Type above, uint32_t x, uint32_t y)
 {
     if (mBase > 0) {
-        if (type == TilesetAttribute::AboveRow) {
+        switch (above) {
+        case TilesetAbove::Row:
             return (y >= mBase && tiles[x][y - mBase] == tiles[x][y]);
-        }
-        if(type == TilesetAttribute::AboveAll) {
+        case TilesetAbove::All:
             return (y < mBase || tiles[x][y - mBase] != tiles[x][y]);
+        default:
+            break;
         }
     }
 
     return false;
 }
+
+void TilesetType::setAbove(TilesetAbove::Type above)
+{
+    mTileAbove = above;
+}
+
+void TilesetType::setAttributes(const std::bitset<TilesetAttribute::Last>& attrs)
+{
+    mAttributes = attrs;
+    if (mAttributes[TilesetAttribute::Toggle]) {
+        mSize.width *= 2;
+    }
+}
+
+void TilesetType::setBase(uint32_t base)
+{
+    mBase = base;
+}
+
+void TilesetType::setCount(Types::Cells count)
+{
+    mCount = count;
+    if (mTileType == TileTypeSingle) {
+        mSize.width *= mCount.cols;
+        mSize.height *= mCount.rows;
+    }
+}
+
+void TilesetType::setFrames(int8_t frames)
+{
+    mFrames = frames;
+    if (mFrames > 0) {
+        switch (mTileType) {
+        case TileTypeAuto:
+            mSize.width *= mFrames;
+            break;
+        case TileTypeAutoHoriz:
+            mSize.height *= mFrames;
+            break;
+        default:
+            break;
+        }
+    }
+}
+
+void TilesetType::setLightBase(Types::Point<> base)
+{
+    mLightBase = base;
+}
+
+void TilesetType::setLightRadius(int32_t radius)
+{
+    mLightRadius = radius;
+}
+
+void TilesetType::setLightStrength(float_t strength)
+{
+    mLightStrength = strength;
+}
+
 
 std::shared_ptr<TilesetNode> TilesetType::toNode(Types::Map2D& tiles, uint32_t x, uint32_t y, uint32_t width, uint32_t height)
 {
@@ -438,55 +478,72 @@ Tileset::Tileset(const std::string& name)
                 return;
             }
 
-            int frames = 0;
-            if (nodeObj.isMember("animation")) {
-                Json::Value animObj = nodeObj["animation"];
-                if (animObj.isMember("frames")) {
-                    frames = animObj["frames"].asInt();
-                }
-            }
-
-            Types::Cells count(1, 1);
-            if (nodeObj.isMember("count")) {
-                Json::Value countObj = nodeObj["count"];
-                if (countObj.size() == 2) {
-                    count.cols = countObj[0].asInt();
-                    count.rows = countObj[1].asInt();
-                }
-            }
-
-            uint32_t base = 0;
-            if (nodeObj.isMember("base")) {
-                base = nodeObj["base"].asInt();
-            }
-
-            std::bitset<TilesetAttribute::Last> attrs;
-            if (nodeObj.isMember("attributes")) {
-                Json::Value attrsObj = nodeObj["attributes"];
-                for (const auto& attrObj : attrsObj) {
-                    std::string key = attrObj.asString();
-                    if (key == "water") {
-                        attrs[TilesetAttribute::Water] = true;
-                    } else if (key == "above_row") {
-                        attrs[TilesetAttribute::AboveRow] = true;
-                    } else if (key == "above_all") {
-                        attrs[TilesetAttribute::AboveAll] = true;
-                    } else if (key == "toggle") {
-                        attrs[TilesetAttribute::Toggle] = true;
-                    } else if (key == "light_source") {
-                        attrs[TilesetAttribute::LightSource] = true;
-                    } else {
-                        Logger::warning() << "Unknown attribute" << key << "for tileset" << name;
-                    }
-                }
-            }
-
-            std::shared_ptr<TilesetType> type = std::make_shared<TilesetType>(index, mTileDimension, nodeObj["tile"].asString(), attrs, x, y, frames, count, base);
+            std::shared_ptr<TilesetType> type = std::make_shared<TilesetType>(index, mTileDimension, nodeObj["tile"].asString(), x, y);
             if (!*type) {
                 return;
             }
 
-            if (attrs[TilesetAttribute::LightSource] && nodeObj.isMember("light")) {
+            if (nodeObj.isMember("above")) {
+                switch (Types::hash(nodeObj["above"].asString().c_str())) {
+                case Types::hash("row"):
+                    type->setAbove(TilesetAbove::Row);
+                    break;
+                case Types::hash("all"):
+                    type->setAbove(TilesetAbove::All);
+                    break;
+                default:
+                    Logger::warning() << "Unknown above" << nodeObj["above"].asString() << "for tileset" << name;
+                    break;
+                }
+            }
+
+            if (nodeObj.isMember("attributes")) {
+                Json::Value attrsObj = nodeObj["attributes"];
+
+                std::bitset<TilesetAttribute::Last> attrs;
+                for (const auto& attrObj : attrsObj) {
+                    std::string key = attrObj.asString();
+                    switch (Types::hash(key.c_str())) {
+                    case Types::hash("water"):
+                        attrs[TilesetAttribute::Water] = true;
+                        break;
+                    case Types::hash("toggle"):
+                        attrs[TilesetAttribute::Toggle] = true;
+                        break;
+                    case Types::hash("light_source"):
+                        attrs[TilesetAttribute::LightSource] = true;
+                        break;
+                    default:
+                        Logger::warning() << "Unknown attribute" << key << "for tileset" << name;
+                        break;
+                    }
+                }
+
+                type->setAttributes(attrs);
+            }
+
+            if (nodeObj.isMember("animation")) {
+                Json::Value animObj = nodeObj["animation"];
+                if (animObj.isMember("frames")) {
+                    type->setFrames(static_cast<uint8_t>(animObj["frames"].asInt()));
+                }
+            }
+
+            if (nodeObj.isMember("base")) {
+                type->setBase(nodeObj["base"].asInt());
+            }
+
+            if (nodeObj.isMember("count")) {
+                Json::Value countObj = nodeObj["count"];
+                if (countObj.size() == 2) {
+                    Types::Cells count(1, 1);
+                    count.cols = countObj[0].asInt();
+                    count.rows = countObj[1].asInt();
+                    type->setCount(count);
+                }
+            }
+
+            if (type->hasAttribute(TilesetAttribute::LightSource) && nodeObj.isMember("light")) {
                 Json::Value lightObj = nodeObj["light"];
                 if (lightObj.isMember("base") && lightObj["base"].size() == 2) {
                     type->setLightBase(Types::Point<>(lightObj["base"][0].asInt(), lightObj["base"][1].asInt()));
@@ -521,7 +578,7 @@ Tileset::Tileset(const std::string& name)
 void Tileset::draw(Renderer& renderer, TilesetNode& node, const Types::Point<>& pos)
 {
     Types::Rect<> dst(0, 0, mTileDimension.width / 2, mTileDimension.height / 2);
-    int dx = 0, dy = 0;
+    int32_t dx = 0, dy = 0;
     for (auto& po : node.pos) {
         dst.x = (pos.x * mTileDimension.width) + (dx * (mTileDimension.width / 2));
         dst.y = (pos.y * mTileDimension.height) + (dy * (mTileDimension.height / 2));
@@ -557,8 +614,8 @@ void Tileset::updateCollisionMap(CollisionMap& tilesetMap, CollisionMap& map, Ti
 
     uint32_t dx = 0, dy = 0;
     for (auto& po : node.pos) {
-        for (int cy = 0; cy < dimen.height; cy++) {
-            for (int cx = 0; cx < dimen.width; cx++) {
+        for (int32_t cy = 0; cy < dimen.height; cy++) {
+            for (int32_t cx = 0; cx < dimen.width; cx++) {
                 if (tilesetMap.get(po.x + cx, po.y + cy)) {
                     uint32_t dstx = (x * mTileDimension.width) + (dx * (mTileDimension.width / 2)) + cx;
                     uint32_t dsty = (y * mTileDimension.height) + (dy * (mTileDimension.height / 2)) + cy;
@@ -575,11 +632,11 @@ void Tileset::updateCollisionMap(CollisionMap& tilesetMap, CollisionMap& map, Ti
     }
 }
 
-bool Tileset::updateTiles(Types::Map2D& tiles, std::map<int, std::map<int, std::shared_ptr<TilesetNode>>>& map, uint32_t width, uint32_t height, TilesetAttribute::Type type)
+bool Tileset::updateTiles(Types::Map2D& tiles, std::map<int32_t, std::map<int32_t, std::shared_ptr<TilesetNode>>>& map, uint32_t width, uint32_t height, TilesetAbove::Type above)
 {
     for (uint32_t x = 0; x < width; x++) {
         for (uint32_t y = 0; y < height; y++) {
-            int n = tiles[x][y];
+            int32_t n = tiles[x][y];
             if (n > 0) {
                 if (static_cast<uint32_t>(n - 1) >= mTypes.size()) {
                     Logger::critical() << "Found an out of bounds node" << (n - 1) << ">" << mTypes.size();
@@ -587,7 +644,7 @@ bool Tileset::updateTiles(Types::Map2D& tiles, std::map<int, std::map<int, std::
                 }
 
                 auto tileType = mTypes[n - 1];
-                if (tileType->hasAttribute(type) || tileType->checkBase(tiles, type, x, y)) {
+                if (tileType->above() == above || tileType->checkBase(tiles, above, x, y)) {
                     map[y][x] = tileType->toNode(tiles, x, y, width, height);
                 }
             }

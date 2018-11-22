@@ -3,7 +3,7 @@
 using namespace engine;
 
 
-void Time::parseString(const std::string& format, std::unordered_map<Type, int>& out)
+void Time::parseString(const std::string& format, std::unordered_map<Type, int8_t>& out)
 {
     size_t start = 0;
     if(format.find(',') != std::string::npos) {
@@ -21,10 +21,10 @@ void Time::parseString(const std::string& format, std::unordered_map<Type, int>&
     }
 }
 
-void Time::parseBlock(const std::string& block, std::unordered_map<Type, int>& out)
+void Time::parseBlock(const std::string& block, std::unordered_map<Type, int8_t>& out)
 {
     size_t end = 0;
-    int v = std::stoi(block, &end, 10);
+    auto v = static_cast<int8_t>(std::stoi(block, &end, 10));
     if (end < block.size()) {
         std::string type = block.substr(end);
         if(type == "y") {

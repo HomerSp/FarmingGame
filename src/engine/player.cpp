@@ -18,7 +18,7 @@ int32_t Player::radius()
     return Character::width() * 4;
 }
 
-float Player::strength()
+float_t Player::strength()
 {
     return 0.25f;
 }

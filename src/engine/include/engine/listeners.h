@@ -30,9 +30,9 @@ public:
 
     class MoveListener : public Listener {
     public:
-        MoveListener(asIScriptFunction* fun, int x, int y);
+        MoveListener(asIScriptFunction* fun, int32_t x, int32_t y);
         
-        bool check(int x, int y, bool force = false);
+        bool check(int32_t x, int32_t y, bool force = false);
 
     private:
         Types::Point<> mTarget;

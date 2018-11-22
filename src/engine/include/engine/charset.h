@@ -27,12 +27,12 @@ public:
 
     Charset(const std::string& name);
 
-    void draw(Renderer& renderer, const Types::Point<>& pos, Charset::Type type, int direction = 0, int frame = 0);
+    void draw(Renderer& renderer, const Types::Point<>& pos, Charset::Type type, int32_t direction = 0, int32_t frame = 0);
 
-    int width(Charset::Type type);
-    int height(Charset::Type type);
+    int32_t width(Charset::Type type);
+    int32_t height(Charset::Type type);
 
-    int columns(Charset::Type type);
+    int32_t columns(Charset::Type type);
 
     Types::Rect<> collision(Charset::Type type);
 

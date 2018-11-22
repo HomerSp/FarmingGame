@@ -45,7 +45,7 @@ void Camera::follow(Camera::Target* target)
     mTargetPos.y = 0;
 }
 
-void Camera::moveTo(int dstX, int dstY, asIScriptFunction* fun)
+void Camera::moveTo(int32_t dstX, int32_t dstY, asIScriptFunction* fun)
 {
     if (fun != nullptr) {
         std::lock_guard<std::mutex> lock(mListenerMutex);
@@ -69,12 +69,14 @@ bool Camera::processAsync(uint64_t frameDiff, Map* map)
 {
     std::lock_guard<std::mutex> lock(mMovementMutex);
 
-    float posX = mPos.x;
-    float posY = mPos.y;
-    float targetPosX = mTargetPos.x;
-    float targetPosY = mTargetPos.y;
-    float targetX = targetPosX;
-    float targetY = targetPosY;
+    float_t posX = mPos.x;
+    float_t posY = mPos.y;
+    float_t targetPosX = mTargetPos.x;
+    float_t targetPosY = mTargetPos.y;
+    float_t targetX = targetPosX;
+    float_t targetY = targetPosY;
+
+    // If we have a target we need to follow that.
     if (mTarget != nullptr) {
         targetX =  mTarget->x() + std::floor(mTarget->width() / 2) - std::floor(mDimen.width / 2);
         targetY = mTarget->y() + std::floor(mTarget->height() * 0.75f) - std::floor(mDimen.height / 2);
@@ -87,7 +89,7 @@ bool Camera::processAsync(uint64_t frameDiff, Map* map)
             posY = targetY;
         }
 
-        float val = frameDiff / 5.0f;
+        float_t val = frameDiff / 5.0f;
         if (posX < targetX) {
             if (posX + val >= targetX) {
                 posX = targetX;
@@ -189,7 +191,7 @@ void Camera::processListeners()
     }
 }
 
-void Camera::setPosition(int x, int y)
+void Camera::setPosition(int32_t x, int32_t y)
 {
     std::lock_guard<std::mutex> lock(mMovementMutex);
     mTarget = nullptr;
@@ -225,10 +227,10 @@ void Camera::registerClass(asIScriptEngine* engine)
 {
     registerReference<Camera>(engine);
     registerType<Camera::Target>(engine);
-    REGISTER_FUNC(engine, Camera, float, x);
-    REGISTER_FUNC(engine, Camera, float, y);
-    REGISTER_FUNC_ARGS(engine, Camera, void, moveTo, int, int);
-    REGISTER_FUNC_ARGS(engine, Camera, void, moveTo, int, int, ScriptCallback&&);
+    REGISTER_FUNC(engine, Camera, float_t, x);
+    REGISTER_FUNC(engine, Camera, float_t, y);
+    REGISTER_FUNC_ARGS(engine, Camera, void, moveTo, int32_t, int32_t);
+    REGISTER_FUNC_ARGS(engine, Camera, void, moveTo, int32_t, int32_t, ScriptCallback&&);
     REGISTER_FUNC_ARGS(engine, Camera, void, follow, Camera::Target&&);
     REGISTER_FUNC_ARGS(engine, Camera, void, follow, const Character&);
 }

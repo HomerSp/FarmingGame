@@ -8,7 +8,8 @@
 using namespace engine;
 
 Clock::Clock()
-    : mCurrent(0.0f)
+    : mCurrent(0)
+    , mCurrentMod(0.0f)
     , mDawn(6)
     , mSunrise(8)
     , mSunset(18)
@@ -16,79 +17,84 @@ Clock::Clock()
 {
 }
 
-double Clock::current() const
+uint64_t Clock::current() const
 {
     return mCurrent;
 }
 
-uint32_t Clock::year() const
+uint8_t Clock::year() const
 {
-    return 1 + static_cast<uint32_t>(std::floor(mCurrent / 60 / 24 / 30 / 4));
+    return 1 + static_cast<uint8_t>(std::floor(mCurrent / 60.0f / 24.0f / 30.0f / 4.0f));
 }
 
-uint32_t Clock::month() const
+uint8_t Clock::month() const
 {
-    return 1 + static_cast<uint32_t>(std::floor(mCurrent / 60 / 24 / 30)) % 4;
+    return 1 + static_cast<uint8_t>(std::floor(mCurrent / 60.0f / 24.0f / 30.0f)) % 4;
 }
 
-uint32_t Clock::day() const
+uint8_t Clock::day() const
 {
-    return 1 + static_cast<uint32_t>(std::floor(mCurrent / 60 / 24)) % 30;
+    return 1 + static_cast<uint8_t>(std::floor(mCurrent / 60.0f / 24.0f)) % 30;
 }
 
-uint32_t Clock::week() const
+uint8_t Clock::week() const
 {
-    return 1 + static_cast<uint32_t>(std::floor(mCurrent / 60 / 24 / 7)) % 4;
+    return 1 + static_cast<uint8_t>(std::floor(mCurrent / 60.0f / 24.0f / 7.0f)) % 4;
 }
 
-uint32_t Clock::weekDay() const
+uint8_t Clock::weekDay() const
 {
-    return 1 + static_cast<uint32_t>(std::floor(mCurrent / 60 / 24)) % 7;
+    return 1 + static_cast<uint8_t>(std::floor(mCurrent / 60.0f / 24.0f)) % 7;
 }
 
-uint32_t Clock::hour() const
+uint8_t Clock::hour() const
 {
-    return static_cast<uint32_t>(std::floor(mCurrent / 60)) % 24;
+    return static_cast<uint8_t>(std::floor(mCurrent / 60.0f)) % 24;
 }
 
-uint32_t Clock::minute() const
+uint8_t Clock::minute() const
 {
-    return static_cast<uint32_t>(std::floor(mCurrent)) % 60;
+    return static_cast<uint8_t>(mCurrent % 60);
 }
 
-uint32_t Clock::dawn() const
+uint8_t Clock::dawn() const
 {
     return mDawn;
 }
 
-uint32_t Clock::sunrise() const
+uint8_t Clock::sunrise() const
 {
     return mSunrise;
 }
 
-uint32_t Clock::sunset() const
+uint8_t Clock::sunset() const
 {
     return mSunset;
 }
 
-uint32_t Clock::dusk() const
+uint8_t Clock::dusk() const
 {
     return mDusk;
 }
 
 bool Clock::daylight() const
 {
-    uint32_t h = static_cast<uint32_t>(std::floor(mCurrent / 60)) % 24;
+    auto h = hour();
     return h >= mSunrise && h < mSunset;
 }
 
 bool Clock::processAsync(uint64_t frameDiff, Map* map)
 {
-    uint64_t val = std::floor(mCurrent);
-    mCurrent.store(mCurrent + (frameDiff / 1000.0f));
+    mCurrentMod += (frameDiff / 1000.0f);
+
+    uint64_t current = mCurrent;
+    uint64_t val = current + std::floor(mCurrentMod);
 
     bool changed = false;
-    if (std::floor(mCurrent) != val) {
+    if (val != current) {
+        mCurrent = val;
+        mCurrentMod -= std::floor(mCurrentMod);
+
         std::lock_guard<std::mutex> lock(mListenerMutex);
         for(auto& i: mChangeListeners) {
             i->check(mCurrent);
@@ -119,15 +125,19 @@ void Clock::processListeners()
     }
 }
 
-void Clock::setTime(int h, int m)
+void Clock::fastForward(float_t v) {
+    mCurrentMod += v;
+}
+
+void Clock::setTime(int32_t h, int32_t m)
 {
     if(h > 23 || m > 59) {
         return;
     }
 
-    int v = m + (h * 60);
-    int c = minute() + (hour() * 60);
-    mCurrent.store(mCurrent + (v - c));
+    int32_t v = m + (h * 60);
+    int32_t c = minute() + (hour() * 60);
+    mCurrent = mCurrent + (v - c);
 }
 
 void Clock::on(const std::string& type, const std::string& format, asIScriptFunction* func)
@@ -169,7 +179,7 @@ Clock::ChangeListener::ChangeListener(asIScriptFunction* fun, const std::string&
     , mHour(-1)
     , mMinute(-1)
 {
-    std::unordered_map<Time::Type, int> data;
+    std::unordered_map<Time::Type, int8_t> data;
     Time::parseString(format, data);
 
     mYear = (data.find(Time::Year) != data.end()) ? data.find(Time::Year)->second : -1;
@@ -184,7 +194,7 @@ Clock::ChangeListener::ChangeListener(asIScriptFunction* fun, const std::string&
 bool Clock::ChangeListener::check(uint64_t val)
 {
     if (mYear != -1) {
-        auto v = static_cast<int>(std::floor(val / 60 / 24 / 28 / 4));
+        auto v = static_cast<int8_t>(std::floor(val / 60.0f / 24.0f / 28.0f / 4.0f));
         if (mYear != v + 1) {
             mTriggered = false;
             return false;
@@ -192,7 +202,7 @@ bool Clock::ChangeListener::check(uint64_t val)
     }
 
     if (mMonth != -1) {
-        auto v = static_cast<int>(std::floor(val / 60 / 24 / 28)) % 4;
+        auto v = static_cast<int8_t>(std::floor(val / 60.0f / 24.0f / 28.0f)) % 4;
         if (mMonth != v + 1) {
             mTriggered = false;
             return false;
@@ -200,7 +210,7 @@ bool Clock::ChangeListener::check(uint64_t val)
     }
 
     if (mDay != -1) {
-        auto v = static_cast<int>(std::floor(val / 60 / 24)) % 28;
+        auto v = static_cast<int8_t>(std::floor(val / 60.0f / 24.0f)) % 28;
         if (mDay != v + 1) {
             mTriggered = false;
             return false;
@@ -208,7 +218,7 @@ bool Clock::ChangeListener::check(uint64_t val)
     }
 
     if (mWeek != -1) {
-        auto v = static_cast<int>(std::floor(val / 60 / 24 / 7)) % 4;
+        auto v = static_cast<int8_t>(std::floor(val / 60.0f / 24.0f / 7.0f)) % 4;
         if (mWeek != v + 1) {
             mTriggered = false;
             return false;
@@ -216,7 +226,7 @@ bool Clock::ChangeListener::check(uint64_t val)
     }
 
     if (mWeekDay != -1) {
-        auto v = static_cast<int>(std::floor(val / 60 / 24)) % 7;
+        auto v = static_cast<int8_t>(std::floor(val / 60.0f / 24.0f)) % 7;
         if (mWeekDay != v + 1) {
             mTriggered = false;
             return false;
@@ -224,7 +234,7 @@ bool Clock::ChangeListener::check(uint64_t val)
     }
 
     if (mHour != -1) {
-        auto v = static_cast<int>(std::floor(val / 60)) % 24;
+        auto v = static_cast<int8_t>(std::floor(val / 60.0f)) % 24;
         if (mHour != v) {
             mTriggered = false;
             return false;
@@ -232,7 +242,7 @@ bool Clock::ChangeListener::check(uint64_t val)
     }
 
     if (mMinute != -1) {
-        auto v = static_cast<int>(std::floor(val)) % 60;
+        auto v = static_cast<int8_t>(val % 60);
         if (mMinute != v) {
             mTriggered = false;
             return false;

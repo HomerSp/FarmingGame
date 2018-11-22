@@ -8,14 +8,14 @@ void FunctionPtrHelper::init()
     sTypes.emplace_back(std::make_pair("bool", std::type_index(typeid(bool))));
     sTypes.emplace_back(std::make_pair("int8", std::type_index(typeid(int8_t))));
     sTypes.emplace_back(std::make_pair("int16", std::type_index(typeid(int16_t))));
-    sTypes.emplace_back(std::make_pair("int", std::type_index(typeid(int))));
+    sTypes.emplace_back(std::make_pair("int", std::type_index(typeid(int32_t))));
     sTypes.emplace_back(std::make_pair("int64", std::type_index(typeid(int64_t))));
     sTypes.emplace_back(std::make_pair("uint8", std::type_index(typeid(uint8_t))));
     sTypes.emplace_back(std::make_pair("uint16", std::type_index(typeid(uint16_t))));
-    sTypes.emplace_back(std::make_pair("uint", std::type_index(typeid(uint))));
+    sTypes.emplace_back(std::make_pair("uint", std::type_index(typeid(uint32_t))));
     sTypes.emplace_back(std::make_pair("uint64", std::type_index(typeid(uint64_t))));
-    sTypes.emplace_back(std::make_pair("float", std::type_index(typeid(float))));
-    sTypes.emplace_back(std::make_pair("double", std::type_index(typeid(double))));
+    sTypes.emplace_back(std::make_pair("float", std::type_index(typeid(float_t))));
+    sTypes.emplace_back(std::make_pair("double", std::type_index(typeid(double_t))));
     sTypes.emplace_back(std::make_pair("string", std::type_index(typeid(std::string))));
 }
 
@@ -94,7 +94,7 @@ FunctionPtrArgs& FunctionPtrArgs::operator<<(int16_t val)
     return *this;
 }
 
-FunctionPtrArgs& FunctionPtrArgs::operator<<(int val)
+FunctionPtrArgs& FunctionPtrArgs::operator<<(int32_t val)
 {
     mContext.SetArgDWord(mCurrent++, val);
     return *this;
@@ -118,7 +118,7 @@ FunctionPtrArgs& FunctionPtrArgs::operator<<(uint16_t val)
     return *this;
 }
 
-FunctionPtrArgs& FunctionPtrArgs::operator<<(uint val)
+FunctionPtrArgs& FunctionPtrArgs::operator<<(uint32_t val)
 {
     mContext.SetArgDWord(mCurrent++, val);
     return *this;
@@ -130,13 +130,13 @@ FunctionPtrArgs& FunctionPtrArgs::operator<<(uint64_t val)
     return *this;
 }
 
-FunctionPtrArgs& FunctionPtrArgs::operator<<(float val)
+FunctionPtrArgs& FunctionPtrArgs::operator<<(float_t val)
 {
     mContext.SetArgFloat(mCurrent++, val);
     return *this;
 }
 
-FunctionPtrArgs& FunctionPtrArgs::operator<<(double val)
+FunctionPtrArgs& FunctionPtrArgs::operator<<(double_t val)
 {
     mContext.SetArgDouble(mCurrent++, val);
     return *this;

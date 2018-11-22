@@ -51,13 +51,13 @@ void Listeners::Listener::setCanTrigger(bool b)
     mCanTrigger = b;
 }
 
-Listeners::MoveListener::MoveListener(asIScriptFunction* fun, int x, int y)
+Listeners::MoveListener::MoveListener(asIScriptFunction* fun, int32_t x, int32_t y)
     : Listener(fun)
     , mTarget(x, y)
 {
 }
 
-bool Listeners::MoveListener::check(int x, int y, bool force)
+bool Listeners::MoveListener::check(int32_t x, int32_t y, bool force)
 {
     if (canTrigger() || (!force && x != mTarget.x) || (!force && y != mTarget.y)) {
         return false;

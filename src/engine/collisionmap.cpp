@@ -20,8 +20,8 @@ CollisionMap::CollisionMap(uint32_t width, uint32_t height)
 CollisionMap::CollisionMap(const std::string& path)
     : CollisionMap()
 {
-    std::vector<unsigned char> buffer;
-    std::vector<unsigned char> data;
+    std::vector<uint8_t> buffer;
+    std::vector<uint8_t> data;
 
     lodepng::load_file(buffer, path);
     if (lodepng::decode(data, mWidth, mHeight, buffer) != 0) {
@@ -136,13 +136,13 @@ void CollisionMap::set(uint32_t x, uint32_t y, bool b)
 
 void CollisionMap::save(const std::string& path)
 {
-    std::vector<unsigned char> buffer;
-    std::vector<unsigned char> data;
+    std::vector<uint8_t> buffer;
+    std::vector<uint8_t> data;
     data.reserve(mWidth * mHeight * 4);
 
     for (uint32_t y = 0; y < mHeight; y++) {
         for (uint32_t x = 0; x < mWidth; x++) {
-            unsigned char c = get(x, y) ? 0 : 255;
+            uint8_t c = get(x, y) ? 0 : 255;
             data.push_back(c);
             data.push_back(c);
             data.push_back(c);
@@ -158,7 +158,7 @@ void CollisionMap::save(const std::string& path)
     state.encoder.zlibsettings.lazymatching = 1;
     state.encoder.zlibsettings.windowsize = 32768;
 
-    std::vector<unsigned char> temp;
+    std::vector<uint8_t> temp;
     state.encoder.filter_strategy = LFS_ZERO;
     state.encoder.zlibsettings.minmatch = 3;
     state.encoder.zlibsettings.btype = 2;

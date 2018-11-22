@@ -1,8 +1,9 @@
 #pragma once
 
+#include <cmath>
 #include <functional>
-#include <sstream>
 #include <memory>
+#include <sstream>
 #include <typeindex>
 #include <vector>
 
@@ -77,14 +78,14 @@ public:
     FunctionPtrArgs& operator<<(bool val);
     FunctionPtrArgs& operator<<(int8_t val);
     FunctionPtrArgs& operator<<(int16_t val);
-    FunctionPtrArgs& operator<<(int val);
+    FunctionPtrArgs& operator<<(int32_t val);
     FunctionPtrArgs& operator<<(int64_t val);
     FunctionPtrArgs& operator<<(uint8_t val);
     FunctionPtrArgs& operator<<(uint16_t val);
-    FunctionPtrArgs& operator<<(uint val);
+    FunctionPtrArgs& operator<<(uint32_t val);
     FunctionPtrArgs& operator<<(uint64_t val);
-    FunctionPtrArgs& operator<<(float val);
-    FunctionPtrArgs& operator<<(double val);
+    FunctionPtrArgs& operator<<(float_t val);
+    FunctionPtrArgs& operator<<(double_t val);
     FunctionPtrArgs& operator<<(std::string val);
 
 private:

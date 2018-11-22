@@ -33,7 +33,7 @@ public:
     bool processAsync(uint64_t frameDiff, Map* map, std::vector<std::shared_ptr<Character>> *characters = nullptr, Camera* camera = nullptr);
     void processListeners();
 
-    void velocity(uint64_t frameDiff, float x, float y);
+    void velocity(uint64_t frameDiff, float_t x, float_t y);
 
     virtual int32_t x();
     virtual int32_t y();
@@ -46,10 +46,10 @@ public:
     void turnTo(Direction::Type direction);
 
     void setDirection(Direction::Type direction);
-    void setSpeed(float speed);
-    void setFriction(float friction);
-    void setX(float x);
-    void setY(float y);
+    void setSpeed(float_t speed);
+    void setFriction(float_t friction);
+    void setX(float_t x);
+    void setY(float_t y);
 
     bool operator!() const
     {
@@ -60,9 +60,9 @@ public:
     static std::string className();
 
 protected:
-    void checkCollision(const Character& other, Types::Point<float>& dst);
+    void checkCollision(const Character& other, Types::Point<float_t>& dst);
 
-    void updateVelocity(float& velocity, float direction, float val, bool hasTarget);
+    void updateVelocity(float_t& velocity, float_t direction, float_t val, bool hasTarget);
 
 private:
     bool mValid;
@@ -71,17 +71,17 @@ private:
     Charset::Type mCharsetType;
     std::shared_ptr<engine::Image> mPortrait;
 
-    float mFrame;
+    float_t mFrame;
 
-    float mDirectionTurn;
+    float_t mDirectionTurn;
     Direction::Type mDirectionTo;
     Direction::Type mDirection;
 
-    float mSpeed;
-    Types::Point<float> mPos;
-    Types::Point<float> mVelocity;
-    Types::Point<int> mTarget;
-    float mFriction;
+    float_t mSpeed;
+    Types::Point<float_t> mPos;
+    Types::Point<float_t> mVelocity;
+    Types::Point<int32_t> mTarget;
+    float_t mFriction;
     std::mutex mMovementMutex;
 
     std::mutex mListenerMutex;

@@ -8,9 +8,9 @@
 namespace engine {
 class Types {
 public:
-    typedef typename std::unordered_map<int, std::unordered_map<int, int>> Map2D;
+    typedef typename std::unordered_map<int32_t, std::unordered_map<int32_t, int32_t>> Map2D;
 
-    template<typename T = int>
+    template<typename T = int32_t>
     struct Rect {
     public:
         Rect(T x = 0, T y = 0, T w = 0, T h = 0)
@@ -21,7 +21,7 @@ public:
         T width, height;
     };
 
-    template<typename T = int, typename R = T>
+    template<typename T = int32_t, typename R = T>
     struct Point {
     public:
         Point(R x = 0, R y = 0)
@@ -31,7 +31,7 @@ public:
         T x, y;
     };
 
-    template<typename T = int>
+    template<typename T = int32_t>
     struct Dimension {
     public:
         Dimension(T w = 0, T h = 0)
@@ -55,7 +55,7 @@ public:
         uint8_t r, g, b, a;
     };
 
-    template<typename T = int>
+    template<typename T = int32_t>
     struct Quad {
     public:
         Quad(T x1 = 0, T y1 = 0, T x2 = 0, T y2 = 0)
@@ -68,10 +68,10 @@ public:
 
     struct Pair {
     public:
-        Pair(int first = 0, int second = 0);
+        Pair(int32_t first = 0, int32_t second = 0);
 
-        int first;
-        int second;
+        int32_t first;
+        int32_t second;
     };
 
     struct Ellipse {
@@ -117,5 +117,10 @@ public:
 
         std::bitset<Type::Last> bits;
     };
+
+    static constexpr uint32_t hash(const char* str, uint32_t h = 0)
+    {
+        return !str[h] ? 5381 : (hash(str, h + 1) * 33) ^ str[h];
+    }
 };
 }

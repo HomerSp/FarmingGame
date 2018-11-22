@@ -15,10 +15,10 @@ public:
         Minute,
     } Type;
 
-    static void parseString(const std::string& format, std::unordered_map<Type, int>& out);
+    static void parseString(const std::string& format, std::unordered_map<Type, int8_t>& out);
 
 private:
-    static void parseBlock(const std::string& block, std::unordered_map<Type, int>& out);
+    static void parseBlock(const std::string& block, std::unordered_map<Type, int8_t>& out);
 
 };
 }

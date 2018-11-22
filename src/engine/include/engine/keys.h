@@ -28,18 +28,18 @@ public:
     explicit KeyList() = default;
 
     void append(Keys::Type key);
-    void append(int key);
+    void append(int32_t key);
 
-    void remove(int key);
+    void remove(int32_t key);
 
     bool contains(Keys::Type key);
 
-    Keys::Type& operator[](int type)
+    Keys::Type& operator[](int32_t type)
     {
         return mKeyTable[type];
     }
 
 private:
-    std::unordered_map<int, Keys::Type> mKeyTable;
+    std::unordered_map<int32_t, Keys::Type> mKeyTable;
 };
 }

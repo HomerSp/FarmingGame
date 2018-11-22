@@ -42,7 +42,7 @@ Engine::Engine(uint32_t width, uint32_t height, std::shared_ptr<Renderer> render
 
     std::random_device r;
     std::default_random_engine gen(r());
-    std::uniform_int_distribution<> dis(0, static_cast<int>(Character::Direction::Up));
+    std::uniform_int_distribution<> dis(0, static_cast<int32_t>(Character::Direction::Up));
     for(uint32_t i = 0; i < 24 * 10; i++) {
         mCharacters.push_back(std::make_shared<engine::Character>("dude"));
         mCharacters.back()->setX((8 * 48) + ((i % 24) * 48));
@@ -82,12 +82,12 @@ Engine::~Engine()
     Logger::debug() << "~Engine done";
 }
 
-int Engine::bufferWidth() const
+int32_t Engine::bufferWidth() const
 {
     return mMap->getTileDimension().width * 2;
 }
 
-int Engine::bufferHeight() const
+int32_t Engine::bufferHeight() const
 {
     return mMap->getTileDimension().height * 2;
 }
@@ -110,9 +110,8 @@ bool Engine::process()
 
 void Engine::animateAsync()
 {
-    FrameTimer frameTimer;
     while (mRunning) {
-        uint64_t diff = frameTimer.diff();
+        uint64_t diff = mAnimationFrameTimer.start();
 
         // Process animations
         if (mPlayer->animate(diff, !mPlayer->isMoving())) {
@@ -126,7 +125,9 @@ void Engine::animateAsync()
         Types::Dimension<> d = mMap->getTileDimension();
         for(auto &i: mCharacters) {
             if (mCamera->contains(*i, d)) {
-                i->animate(diff, false);
+                if (i->animate(diff, false)) {
+                    mNeedRepaint = true;
+                }
             }
         }
 
@@ -140,9 +141,8 @@ void Engine::animateAsync()
 
 void Engine::processAsync()
 {
-    FrameTimer frameTimer;
     while (mRunning) {
-        uint64_t diff = frameTimer.diff();
+        uint64_t diff = mProcessFrameTimer.start();
 
         engine::KeyList downKeys;
         {
@@ -171,7 +171,7 @@ void Engine::processAsync()
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
 
-        float x = 0, y = 0;
+        float_t x = 0, y = 0;
         if (mHasFocus && !downKeys.empty()) {
             bool turned = false;
             for (auto it = downKeys.rbegin(); it != downKeys.rend(); it++) {
@@ -275,7 +275,7 @@ void Engine::paint()
     renderer.fillRect(Types::Rect<>(0, 0, mWidth, mHeight), Types::Color(0, 0, 0));
 
     // Centre small maps.
-    float translateX = 0.0f, translateY = 0.0f;
+    float_t translateX = 0.0f, translateY = 0.0f;
     if (mMap->pixelWidth() < mWidth) {
         translateX = std::floor((mWidth / 2) - (mMap->pixelWidth() / 2));
     }
@@ -292,9 +292,9 @@ void Engine::paint()
     mMap->draw(renderer, dst);
 
     Types::Dimension<> d = mMap->getTileDimension();
-    int startY = std::ceil(mCamera->y() / d.height);
+    int32_t startY = std::ceil(mCamera->y() / d.height);
 
-    std::multimap<int, Character*> drawCharacters;
+    std::multimap<int32_t, Character*> drawCharacters;
     for (auto& i: mCharacters) {
         if (mCamera->contains(*i, d)) {
             drawCharacters.emplace(std::make_pair(i->y() + i->height(), i.get()));
@@ -303,7 +303,7 @@ void Engine::paint()
 
     drawCharacters.emplace(std::make_pair(mPlayer->y() + mPlayer->height(), mPlayer.get()));
 
-    for (int row = startY - 1; row <= startY + std::ceil(mHeight / d.height) + 1; row++) {
+    for (int32_t row = startY - 1; row <= startY + std::ceil(mHeight / d.height) + 1; row++) {
         auto it = drawCharacters.begin();
         while (it != drawCharacters.end()) {
             if (row * d.height >= it->first - d.height) {
@@ -314,23 +314,27 @@ void Engine::paint()
             }
         }
 
-        mMap->drawRow(renderer, dst, row, TilesetAttribute::AboveRow);
+        mMap->drawRow(renderer, dst, row, TilesetAbove::Row);
     }
 
-    for (int row = startY - 1; row <= startY + std::ceil(mHeight / d.height); row++) {
-        mMap->drawRow(renderer, dst, row, TilesetAttribute::AboveAll);
+    for (int32_t row = startY - 1; row <= startY + std::ceil(mHeight / d.height); row++) {
+        mMap->drawRow(renderer, dst, row, TilesetAbove::All);
     }
 
     mScreenEffects->draw(renderer, *mClock.get(), *mCamera.get(), mLights);
 
     std::stringstream str;
-    str << std::setw(2) << std::setfill('0') << mClock->hour() << ":" << std::setw(2) << std::setfill('0') << mClock->minute();
+    str << std::setw(2) << std::setfill('0') << static_cast<int32_t>(mClock->hour()) << ":" << std::setw(2) << std::setfill('0') << static_cast<int32_t>(mClock->minute());
     renderer.drawText({-10, 10}, str.str(), {0, 0, 0}, 24, Types::TextAlign({Types::TextAlign::Right}));
+
+    std::stringstream fpsStr;
+    fpsStr << std::setw(2) << std::setfill('0') << mProcessFrameTimer.framesPerSecond() << "fps";
+    renderer.drawText({10, 10}, fpsStr.str(), {0, 0, 0}, 24, Types::TextAlign({Types::TextAlign::Left}));
 
     mNeedRepaint = false;
 }
 
-void Engine::setKeyMap(const std::unordered_map<int, Keys::Type>& keys)
+void Engine::setKeyMap(const std::unordered_map<int32_t, Keys::Type>& keys)
 {
     std::lock_guard<std::mutex> lock(mDownKeysMutex);
     for (auto key : keys) {
@@ -338,13 +342,13 @@ void Engine::setKeyMap(const std::unordered_map<int, Keys::Type>& keys)
     }
 }
 
-void Engine::setKeyDown(int key)
+void Engine::setKeyDown(int32_t key)
 {
     std::lock_guard<std::mutex> lock(mDownKeysMutex);
     mDownKeys.append(key);
 }
 
-void Engine::setKeyUp(int key)
+void Engine::setKeyUp(int32_t key)
 {
     std::lock_guard<std::mutex> lock(mDownKeysMutex);
     mDownKeys.remove(key);
@@ -405,7 +409,7 @@ bool Engine::registerScript()
     mScript->context()->Prepare(func);
     registerContext();
 
-    int r = mScript->context()->Execute();
+    int32_t r = mScript->context()->Execute();
     if (r == asEXECUTION_EXCEPTION) {
         Logger::error() << "An exception" << mScript->context()->GetExceptionString() << "occurred. Please correct the code and try again.";
         return false;

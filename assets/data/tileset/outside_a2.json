@@ -23,9 +23,7 @@
         },
         {
             "tile": "automatic",
-            "attributes": [
-                "above_row"
-            ]
+            "above": "row"
         },
         {
             "tile": "automatic"

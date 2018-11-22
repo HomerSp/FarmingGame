@@ -42,7 +42,7 @@ Charset::Charset(const std::string& name)
     mValid = !mNodes.empty();
 }
 
-void Charset::draw(Renderer& renderer, const Types::Point<>& pos, Charset::Type type, int direction, int frame)
+void Charset::draw(Renderer& renderer, const Types::Point<>& pos, Charset::Type type, int32_t direction, int32_t frame)
 {
     // Couldn't find the node, return...
     if (mNodes.find(type) == mNodes.end()) {
@@ -55,7 +55,7 @@ void Charset::draw(Renderer& renderer, const Types::Point<>& pos, Charset::Type 
     renderer.drawImage(*mImage, dst, src);
 }
 
-int Charset::width(Charset::Type type)
+int32_t Charset::width(Charset::Type type)
 {
     if (mNodes.find(type) == mNodes.end()) {
         return 0;
@@ -64,7 +64,7 @@ int Charset::width(Charset::Type type)
     return mNodes.at(type)->rect.width;
 }
 
-int Charset::height(Charset::Type type)
+int32_t Charset::height(Charset::Type type)
 {
     if (mNodes.find(type) == mNodes.end()) {
         return 0;
@@ -73,7 +73,7 @@ int Charset::height(Charset::Type type)
     return mNodes.at(type)->rect.height;
 }
 
-int Charset::columns(Charset::Type type)
+int32_t Charset::columns(Charset::Type type)
 {
     if (mNodes.find(type) == mNodes.end()) {
         return 0;

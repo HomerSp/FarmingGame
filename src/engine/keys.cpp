@@ -14,7 +14,7 @@ void KeyList::append(Keys::Type key)
     push_back(key);
 }
 
-void KeyList::append(int key)
+void KeyList::append(int32_t key)
 {
     if (mKeyTable.find(key) == mKeyTable.end()) {
         return;
@@ -23,7 +23,7 @@ void KeyList::append(int key)
     append(mKeyTable.find(key)->second);
 }
 
-void KeyList::remove(int key)
+void KeyList::remove(int32_t key)
 {
     if (mKeyTable.find(key) == mKeyTable.end()) {
         return;

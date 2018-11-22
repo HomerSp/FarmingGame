@@ -12,7 +12,7 @@ QtRenderer::QtRenderer()
 {
 }
 
-int QtRenderer::width()
+int32_t QtRenderer::width()
 {
     if (mPainter == nullptr) {
         engine::Logger::critical() << "No painter set!!!";
@@ -22,7 +22,7 @@ int QtRenderer::width()
     return mPainter->viewport().width();
 }
 
-int QtRenderer::height()
+int32_t QtRenderer::height()
 {
     if (mPainter == nullptr) {
         engine::Logger::critical() << "No painter set!!!";
@@ -57,14 +57,14 @@ void QtRenderer::drawImage(const engine::Image& img, const engine::Types::Rect<>
     mPainter->drawImage(dstRect, native.image(), srcRect);
 }
 
-void QtRenderer::drawText(const engine::Types::Point<>& dst, const std::string& text, const engine::Types::Color& color, int size, engine::Types::TextAlign align)
+void QtRenderer::drawText(const engine::Types::Point<>& dst, const std::string& text, const engine::Types::Color& color, int32_t size, engine::Types::TextAlign align)
 {
     if (mPainter == nullptr) {
         engine::Logger::critical() << "No painter set!!!";
         return;
     }
 
-    int flags = 0;
+    int32_t flags = 0;
     if(align.is(engine::Types::TextAlign::Left)) {
         flags |= Qt::AlignLeft;
     } else if(align.is(engine::Types::TextAlign::Right)) {
@@ -84,7 +84,7 @@ void QtRenderer::drawText(const engine::Types::Point<>& dst, const std::string& 
     QString str = QString(text.c_str());
 
     QFont font = mPainter->font();
-    int oldSize = font.pointSize();
+    int32_t oldSize = font.pointSize();
     if (size >= 0) {
         font.setPointSize(size);
         mPainter->setFont(font);
@@ -101,7 +101,7 @@ void QtRenderer::drawText(const engine::Types::Point<>& dst, const std::string& 
 
 void QtRenderer::drawOverlay(const engine::Types::Point<>& dst, const engine::Types::Overlay& overlay)
 {
-    int bufferSize = 0;
+    int32_t bufferSize = 0;
     for(auto& e: overlay.ellipses) {
         if (e.radius > bufferSize) {
             bufferSize = e.radius;
@@ -135,7 +135,7 @@ void QtRenderer::drawOverlay(const engine::Types::Point<>& dst, const engine::Ty
     mPainter->drawImage(dstRect, o, srcRect);
 }
 
-void QtRenderer::translate(float x, float y)
+void QtRenderer::translate(float_t x, float_t y)
 {
     if (mPainter == nullptr) {
         engine::Logger::critical() << "No painter set!!!";

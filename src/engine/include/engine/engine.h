@@ -23,15 +23,15 @@ public:
     Engine(uint32_t width, uint32_t height, std::shared_ptr<Renderer> renderer);
     ~Engine();
 
-    int bufferWidth() const;
-    int bufferHeight() const;
+    int32_t bufferWidth() const;
+    int32_t bufferHeight() const;
 
     bool process();
     void paint();
 
-    void setKeyMap(const std::unordered_map<int, Keys::Type>& keys);
-    void setKeyDown(int key);
-    void setKeyUp(int key);
+    void setKeyMap(const std::unordered_map<int32_t, Keys::Type>& keys);
+    void setKeyDown(int32_t key);
+    void setKeyUp(int32_t key);
 
     void setFocus(bool focus)
     {
@@ -97,5 +97,8 @@ private:
 
     bool mEnableThreading;
     std::vector<std::unique_ptr<std::thread>> mThreads;
+
+    FrameTimer mProcessFrameTimer;
+    FrameTimer mAnimationFrameTimer;
 };
 }

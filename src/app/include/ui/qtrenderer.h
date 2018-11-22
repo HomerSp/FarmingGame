@@ -26,16 +26,16 @@ public:
     QtRenderer();
     virtual ~QtRenderer() = default;
 
-    int width();
-    int height();
+    int32_t width();
+    int32_t height();
 
     void fillRect(const engine::Types::Rect<>& dst, const engine::Types::Color& color);
 
     void drawImage(const engine::Image& img, const engine::Types::Rect<>& dst, const engine::Types::Rect<>& src);
-    void drawText(const engine::Types::Point<>& dst, const std::string& text, const engine::Types::Color& color, int size, engine::Types::TextAlign align);
+    void drawText(const engine::Types::Point<>& dst, const std::string& text, const engine::Types::Color& color, int32_t size, engine::Types::TextAlign align);
     void drawOverlay(const engine::Types::Point<>& dst, const engine::Types::Overlay& overlay);
 
-    void translate(float x, float y);
+    void translate(float_t x, float_t y);
 
     void save();
     void restore();

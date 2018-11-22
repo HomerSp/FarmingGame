@@ -14,7 +14,9 @@ ScreenEffects::ScreenEffects()
 void ScreenEffects::draw(Renderer& renderer, Clock& clock, Camera& camera, const std::vector<std::shared_ptr<LightSource>> &sources)
 {
     uint32_t h = clock.hour();
-    if (h >= clock.sunrise() && h < clock.sunset()) {
+
+    // Daylight
+    if (clock.daylight()) {
         return;
     }
 
@@ -23,21 +25,25 @@ void ScreenEffects::draw(Renderer& renderer, Clock& clock, Camera& camera, const
     // Night
     if (h < clock.dawn() || h >= clock.dusk()) {
         color.a = 175;
-    // Sunrise
-    } else if (h >= clock.dawn() && h < clock.sunrise()) {
-        float diff = ((static_cast<uint64_t>(std::floor(clock.current())) % (24 * 60)) - (clock.dawn() * 60)) / static_cast<float>((clock.sunrise() - clock.dawn()) * 60);
-        float alpha = 175 - 175 * diff;
-        color.r = 150 * diff;
-        color.a = std::floor(alpha);
-    // Sunset
-    } else if (h >= clock.sunset() && h < clock.dusk()) {
-        float diff = ((static_cast<uint64_t>(std::floor(clock.current())) % (24 * 60)) - (clock.sunset() * 60)) / static_cast<float>((clock.dusk() - clock.sunset()) * 60);
-        float alpha = 175 * diff;
-        color.r = 150 - 150 * diff;
-        color.a = std::floor(alpha);
+    } else {
+        uint32_t currentHour = clock.current() % (24 * 60);
+
+        // Sunrise
+        if (h >= clock.dawn() && h < clock.sunrise()) {
+            float_t diff = (currentHour - clock.dawn() * 60) / ((clock.sunrise() - clock.dawn()) * 60.0f);
+            float_t alpha = 175 - 175 * diff;
+            color.r = 150 * diff;
+            color.a = std::floor(alpha);
+        // Sunset
+        } else if (h >= clock.sunset() && h < clock.dusk()) {
+            float_t diff = (currentHour - (clock.sunset() * 60)) / ((clock.dusk() - clock.sunset()) * 60.0f);
+            float_t alpha = 175 * diff;
+            color.r = 150 - 150 * diff;
+            color.a = std::floor(alpha);
+        }
     }
 
-    int32_t radiusMod = std::abs(static_cast<int32_t>((mRadiusMod - 1.0f) * 32.0f));
+    int32_t radiusMod = std::abs(static_cast<int32_t>((mRadiusMod - 1.0f) * 8.0f));
 
     Types::Overlay overlay(renderer.width(), renderer.height(), color);
     for (auto& source: sources) {
@@ -52,12 +58,12 @@ void ScreenEffects::draw(Renderer& renderer, Clock& clock, Camera& camera, const
 
 bool ScreenEffects::processAsync(uint64_t frameDiff)
 {
-    float m = mRadiusMod - (frameDiff / 1000.0f);
+    float_t m = mRadiusMod - (frameDiff / 1000.0f);
     if (m < 0.0f) {
         m = 2.0f;
     }
 
-    bool changed = std::floor(m) != std::floor(mRadiusMod);
+    bool changed = std::floor(m * 8.0f) != std::floor(mRadiusMod * 8.0f);
     mRadiusMod = m;
     return changed;
 }

@@ -8,9 +8,7 @@
             "tile": "single",
             "base": 2,
             "count": [3, 3],
-            "attributes": [
-                "above_row"
-            ]
+            "above": "row"
         },
 
         // 2 - Apple Tree
@@ -18,9 +16,7 @@
             "tile": "single",
             "base": 2,
             "count": [3, 3],
-            "attributes": [
-                "above_row"
-            ]
+            "above": "row"
         },
 
         // 3 - Pine tree 1
@@ -28,9 +24,7 @@
             "tile": "single",
             "base": 2,
             "count": [2, 3],
-            "attributes": [
-                "above_row"
-            ]
+            "above": "row"
         },
 
         // 4 - Bare Tree
@@ -38,9 +32,7 @@
             "tile": "single",
             "base": 2,
             "count": [2, 3],
-            "attributes": [
-                "above_row"
-            ]
+            "above": "row"
         },
 
         // 5 - Pine Tree 2
@@ -48,9 +40,7 @@
             "tile": "single",
             "base": 2,
             "count": [2, 3],
-            "attributes": [
-                "above_row"
-            ]
+            "above": "row"
         },
 
         // 6 - Patch 1
@@ -68,9 +58,7 @@
             "tile": "single",
             "base": 1,
             "count": [2, 2],
-            "attributes": [
-                "above_row"
-            ]
+            "above": "row"
         }
     ]
 }

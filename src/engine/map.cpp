@@ -18,89 +18,66 @@ MapLayer::MapLayer(Types::Map2D data, std::shared_ptr<Tileset> tileset, uint32_t
     , mTileset(std::move(tileset))
     , mDimensions(width, height)
 {
-    if (!mTileset->updateTiles(mData, mNodes, mDimensions.width, mDimensions.height, TilesetAttribute::AboveNone)) {
+    if (!mTileset->updateTiles(mData, mNodes[TilesetAbove::None], mDimensions.width, mDimensions.height, TilesetAbove::None)) {
         return;
     }
 
-    if (!mTileset->updateTiles(mData, mAboveRowNodes, mDimensions.width, mDimensions.height, TilesetAttribute::AboveRow)) {
+    if (!mTileset->updateTiles(mData, mNodes[TilesetAbove::Row], mDimensions.width, mDimensions.height, TilesetAbove::Row)) {
         return;
     }
 
-    if (!mTileset->updateTiles(mData, mAboveAllNodes, mDimensions.width, mDimensions.height, TilesetAttribute::AboveAll)) {
+    if (!mTileset->updateTiles(mData, mNodes[TilesetAbove::All], mDimensions.width, mDimensions.height, TilesetAbove::All)) {
         return;
     }
 
-    for(auto &nodeY: mNodes) {
-        for (auto &nodeX: nodeY.second) {
-            if(nodeX.second->toggleWidth > 0) {
-                mLightNodes.push_back(nodeX.second.get());
+    for (auto& above: mNodes) {
+        for(auto &nodeY: above.second) {
+            for (auto &nodeX: nodeY.second) {
+                if(nodeX.second->toggleWidth > 0) {
+                    mLightNodes.push_back(nodeX.second.get());
+                }
             }
         }
     }
-
-    for(auto &nodeY: mAboveRowNodes) {
-        for (auto &nodeX: nodeY.second) {
-            if(nodeX.second->toggleWidth > 0) {
-                mLightNodes.push_back(nodeX.second.get());
-            }
-        }
-    }
-
-    for(auto &nodeY: mAboveAllNodes) {
-        for (auto &nodeX: nodeY.second) {
-            if(nodeX.second->toggleWidth > 0) {
-                mLightNodes.push_back(nodeX.second.get());
-            }
-        }
-    }
-
+    
     mValid = true;
 }
 
 bool MapLayer::animate(uint64_t frameDiff)
 {
     bool changed = false;
-    for(auto &nodeY: mNodes) {
-        for (auto &nodeX: nodeY.second) {
-            if (nodeX.second->frames > 0) {
-                float c = nodeX.second->current;
-                c += frameDiff / 200.0f;
-                if (c >= nodeX.second->frames) {
-                    c = 0;
-                }
+    for (auto& above: mNodes) {
+        for (auto &nodeY: above.second) {
+            for (auto &nodeX: nodeY.second) {
+                if (nodeX.second->frames > 0) {
+                    float_t c = nodeX.second->current;
+                    c += frameDiff / 200.0f;
+                    if (c >= nodeX.second->frames) {
+                        c = 0;
+                    }
 
-                changed = std::floor(c) != std::floor(nodeX.second->current);
-                nodeX.second->current = c;
+                    changed = std::floor(c) != std::floor(nodeX.second->current);
+                    nodeX.second->current = c;
+                }
             }
         }
     }
+
     return changed;
 }
 
 void MapLayer::draw(Renderer& renderer, const Types::Rect<>& dst, bool clip)
 {
-    for (auto &nodeY: mNodes) {
+    for (auto &nodeY: mNodes[TilesetAbove::None]) {
         if (nodeY.first >= dst.y - 1 && nodeY.first <= dst.y + dst.height + 1) {
-            drawRow(renderer, dst, nodeY.first, TilesetAttribute::AboveNone, clip);
+            drawRow(renderer, dst, nodeY.first, TilesetAbove::None, clip);
         }
     }
 }
 
-void MapLayer::drawRow(Renderer& renderer, const Types::Rect<>& dst, int row, TilesetAttribute::Type type, bool clip)
+void MapLayer::drawRow(Renderer& renderer, const Types::Rect<>& dst, int32_t row, TilesetAbove::Type above, bool clip)
 {
-    auto* nodes = &mNodes;
-    switch(type) {
-    case TilesetAttribute::AboveNone:
-        break;
-    case TilesetAttribute::AboveRow:
-        nodes = &mAboveRowNodes;
-        break;
-    case TilesetAttribute::AboveAll:
-        nodes = &mAboveAllNodes;
-        break;
-    default:
-        return;
-    }
+    auto* nodes = &mNodes[above];
 
     // No nodes at this row, return.
     if (nodes->find(row) == nodes->end()) {
@@ -129,13 +106,13 @@ bool MapLayer::updateCollisionMap(CollisionMap& map)
         return false;
     }
 
-    for(auto &nodeY: mNodes) {
+    for(auto &nodeY: mNodes[TilesetAbove::None]) {
         for (auto &nodeX: nodeY.second) {
             mTileset->updateCollisionMap(*tilesetCollisionMap, map, *nodeX.second, nodeX.first, nodeY.first);
         }
     }
 
-    for(auto &nodeY: mAboveRowNodes) {
+    for(auto &nodeY: mNodes[TilesetAbove::Row]) {
         for (auto &nodeX: nodeY.second) {
             mTileset->updateCollisionMap(*tilesetCollisionMap, map, *nodeX.second, nodeX.first, nodeY.first);
         }
@@ -146,31 +123,21 @@ bool MapLayer::updateCollisionMap(CollisionMap& map)
 
 bool MapLayer::updateLightSources(std::vector<std::shared_ptr<MapLightSource>>& sources)
 {
-    std::vector<uint32_t> added;
-    if (!updateLightSources(sources, mNodes, added)) {
-        return false;
-    }
-    if (!updateLightSources(sources, mAboveRowNodes, added)) {
-        return false;
-    }
-    if (!updateLightSources(sources, mAboveAllNodes, added)) {
-        return false;
-    }
-
-    return true;
-}
-
-bool MapLayer::updateLightSources(std::vector<std::shared_ptr<MapLightSource>>& sources, std::map<int, std::map<int, std::shared_ptr<TilesetNode>>>& nodes, std::vector<uint32_t> &added)
-{
     Types::Dimension<> d = mTileset->getTileDimension();
-    for(auto &nodeY: nodes) {
-        for (auto &nodeX: nodeY.second) {
-            TilesetNode* node = nodeX.second.get();
-            if (node->type->hasAttribute(TilesetAttribute::LightSource) && std::find(added.begin(), added.end(), node->type->index()) == added.end()) {
-                Types::Point<> base = node->type->lightBase();
-                std::shared_ptr<MapLightSource> s = std::make_shared<MapLightSource>(Types::Point<int32_t>(base.x + nodeX.first * d.width, base.y + nodeY.first * d.height), node->type->lightRadius(), node->type->lightStrength());
-                sources.push_back(s);
-                added.push_back(node->type->index());
+
+    std::vector<uint32_t> added;
+    for (auto& above: mNodes) {
+        for(auto &nodeY: above.second) {
+            for (auto &nodeX: nodeY.second) {
+                TilesetNode* node = nodeX.second.get();
+                if (node->type->hasAttribute(TilesetAttribute::LightSource) && std::find(added.begin(), added.end(), node->type->index()) == added.end()) {
+                    Types::Point<> base = node->type->lightBase();
+                    auto dst = Types::Point<int32_t>(base.x + nodeX.first * d.width, base.y + nodeY.first * d.height);
+                    std::shared_ptr<MapLightSource> s = std::make_shared<MapLightSource>(dst, node->type->lightRadius(), node->type->lightStrength());
+                    sources.push_back(s);
+                    
+                    added.push_back(node->type->index());
+                }
             }
         }
     }
@@ -230,7 +197,7 @@ Map::Map(const std::string& name)
             return;
         }
 
-        std::unordered_map<int, std::unordered_map<int, int>> data;
+        std::unordered_map<int32_t, std::unordered_map<int32_t, int32_t>> data;
         Json::Value dataObj = layerObj["data"];
         for (uint32_t x = 0; x < mDimensions.width; x++) {
             for (uint32_t y = 0; y < mDimensions.height; y++) {
@@ -288,7 +255,7 @@ void Map::draw(Renderer& renderer, const Types::Rect<>& dst, bool clip)
     renderer.translate((dst.x % tileDimens.width), (dst.y % tileDimens.height));
 }
 
-void Map::drawRow(Renderer& renderer, const Types::Rect<>& dst, int row, TilesetAttribute::Type type, bool clip)
+void Map::drawRow(Renderer& renderer, const Types::Rect<>& dst, int32_t row, TilesetAbove::Type above, bool clip)
 {
     Types::Dimension<> tileDimens = getTileDimension();
     Types::Rect<> target;
@@ -299,12 +266,12 @@ void Map::drawRow(Renderer& renderer, const Types::Rect<>& dst, int row, Tileset
 
     renderer.translate(-(dst.x % tileDimens.width), -(dst.y % tileDimens.height));
     for (const auto& layer : mLayers) {
-        layer->drawRow(renderer, target, row, type, clip);
+        layer->drawRow(renderer, target, row, above, clip);
     }
     renderer.translate((dst.x % tileDimens.width), (dst.y % tileDimens.height));
 }
 
-void Map::checkCollision(const Types::Point<float>& pos, const Types::Dimension<>& size, Types::Point<float>& dst, float& velocityX, float& velocityY) const
+void Map::checkCollision(const Types::Point<float_t>& pos, const Types::Dimension<>& size, Types::Point<float_t>& dst, float_t& velocityX, float_t& velocityY) const
 {
     if (pos.x + dst.x < 0.0f) {
         dst.x = 0.0f;
@@ -390,7 +357,7 @@ void Map::toggleLights(bool on)
     }
 }
 
-bool Map::isColliding(const Types::Point<float>& pos, const Types::Dimension<>& size, Types::Pair& diff, int8_t& rDiff, bool vertical) const
+bool Map::isColliding(const Types::Point<float_t>& pos, const Types::Dimension<>& size, Types::Pair& diff, int8_t& rDiff, bool vertical) const
 {
     rDiff = 0;
 
@@ -402,7 +369,7 @@ bool Map::isColliding(const Types::Point<float>& pos, const Types::Dimension<>& 
         diff.first = foundDiff.y1;
         diff.second = foundDiff.y2;
 
-        int obsdiff = size.width / 2;
+        int32_t obsdiff = size.width / 2;
         if ((foundDiff.y1 == 0 && foundDiff.x1 >= 0 && size.width - foundDiff.x2 < obsdiff) || (foundDiff.y2 == 0 && foundDiff.x1 >= 0 && size.width - foundDiff.x2 < obsdiff)) {
             rDiff = 1;
         } else if ((foundDiff.y1 == 0 && foundDiff.x2 >= 0 && size.width - foundDiff.x1 < obsdiff) || (foundDiff.y2 == 0 && foundDiff.x2 >= 0 && size.width - foundDiff.x1 < obsdiff)) {
@@ -412,7 +379,7 @@ bool Map::isColliding(const Types::Point<float>& pos, const Types::Dimension<>& 
         diff.first = foundDiff.x1;
         diff.second = foundDiff.x2;
 
-        int obsdiff = size.height / 2;
+        int32_t obsdiff = size.height / 2;
         if ((foundDiff.x1 == 0 && foundDiff.y1 >= 0 && size.height - foundDiff.y2 < obsdiff) || (foundDiff.x2 == 0 && foundDiff.y1 >= 0 && size.height - foundDiff.y2 < obsdiff)) {
             rDiff = 1;
         } else if ((foundDiff.x1 == 0 && foundDiff.y2 >= 0 && size.height - foundDiff.y1 < obsdiff) || (foundDiff.x2 == 0 && foundDiff.y2 >= 0 && size.height - foundDiff.y1 < obsdiff)) {
@@ -457,7 +424,7 @@ bool Map::operator!() const
     return !mValid;
 }
 
-MapLightSource::MapLightSource(Types::Point<int32_t> pos, int32_t radius, float strength)
+MapLightSource::MapLightSource(Types::Point<int32_t> pos, int32_t radius, float_t strength)
     : mPosition(pos)
     , mRadius(radius)
     , mStrength(strength)
@@ -474,7 +441,7 @@ int32_t MapLightSource::radius()
     return mRadius;
 }
 
-float MapLightSource::strength()
+float_t MapLightSource::strength()
 {
     return mStrength;
 }

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cmath>
 #include <mutex>
 
 #include <engine/listeners.h>
@@ -45,14 +46,14 @@ public:
     uint32_t height() const;
 
     void follow(Target* target);
-    void moveTo(int dstX, int dstY, asIScriptFunction* fun = nullptr);
+    void moveTo(int32_t dstX, int32_t dstY, asIScriptFunction* fun = nullptr);
 
     bool contains(Character& character, const Types::Dimension<>& buf);
 
     bool processAsync(uint64_t frameDiff, Map* map);
     void processListeners();
 
-    void setPosition(int x, int y);
+    void setPosition(int32_t x, int32_t y);
     void setTarget(Target* target);
     void setViewport(const Types::Dimension<uint32_t>& d);
 
@@ -62,8 +63,8 @@ public:
 private:
     Target* mTarget;
     Types::Dimension<uint32_t> mDimen;
-    Types::Point<float> mPos;
-    Types::Point<float> mTargetPos;
+    Types::Point<float_t> mPos;
+    Types::Point<float_t> mTargetPos;
     std::mutex mMovementMutex;
 
     std::mutex mListenerMutex;

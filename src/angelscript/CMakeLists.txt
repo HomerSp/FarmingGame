@@ -5,7 +5,7 @@ project(${PROJECT})
 
 include_directories(
     addon/include
-    ../external/angelscript/src/sdk/angelscript/include
+    ${base_DIR}/external/angelscript/src/sdk/angelscript/include
 )
 
 set(HEADERS

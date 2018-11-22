@@ -40,7 +40,7 @@ public:
     static void registerMethod(asIScriptEngine* engine, const std::string& decl, const asSFuncPtr &funcPointer);
 
     template<typename T>
-    static void registerProperty(asIScriptEngine* engine, const std::string& decl, int offset);
+    static void registerProperty(asIScriptEngine* engine, const std::string& decl, int32_t offset);
 
     template<typename T>
     static void registerType(asIScriptEngine* engine);
@@ -52,7 +52,7 @@ private:
     static void registerReference(asIScriptEngine* engine, const std::string& name);
 
     asIScriptContext* mContext;
-    int mRefs;
+    int32_t mRefs;
 };
 
 struct ScriptCallback : public FunctionPtrCallback {
@@ -106,7 +106,7 @@ void ScriptObject::registerMethod(asIScriptEngine* engine, const std::string& de
 }
 
 template<typename T>
-void ScriptObject::registerProperty(asIScriptEngine* engine, const std::string& decl, int offset)
+void ScriptObject::registerProperty(asIScriptEngine* engine, const std::string& decl, int32_t offset)
 {
     engine->RegisterObjectProperty(T::className().c_str(), decl.c_str(), offset);
 }

@@ -60,8 +60,8 @@ void MapItemView::hoverLeaveEvent(QHoverEvent* event)
 
 void MapItemView::hoverMoveEvent(QHoverEvent* event)
 {
-    float x = std::floor(event->pos().x() / mSquare.width) * mSquare.width;
-    float y = std::floor(event->pos().y() / mSquare.height) * mSquare.height;
+    float_t x = std::floor(event->pos().x() / mSquare.width) * mSquare.width;
+    float_t y = std::floor(event->pos().y() / mSquare.height) * mSquare.height;
     if (x != mSquare.x || y != mSquare.y) {
         mSquare.x = x;
         mSquare.y = y;

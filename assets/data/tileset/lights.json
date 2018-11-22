@@ -13,8 +13,8 @@
                 "radius": 512,
                 "strength": 100
             },
+            "above": "row",
             "attributes": [
-                "above_row",
                 "light_source",
                 "toggle"
             ]
@@ -29,8 +29,8 @@
                 "radius": 512,
                 "strength": 100
             },
+            "above": "row",
             "attributes": [
-                "above_row",
                 "light_source",
                 "toggle"
             ]

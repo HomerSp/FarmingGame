@@ -65,8 +65,8 @@ uint32_t Character::height() const
 void Character::draw(Renderer& renderer, const Types::Point<>& camera)
 {
     std::lock_guard<std::mutex> lock(mMovementMutex);
-    int cols = mCharset->columns(mCharsetType);
-    int frame = std::floor(mFrame);
+    int32_t cols = mCharset->columns(mCharsetType);
+    int32_t frame = std::floor(mFrame);
     if(frame >= cols) {
         frame = frame + 1 - cols;
     }
@@ -78,9 +78,9 @@ void Character::draw(Renderer& renderer, const Types::Point<>& camera)
 bool Character::animate(uint64_t frameDiff, bool reset)
 {
     std::lock_guard<std::mutex> lock(mMovementMutex);
-    float frame = mFrame;
+    float_t frame = mFrame;
     if (!reset) {
-        int cols = mCharset->columns(mCharsetType);
+        int32_t cols = mCharset->columns(mCharsetType);
         frame += frameDiff / 200.0f;
         if (frame >= cols + cols - 2) {
             frame = 0;
@@ -97,16 +97,16 @@ bool Character::animate(uint64_t frameDiff, bool reset)
 bool Character::processAsync(uint64_t frameDiff, Map* map, std::vector<std::shared_ptr<Character>> *characters, Camera* camera)
 {
     bool changed = false;
-    float posX, posY;
+    float_t posX, posY;
     {
         std::lock_guard<std::mutex> lock(mMovementMutex);
         posX = mPos.x;
         posY = mPos.y;
 
-        // Do we have a target? Process that
+        // Do we have a target? Process it.
         if (mTarget.x != -1 || mTarget.y != -1) {
-            float val = frameDiff / 200.0f;
-            int x = 0, y = 0;
+            float_t val = frameDiff / 200.0f;
+            int32_t x = 0, y = 0;
             if (mTarget.x != -1) {
                 if (mTarget.x < posX) {
                     x = -1;
@@ -139,7 +139,7 @@ bool Character::processAsync(uint64_t frameDiff, Map* map, std::vector<std::shar
             }
         }
 
-        // Check if we need to change the direction of the charset
+        // Check if we need to change the direction of the charset.
         if (mDirectionTo != mDirection && (mVelocity.x != 0.0f || mVelocity.y != 0.0f)) {
             mDirectionTurn += frameDiff / 50.0f;
             if (mDirectionTurn >= 1.0f) {
@@ -161,13 +161,13 @@ bool Character::processAsync(uint64_t frameDiff, Map* map, std::vector<std::shar
 
         // If we have any velocity we need to process that.
         if (mVelocity.x != 0.0f || mVelocity.y != 0.0f) {
-            Types::Point<float> dst(mVelocity.x * (frameDiff / 5.0f), mVelocity.y * (frameDiff / 5.0f));
+            Types::Point<float_t> dst(mVelocity.x * (frameDiff / 5.0f), mVelocity.y * (frameDiff / 5.0f));
 
             // Check collisions with the map if we have one
             if (map != nullptr) {
                 Types::Rect<> col = mCharset->collision(mCharsetType);
 
-                Types::Point<float> pos(posX + col.x, posY + col.y);
+                Types::Point<float_t> pos(posX + col.x, posY + col.y);
                 Types::Dimension<> size(col.width, col.height);
                 map->checkCollision(pos, size, dst, mVelocity.x, mVelocity.y);
             }
@@ -213,7 +213,7 @@ bool Character::processAsync(uint64_t frameDiff, Map* map, std::vector<std::shar
 
         // Only set changed if we have actually moved, as this will
         // trigger a repaint.
-        changed = mPos.x != posX || mPos.y != posY;
+        changed = std::floor(mPos.x) != std::floor(posX) || std::floor(mPos.y) != std::floor(posY);
         mPos.x = posX;
         mPos.y = posY;
     }
@@ -259,10 +259,10 @@ void Character::processListeners()
     }
 }
 
-void Character::velocity(uint64_t frameDiff, float x, float y)
+void Character::velocity(uint64_t frameDiff, float_t x, float_t y)
 {
     std::lock_guard<std::mutex> lock(mMovementMutex);
-    float val = frameDiff / 200.0f;
+    float_t val = frameDiff / 200.0f;
     updateVelocity(mVelocity.x, x, val, mTarget.x != -1);
     updateVelocity(mVelocity.y, y, val, mTarget.y != -1);
 }
@@ -273,7 +273,7 @@ bool Character::isMoving()
     return mVelocity.x != 0.0f || mVelocity.y != 0.0f;
 }
 
-void Character::moveTo(int x, int y, asIScriptFunction* fun)
+void Character::moveTo(int32_t x, int32_t y, asIScriptFunction* fun)
 {
     if (fun != nullptr) {
         std::lock_guard<std::mutex> lock(mListenerMutex);
@@ -301,41 +301,41 @@ void Character::setDirection(Direction::Type direction)
     mDirectionTurn = 0.0f;
 }
 
-void Character::setSpeed(float speed)
+void Character::setSpeed(float_t speed)
 {
     std::lock_guard<std::mutex> lock(mMovementMutex);
     mSpeed = speed;
 }
 
-void Character::setFriction(float friction)
+void Character::setFriction(float_t friction)
 {
     std::lock_guard<std::mutex> lock(mMovementMutex);
     mFriction = friction;
 }
 
-void Character::setX(float x)
+void Character::setX(float_t x)
 {
     std::lock_guard<std::mutex> lock(mMovementMutex);
     mPos.x = x;
 }
 
-void Character::setY(float y)
+void Character::setY(float_t y)
 {
     std::lock_guard<std::mutex> lock(mMovementMutex);
     mPos.y = y;
 }
 
-void Character::checkCollision(const Character& other, Types::Point<float>& dst)
+void Character::checkCollision(const Character& other, Types::Point<float_t>& dst)
 {
     Types::Rect<> col = mCharset->collision(mCharsetType);
-    Types::Quad<float> charQuad(mPos.x + col.x, mPos.y + col.y, mPos.x + col.x + col.width, mPos.y + col.y + col.height);
+    Types::Quad<float_t> charQuad(mPos.x + col.x, mPos.y + col.y, mPos.x + col.x + col.width, mPos.y + col.y + col.height);
 
     Types::Rect<> othercol = other.mCharset->collision(other.mCharsetType);
-    Types::Quad<float> otherQuad(other.mPos.x + othercol.x, other.mPos.y + othercol.y, other.mPos.x + othercol.x + othercol.width, other.mPos.y + othercol.y + othercol.height);
+    Types::Quad<float_t> otherQuad(other.mPos.x + othercol.x, other.mPos.y + othercol.y, other.mPos.x + othercol.x + othercol.width, other.mPos.y + othercol.y + othercol.height);
 
     // Check x collision.
     if (dst.x != 0.0f && ((charQuad.y1 >= otherQuad.y1 && charQuad.y1 < otherQuad.y2) || (charQuad.y2 >= otherQuad.y1 && charQuad.y2 < otherQuad.y2))) {
-        float d = dst.x - std::floor(dst.x);
+        float_t d = dst.x - std::floor(dst.x);
         // Moving Left
         if (dst.x < 0.0f) {
             // We may be moving more than one pixel at a time, which can cause us to move through objects
@@ -357,7 +357,7 @@ void Character::checkCollision(const Character& other, Types::Point<float>& dst)
 
     // Check y collision.
     if (dst.y != 0.0f && ((charQuad.x1 >= otherQuad.x1 && charQuad.x1 < otherQuad.x2) || (charQuad.x2 >= otherQuad.x1 && charQuad.x2 < otherQuad.x2))) {
-        float d = dst.y - std::floor(dst.y);
+        float_t d = dst.y - std::floor(dst.y);
         // Moving Up
         if (dst.y < 0.0f) {
             for (int32_t i = std::floor(dst.y); i <= 0; i++) {
@@ -377,7 +377,7 @@ void Character::checkCollision(const Character& other, Types::Point<float>& dst)
     }
 }
 
-void Character::updateVelocity(float& velocity, float direction, float val, bool hasTarget)
+void Character::updateVelocity(float_t& velocity, float_t direction, float_t val, bool hasTarget)
 {
     if (direction != 0) {
         val *= (direction < 0) ? -direction : direction;
@@ -432,8 +432,8 @@ std::string Character::className()
 void Character::registerClass(asIScriptEngine* engine)
 {
     registerReference<Character>(engine);
-    REGISTER_FUNC(engine, Character, float, x);
-    REGISTER_FUNC(engine, Character, float, y);
-    REGISTER_FUNC_ARGS(engine, Character, void, moveTo, int, int);
-    REGISTER_FUNC_ARGS(engine, Character, void, moveTo, int, int, ScriptCallback&&);
+    REGISTER_FUNC(engine, Character, float_t, x);
+    REGISTER_FUNC(engine, Character, float_t, y);
+    REGISTER_FUNC_ARGS(engine, Character, void, moveTo, int32_t, int32_t);
+    REGISTER_FUNC_ARGS(engine, Character, void, moveTo, int32_t, int32_t, ScriptCallback&&);
 }
