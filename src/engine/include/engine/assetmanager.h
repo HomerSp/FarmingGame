@@ -18,6 +18,7 @@ public:
         Map,
         Charset,
         Tileset,
+        Font,
     };
 
     static std::shared_ptr<AssetManager> get();
@@ -29,6 +30,7 @@ public:
     std::string dataPath(Type type, const std::string& name);
     std::string imagePath(Type type, const std::string& name);
     std::string collisionPath(Type type, const std::string& name);
+    std::string fontPath(const std::string& name);
 
     void setRenderer(std::shared_ptr<Renderer> renderer);
 

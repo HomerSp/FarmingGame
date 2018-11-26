@@ -57,6 +57,15 @@ uint8_t Clock::minute() const
     return static_cast<uint8_t>(mCurrent % 60);
 }
 
+uint8_t Clock::minuteRounded() const
+{
+    auto m = static_cast<uint8_t>(mCurrent % 60);
+    uint8_t ms = std::floor(m / 10);
+    uint8_t ls = m % 10;
+    ls = (ls < 5) ? 0 : 5;
+    return (ms * 10) + ls;
+}
+
 uint8_t Clock::dawn() const
 {
     return mDawn;
@@ -95,15 +104,17 @@ bool Clock::processAsync(uint64_t frameDiff, Map* map)
         mCurrent = val;
         mCurrentMod -= std::floor(mCurrentMod);
 
-        std::lock_guard<std::mutex> lock(mListenerMutex);
-        for(auto& i: mChangeListeners) {
-            i->check(mCurrent);
+        if (val % 5 == 0) {
+            std::lock_guard<std::mutex> lock(mListenerMutex);
+            for(auto& i: mChangeListeners) {
+                i->check(mCurrent);
+            }
         }
+
+        map->toggleLights(!daylight());
 
         changed = true;
     }
-
-    map->toggleLights(!daylight());
 
     return changed;
 }

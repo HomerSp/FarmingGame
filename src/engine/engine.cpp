@@ -323,13 +323,21 @@ void Engine::paint()
 
     mScreenEffects->draw(renderer, *mClock.get(), *mCamera.get(), mLights);
 
+    std::string clockDivider = ":";
+    if (mClock->minute() % 2 == 0) {
+        clockDivider = " ";
+    }
+
+    Types::Rect<> clockRc(renderer.width() - 10 - (24 * 5), 0, 24 * 5 + 10, (24 * 2) + (10 * 3));
+    renderer.fillRect(clockRc, Types::Color(255, 255, 255));
+
     std::stringstream str;
-    str << std::setw(2) << std::setfill('0') << static_cast<int32_t>(mClock->hour()) << ":" << std::setw(2) << std::setfill('0') << static_cast<int32_t>(mClock->minute());
-    renderer.drawText({-10, 10}, str.str(), {0, 0, 0}, 24, Types::TextAlign({Types::TextAlign::Right}));
+    str << std::setw(2) << std::setfill('0') << static_cast<int32_t>(mClock->hour()) << clockDivider << std::setw(2) << std::setfill('0') << static_cast<int32_t>(mClock->minuteRounded());
+    renderer.drawText({clockRc.x, clockRc.y, clockRc.width, 24 + 15}, str.str(), {0, 0, 0}, 24, Types::TextAlign({Types::TextAlign::CentreH, Types::TextAlign::CentreV}), "hud");
 
     std::stringstream fpsStr;
-    fpsStr << std::setw(2) << std::setfill('0') << mProcessFrameTimer.framesPerSecond() << "fps";
-    renderer.drawText({10, 10}, fpsStr.str(), {0, 0, 0}, 24, Types::TextAlign({Types::TextAlign::Left}));
+    fpsStr << mProcessFrameTimer.framesPerSecond() << "fps";
+    renderer.drawText({clockRc.x, clockRc.y + 24 + 15, clockRc.width, 24 + 15}, fpsStr.str(), {0, 0, 0}, 24, Types::TextAlign({Types::TextAlign::CentreH, Types::TextAlign::CentreV}), "hud");
 
     mNeedRepaint = false;
 }

@@ -46,6 +46,7 @@ public:
     uint8_t weekDay() const;
     uint8_t hour() const;
     uint8_t minute() const;
+    uint8_t minuteRounded() const;
 
     uint8_t dawn() const;
     uint8_t sunrise() const;

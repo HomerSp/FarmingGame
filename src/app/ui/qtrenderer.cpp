@@ -1,8 +1,10 @@
 #include <QByteArray>
 #include <QDataStream>
+#include <QFontDatabase>
 #include <QIODevice>
 #include <QImage>
 
+#include <engine/fontmanager.h>
 #include <engine/logger.h>
 
 #include <ui/qtrenderer.h>
@@ -10,6 +12,12 @@
 QtRenderer::QtRenderer()
     : mPainter(nullptr)
 {
+    std::vector<std::string> fonts;
+    if (engine::FontManager::get()->files(fonts)) {
+        for (const std::string& f: fonts) {
+            QFontDatabase::addApplicationFont(f.c_str());
+        }
+    }
 }
 
 int32_t QtRenderer::width()
@@ -57,7 +65,7 @@ void QtRenderer::drawImage(const engine::Image& img, const engine::Types::Rect<>
     mPainter->drawImage(dstRect, native.image(), srcRect);
 }
 
-void QtRenderer::drawText(const engine::Types::Point<>& dst, const std::string& text, const engine::Types::Color& color, int32_t size, engine::Types::TextAlign align)
+void QtRenderer::drawText(const engine::Types::Rect<>& dst, const std::string& text, const engine::Types::Color& color, int32_t size, engine::Types::TextAlign align, std::string type)
 {
     if (mPainter == nullptr) {
         engine::Logger::critical() << "No painter set!!!";
@@ -84,17 +92,18 @@ void QtRenderer::drawText(const engine::Types::Point<>& dst, const std::string& 
     QString str = QString(text.c_str());
 
     QFont font = mPainter->font();
-    int32_t oldSize = font.pointSize();
+    font.setFamily(engine::FontManager::get()->font(type).c_str());
+    int32_t oldSize = font.pixelSize();
     if (size >= 0) {
-        font.setPointSize(size);
+        font.setPixelSize(size);
         mPainter->setFont(font);
     }
 
     mPainter->setPen({color.r, color.g, color.b, color.a});
-    mPainter->drawText(QRect(dst.x, dst.y, width(), height()), flags, str);
+    mPainter->drawText(QRect(dst.x, dst.y, dst.width, dst.height), flags, str);
 
     if (size >= 0) {
-        font.setPointSize(oldSize);
+        font.setPixelSize(oldSize);
         mPainter->setFont(font);
     }
 }
@@ -172,6 +181,10 @@ void QtRenderer::setPainter(QPainter* painter)
     QPainterPath screen;
     screen.addRect(0, 0, width(), height());
     mPainter->setClipPath(screen);
+
+    QFont font = mPainter->font();
+    font.setPixelSize(24);
+    mPainter->setFont(font);
 }
 
 std::shared_ptr<engine::Image> QtRenderer::loadImage(const std::string& path)

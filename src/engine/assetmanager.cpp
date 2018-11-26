@@ -78,6 +78,9 @@ std::string AssetManager::dataPath(Type type, const std::string& name)
     case Tileset:
         ret += "tileset";
         break;
+    case Font:
+        ret += "font";
+        break;
     default:
         return "";
     }
@@ -111,6 +114,11 @@ std::string AssetManager::collisionPath(Type type, const std::string& name)
         return "";
     }
     return ret + "/" + name + ".png";
+}
+
+std::string AssetManager::fontPath(const std::string& name)
+{
+    return mBase + "/font/" + name + ".otf";
 }
 
 void AssetManager::setRenderer(std::shared_ptr<Renderer> renderer)

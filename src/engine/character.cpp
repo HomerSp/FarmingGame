@@ -432,8 +432,8 @@ std::string Character::className()
 void Character::registerClass(asIScriptEngine* engine)
 {
     registerReference<Character>(engine);
-    REGISTER_FUNC(engine, Character, float_t, x);
-    REGISTER_FUNC(engine, Character, float_t, y);
+    REGISTER_FUNC(engine, Character, int32_t, x);
+    REGISTER_FUNC(engine, Character, int32_t, y);
     REGISTER_FUNC_ARGS(engine, Character, void, moveTo, int32_t, int32_t);
     REGISTER_FUNC_ARGS(engine, Character, void, moveTo, int32_t, int32_t, ScriptCallback&&);
 }

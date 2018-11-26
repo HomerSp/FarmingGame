@@ -83,28 +83,32 @@ set(SOURCES
 add_executable(collision_encoder ${SOURCES})
 target_link_libraries(collision_encoder ${engine_EXTRA_LIBRARY})
 
-# Script Files
-set(assets_out_SCRIPT "")
+# Binary Files
+
 file(GLOB_RECURSE assets_SCRIPT RELATIVE ${assets_ROOT} "${assets_ROOT}/assets/script/*.as")
-foreach(script IN ITEMS ${assets_SCRIPT})
-    add_custom_command(OUTPUT "${CMAKE_BINARY_DIR}/${script}"
-        COMMAND ${CMAKE_CURRENT_BINARY_DIR}/script_encoder "${assets_ROOT}/${script}" "${CMAKE_BINARY_DIR}/${script}"
-        COMMENT "Generating script file ${script}..."
-        DEPENDS "${assets_ROOT}/${script}"
+file(GLOB_RECURSE assets_FONT RELATIVE ${assets_ROOT} "${assets_ROOT}/assets/font/*")
+
+set(assets_BINARY ${assets_SCRIPT} ${assets_FONT})
+set(assets_out_BINARY "")
+foreach(bin IN ITEMS ${assets_BINARY})
+    add_custom_command(OUTPUT "${CMAKE_BINARY_DIR}/${bin}"
+        COMMAND ${CMAKE_CURRENT_BINARY_DIR}/binary_encoder "${assets_ROOT}/${bin}" "${CMAKE_BINARY_DIR}/${bin}"
+        COMMENT "Generating binary file ${bin}..."
+        DEPENDS "${assets_ROOT}/${bin}"
     )
 
-    set(assets_out_SCRIPT ${assets_out_SCRIPT} "${CMAKE_BINARY_DIR}/${script}")
-endforeach(script)
+    set(assets_out_BINARY ${assets_out_BINARY} "${CMAKE_BINARY_DIR}/${bin}")
+endforeach(bin)
 
-ADD_CUSTOM_TARGET(assets_script ALL
-   DEPENDS ${assets_out_SCRIPT}
-   DEPENDS script_encoder
+ADD_CUSTOM_TARGET(assets_binary ALL
+   DEPENDS ${assets_out_BINARY}
+   DEPENDS binary_encoder
 )
 
 set(SOURCES
     utils.cpp
-    script_encoder.cpp
+    binary_encoder.cpp
 )
 
-add_executable(script_encoder ${SOURCES})
-target_link_libraries(script_encoder)
+add_executable(binary_encoder ${SOURCES})
+target_link_libraries(binary_encoder)

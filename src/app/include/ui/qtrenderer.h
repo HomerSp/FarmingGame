@@ -32,7 +32,7 @@ public:
     void fillRect(const engine::Types::Rect<>& dst, const engine::Types::Color& color);
 
     void drawImage(const engine::Image& img, const engine::Types::Rect<>& dst, const engine::Types::Rect<>& src);
-    void drawText(const engine::Types::Point<>& dst, const std::string& text, const engine::Types::Color& color, int32_t size, engine::Types::TextAlign align);
+    void drawText(const engine::Types::Rect<>& dst, const std::string& text, const engine::Types::Color& color, int32_t size, engine::Types::TextAlign align, std::string type);
     void drawOverlay(const engine::Types::Point<>& dst, const engine::Types::Overlay& overlay);
 
     void translate(float_t x, float_t y);

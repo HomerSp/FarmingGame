@@ -18,6 +18,7 @@ set(HEADERS
 	include/engine/collisionmap.h
 	include/engine/engine.h
 	include/engine/frametimer.h
+    include/engine/fontmanager.h
 	include/engine/image.h
 	include/engine/keys.h
 	include/engine/listeners.h
@@ -41,6 +42,7 @@ set(SOURCES
 	collisionmap.cpp
 	engine.cpp
 	frametimer.cpp
+    fontmanager.cpp
 	image.cpp
 	keys.cpp
 	listeners.cpp
