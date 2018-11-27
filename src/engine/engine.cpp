@@ -32,6 +32,7 @@ Engine::Engine(uint32_t width, uint32_t height, std::shared_ptr<Renderer> render
 
     mScript = std::make_shared<Engine::ScriptCreator>();
 
+    mHud = std::make_shared<engine::Hud>();
     mScreenEffects = std::make_shared<engine::ScreenEffects>();
     mCamera = std::make_shared<engine::Camera>(mWidth, mHeight);
     mClock = std::make_shared<engine::Clock>();
@@ -322,22 +323,7 @@ void Engine::paint()
     }
 
     mScreenEffects->draw(renderer, *mClock.get(), *mCamera.get(), mLights);
-
-    std::string clockDivider = ":";
-    if (mClock->minute() % 2 == 0) {
-        clockDivider = " ";
-    }
-
-    Types::Rect<> clockRc(renderer.width() - 10 - (24 * 5), 0, 24 * 5 + 10, (24 * 2) + (10 * 3));
-    renderer.fillRect(clockRc, Types::Color(255, 255, 255));
-
-    std::stringstream str;
-    str << std::setw(2) << std::setfill('0') << static_cast<int32_t>(mClock->hour()) << clockDivider << std::setw(2) << std::setfill('0') << static_cast<int32_t>(mClock->minuteRounded());
-    renderer.drawText({clockRc.x, clockRc.y, clockRc.width, 24 + 15}, str.str(), {0, 0, 0}, 24, Types::TextAlign({Types::TextAlign::CentreH, Types::TextAlign::CentreV}), "hud");
-
-    std::stringstream fpsStr;
-    fpsStr << mProcessFrameTimer.framesPerSecond() << "fps";
-    renderer.drawText({clockRc.x, clockRc.y + 24 + 15, clockRc.width, 24 + 15}, fpsStr.str(), {0, 0, 0}, 24, Types::TextAlign({Types::TextAlign::CentreH, Types::TextAlign::CentreV}), "hud");
+    mHud->draw(renderer, *mClock.get(), mProcessFrameTimer);
 
     mNeedRepaint = false;
 }

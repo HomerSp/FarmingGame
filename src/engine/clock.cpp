@@ -1,4 +1,6 @@
+#include <algorithm>
 #include <cstdlib>
+#include <iomanip>
 
 #include <engine/clock.h>
 #include <engine/logger.h>
@@ -57,15 +59,6 @@ uint8_t Clock::minute() const
     return static_cast<uint8_t>(mCurrent % 60);
 }
 
-uint8_t Clock::minuteRounded() const
-{
-    auto m = static_cast<uint8_t>(mCurrent % 60);
-    uint8_t ms = std::floor(m / 10);
-    uint8_t ls = m % 10;
-    ls = (ls < 5) ? 0 : 5;
-    return (ms * 10) + ls;
-}
-
 uint8_t Clock::dawn() const
 {
     return mDawn;
@@ -90,6 +83,23 @@ bool Clock::daylight() const
 {
     auto h = hour();
     return h >= mSunrise && h < mSunset;
+}
+
+std::string Clock::hourFormatted() const
+{
+    std::stringstream str;
+    str << std::setw(2) << std::setfill('0') << static_cast<int32_t>(static_cast<uint8_t>(std::floor(mCurrent / 60.0f)) % 24);
+    return str.str();
+}
+
+std::string Clock::minuteFormatted() const
+{
+    auto m = static_cast<uint8_t>(mCurrent % 60);
+    int minutes = (std::floor(m / 10) * 10) + ((m % 10 < 5) ? 0 : 5);
+
+    std::stringstream str;
+    str << std::setw(2) << std::setfill('0') << static_cast<int32_t>(minutes);
+    return str.str();
 }
 
 bool Clock::processAsync(uint64_t frameDiff, Map* map)

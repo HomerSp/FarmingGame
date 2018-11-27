@@ -29,12 +29,14 @@ public:
     int32_t width();
     int32_t height();
 
+    void fillEllipse(const engine::Types::Rect<>& dst, const engine::Types::Color& color);
     void fillRect(const engine::Types::Rect<>& dst, const engine::Types::Color& color);
 
-    void drawImage(const engine::Image& img, const engine::Types::Rect<>& dst, const engine::Types::Rect<>& src);
+    void drawImage(const engine::Image& img, engine::Types::Rect<> dst, engine::Types::Rect<> src);
     void drawText(const engine::Types::Rect<>& dst, const std::string& text, const engine::Types::Color& color, int32_t size, engine::Types::TextAlign align, std::string type);
     void drawOverlay(const engine::Types::Point<>& dst, const engine::Types::Overlay& overlay);
 
+    void rotate(float_t deg);
     void translate(float_t x, float_t y);
 
     void save();

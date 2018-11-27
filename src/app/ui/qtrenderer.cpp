@@ -40,6 +40,18 @@ int32_t QtRenderer::height()
     return mPainter->viewport().height();
 }
 
+void QtRenderer::fillEllipse(const engine::Types::Rect<>& dst, const engine::Types::Color& color)
+{
+    if (mPainter == nullptr) {
+        engine::Logger::critical() << "No painter set!!!";
+        return;
+    }
+
+    mPainter->setBrush(QColor(color.r, color.g, color.b, color.a));
+    mPainter->drawEllipse(QPointF(dst.x, dst.y), dst.width / 2, dst.height / 2);
+    mPainter->setBrush(Qt::NoBrush);
+}
+
 void QtRenderer::fillRect(const engine::Types::Rect<>& dst, const engine::Types::Color& color)
 {
     if (mPainter == nullptr) {
@@ -52,12 +64,17 @@ void QtRenderer::fillRect(const engine::Types::Rect<>& dst, const engine::Types:
     mPainter->fillRect(dstRect, c);
 }
 
-void QtRenderer::drawImage(const engine::Image& img, const engine::Types::Rect<>& dst, const engine::Types::Rect<>& src)
+void QtRenderer::drawImage(const engine::Image& img, engine::Types::Rect<> dst, engine::Types::Rect<> src)
 {
     if (mPainter == nullptr) {
         engine::Logger::critical() << "No painter set!!!";
         return;
     }
+
+    dst.width = (dst.width == 0) ? img.width() : dst.width;
+    dst.height = (dst.height == 0) ? img.height() : dst.height;
+    src.width = (src.width == 0) ? img.width() : src.width;
+    src.height = (src.height == 0) ? img.height() : src.height;
 
     const auto& native = dynamic_cast<const QtImage&>(img);
     QRectF srcRect(src.x, src.y, src.width, src.height);
@@ -144,6 +161,16 @@ void QtRenderer::drawOverlay(const engine::Types::Point<>& dst, const engine::Ty
     mPainter->drawImage(dstRect, o, srcRect);
 }
 
+void QtRenderer::rotate(float_t deg)
+{
+    if (mPainter == nullptr) {
+        engine::Logger::critical() << "No painter set!!!";
+        return;
+    }
+
+    mPainter->rotate(deg);
+}
+
 void QtRenderer::translate(float_t x, float_t y)
 {
     if (mPainter == nullptr) {
@@ -177,6 +204,7 @@ void QtRenderer::restore()
 void QtRenderer::setPainter(QPainter* painter)
 {
     mPainter = painter;
+    mPainter->setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing | QPainter::SmoothPixmapTransform);
 
     QPainterPath screen;
     screen.addRect(0, 0, width(), height());

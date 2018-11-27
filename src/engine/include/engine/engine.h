@@ -11,6 +11,7 @@
 #include <engine/character.h>
 #include <engine/clock.h>
 #include <engine/frametimer.h>
+#include <engine/hud.h>
 #include <engine/keys.h>
 #include <engine/map.h>
 #include <engine/player.h>
@@ -86,6 +87,7 @@ private:
 
     std::shared_ptr<Renderer> mRenderer;
 
+    std::shared_ptr<engine::Hud> mHud;
     std::shared_ptr<engine::ScreenEffects> mScreenEffects;
     std::shared_ptr<engine::Camera> mCamera;
     std::shared_ptr<engine::Clock> mClock;

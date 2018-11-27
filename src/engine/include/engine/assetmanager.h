@@ -19,6 +19,7 @@ public:
         Charset,
         Tileset,
         Font,
+        Ui,
     };
 
     static std::shared_ptr<AssetManager> get();
