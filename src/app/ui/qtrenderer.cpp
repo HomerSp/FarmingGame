@@ -71,10 +71,10 @@ void QtRenderer::drawImage(const engine::Image& img, engine::Types::Rect<> dst, 
         return;
     }
 
-    dst.width = (dst.width == 0) ? img.width() : dst.width;
-    dst.height = (dst.height == 0) ? img.height() : dst.height;
     src.width = (src.width == 0) ? img.width() : src.width;
     src.height = (src.height == 0) ? img.height() : src.height;
+    dst.width = (dst.width == 0) ? src.width : dst.width;
+    dst.height = (dst.height == 0) ? src.height : dst.height;
 
     const auto& native = dynamic_cast<const QtImage&>(img);
     QRectF srcRect(src.x, src.y, src.width, src.height);

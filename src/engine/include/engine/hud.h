@@ -15,10 +15,12 @@ public:
 
 protected:
     void drawClock(Renderer& renderer, Clock& clock);
+    void drawItems(Renderer& renderer);
 
 private:
-    std::shared_ptr<Image> mClockBackground, mClockForeground;
-    std::shared_ptr<Image> mClockMiddle;
-    std::shared_ptr<Image> mMinuteHand, mHourHand;
+    std::shared_ptr<Image> mClockImage;
+    std::shared_ptr<Image> mLeftItemImage;
+    std::shared_ptr<Image> mItemImage;
+    std::shared_ptr<Image> mTestItem;
 };
 }

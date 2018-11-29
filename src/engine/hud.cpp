@@ -9,82 +9,80 @@ using namespace engine;
 
 Hud::Hud()
 {
-    mClockBackground = AssetManager::get()->image(AssetManager::Ui, "clock_background");
-    mClockForeground = AssetManager::get()->image(AssetManager::Ui, "clock_foreground");
-    mClockMiddle = AssetManager::get()->image(AssetManager::Ui, "clock_midpoint");
-    mMinuteHand = AssetManager::get()->image(AssetManager::Ui, "clock_hand_down");
-    mHourHand = AssetManager::get()->image(AssetManager::Ui, "clock_hand_down_short");
+    mClockImage = AssetManager::get()->image(AssetManager::Ui, "hud_clock");
+    mLeftItemImage = AssetManager::get()->image(AssetManager::Ui, "hud_item_left");
+    mTestItem = AssetManager::get()->image(AssetManager::Ui, "item_hammer");
 }
 
 void Hud::draw(Renderer& renderer, Clock& clock, FrameTimer& frameTimer)
 {
     renderer.save();
 
-    Types::Dimension<> clockDimen(mClockBackground->width(), mClockBackground->width());
+    // Bottom hud
+    renderer.translate(renderer.width() / 2, renderer.height() - static_cast<int32_t>(mClockImage->height() / 2) - 16);
 
-    int hudWidth = 24 * 5 + 10;
-    int hudHeight = clockDimen.height + 24 + (10 * 3);
-    renderer.translate(renderer.width() - hudWidth, 0);
-
-    Types::Rect<> clockRc(0, 0, hudWidth, hudHeight);
-    renderer.fillRect(clockRc, Types::Color(255, 255, 255));
-
-    // Clock
-    renderer.translate(hudWidth - (clockDimen.width / 2), clockDimen.height / 2);
+    renderer.translate(-static_cast<int32_t>(mClockImage->height() / 2), 0);
+    drawItems(renderer);
+    renderer.translate(static_cast<int32_t>(mClockImage->height() / 2), 0);
+    
     drawClock(renderer, clock);
-    renderer.translate(-(hudWidth - (clockDimen.width / 2)), -(clockDimen.height / 2));
+    renderer.translate(-(renderer.width() / 2), -(renderer.height() - static_cast<int32_t>(mClockImage->height() / 2) - 16));
 
     // FPS Counter
-    renderer.translate(0, 32 + 15);
+    Types::Rect<> fpsRc(0, 0, 24 * 6, 24);
+    renderer.translate(renderer.width() - fpsRc.width, 0);
+    renderer.fillRect(fpsRc, Types::Color(255, 255, 255));
 
     std::stringstream fpsStr;
     fpsStr << frameTimer.framesPerSecond() << "fps";
-    renderer.drawText({0, 0, clockRc.width, 32 + 15}, fpsStr.str(), {0, 0, 0}, 24, Types::TextAlign({Types::TextAlign::CentreH, Types::TextAlign::CentreV}), "hud");
+    renderer.drawText({0, 0, fpsRc.width, fpsRc.height}, fpsStr.str(), {0, 0, 0}, 24, Types::TextAlign({Types::TextAlign::CentreH, Types::TextAlign::CentreV}), "hud");
 
     renderer.restore();
 }
 
 void Hud::drawClock(Renderer& renderer, Clock& clock)
 {
-    int32_t centreX = std::floor(mClockBackground->width() / 2);
-    int32_t centreY = std::floor(mClockBackground->height() / 2);
+    Types::Dimension<> clockDimen(mClockImage->width() / 2, mClockImage->height());
+
+    int32_t centreX = static_cast<int32_t>(clockDimen.width / 2);
+    int32_t centreY = static_cast<int32_t>(clockDimen.height / 2);
+
+    renderer.translate(-centreX, -centreY);
 
     // Background
-    renderer.translate(-centreX, -centreY);
-    renderer.drawImage(*mClockBackground.get());
-    renderer.translate(centreX, centreY);
+    Types::Rect<> clockRc(0, 0, clockDimen.width, clockDimen.height);
+    renderer.drawImage(*mClockImage.get(), {}, clockRc);
 
     // Hour and minutes
-    renderer.translate(10 - centreX, 24 - centreY);
-    renderer.drawText({0, 0, 22, 16}, clock.hourFormatted(), {255, 255, 255, 175}, 16, Types::TextAlign({Types::TextAlign::CentreH, Types::TextAlign::CentreV}), "hud");
-    renderer.translate(22, 0);
-    renderer.drawText({0, 0, 22, 16}, clock.minuteFormatted(), {255, 255, 255, 175}, 16, Types::TextAlign({Types::TextAlign::CentreH, Types::TextAlign::CentreV}), "hud");
-    renderer.translate(-22, 0);
-    renderer.translate(-(10 - centreX), -(24 - centreY));
+    Types::Rect<> textRc(0, 0, clockDimen.width, clockDimen.height);
+    renderer.drawText(textRc, clock.timeFormatted(), {0, 0, 0, 175}, 18, Types::TextAlign({Types::TextAlign::CentreH, Types::TextAlign::CentreV}), "hud");
 
-    // Minute arrow
-    int16_t minDeg = (clock.minute() * 6) - 180;
-    renderer.rotate(minDeg);
-    renderer.translate(-std::floor(mMinuteHand->width() / 2), 0);
-    renderer.drawImage(*mMinuteHand.get());
-    renderer.translate(std::floor(mMinuteHand->width() / 2), 0);
-    renderer.rotate(-minDeg);
-
-    // Hour arrow
-    int16_t hourDeg = (((clock.hour() % 12 * 60) + clock.minute()) * 0.5f) - 180;
-    renderer.rotate(hourDeg);
-    renderer.translate(-std::floor(mHourHand->width() / 2), 0);
-    renderer.drawImage(*mHourHand.get());
-    renderer.translate(std::floor(mHourHand->width() / 2), 0);
-    renderer.rotate(-hourDeg);
-
-    // Mid point
-    renderer.translate(-std::floor(mClockMiddle->width() / 2), -std::floor(mClockMiddle->height() / 2));
-    renderer.drawImage(*mClockMiddle.get());
-    renderer.translate(std::floor(mClockMiddle->width() / 2), std::floor(mClockMiddle->height() / 2));
+    renderer.translate(centreX, centreY);
 
     // Foreground
     renderer.translate(-centreX, -centreY);
-    renderer.drawImage(*mClockForeground.get());
+
+    clockRc.x = clockDimen.width;
+    renderer.drawImage(*mClockImage.get(), {}, clockRc);
+
     renderer.translate(centreX, centreY);
+}
+
+void Hud::drawItems(Renderer& renderer)
+{
+    renderer.translate(-static_cast<int32_t>(mLeftItemImage->width() / 6), -static_cast<int32_t>(mLeftItemImage->height() / 2));
+
+    Types::Rect<> leftItemRc(0, 0, mLeftItemImage->width() / 3, mLeftItemImage->height());
+    renderer.drawImage(*mLeftItemImage.get(), {}, leftItemRc);
+
+    renderer.translate(static_cast<int32_t>(mLeftItemImage->height() / 2), static_cast<int32_t>(mLeftItemImage->height() / 2));
+    renderer.translate(-(static_cast<int32_t>(mTestItem->width() / 2)), -(static_cast<int32_t>(mTestItem->height() / 2)));
+    renderer.drawImage(*mTestItem.get());
+    renderer.translate((static_cast<int32_t>(mTestItem->width() / 2)), (static_cast<int32_t>(mTestItem->height() / 2)));
+    renderer.translate(-static_cast<int32_t>(mLeftItemImage->height() / 2), -static_cast<int32_t>(mLeftItemImage->height() / 2));
+
+    leftItemRc.x = (mLeftItemImage->width() / 3) * 2;
+    renderer.drawImage(*mLeftItemImage.get(), {}, leftItemRc);
+
+    renderer.translate(static_cast<int32_t>(mLeftItemImage->width() / 6), static_cast<int32_t>(mLeftItemImage->height() / 2));
 }
