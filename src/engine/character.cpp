@@ -139,7 +139,7 @@ bool Character::processAsync(uint64_t frameDiff, Map* map, std::vector<std::shar
             }
         }
 
-        // Check if we need to change the direction of the charset.
+        // Check if we need to change the direction of the character.
         if (mDirectionTo != mDirection && (mVelocity.x != 0.0f || mVelocity.y != 0.0f)) {
             mDirectionTurn += frameDiff / 50.0f;
             if (mDirectionTurn >= 1.0f) {
@@ -216,6 +216,15 @@ bool Character::processAsync(uint64_t frameDiff, Map* map, std::vector<std::shar
         changed = std::floor(mPos.x) != std::floor(posX) || std::floor(mPos.y) != std::floor(posY);
         mPos.x = posX;
         mPos.y = posY;
+    }
+
+    // We may have reached the target without moving
+    if (mTarget.x != -1 && posX == mTarget.x) {
+        mTarget.x = -1;
+    }
+
+    if (mTarget.y != -1 && posY == mTarget.y) {
+        mTarget.y = -1;
     }
 
     // Check any listeners we may have set.
