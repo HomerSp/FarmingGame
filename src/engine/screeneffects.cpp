@@ -32,13 +32,13 @@ void ScreenEffects::draw(Renderer& renderer, Clock& clock, Camera& camera, const
         if (h >= clock.dawn() && h < clock.sunrise()) {
             float_t diff = (currentHour - clock.dawn() * 60) / ((clock.sunrise() - clock.dawn()) * 60.0f);
             float_t alpha = 175 - 175 * diff;
-            color.r = 150 * diff;
+            color.r = 50 * diff;
             color.a = std::floor(alpha);
         // Sunset
         } else if (h >= clock.sunset() && h < clock.dusk()) {
             float_t diff = (currentHour - (clock.sunset() * 60)) / ((clock.dusk() - clock.sunset()) * 60.0f);
             float_t alpha = 175 * diff;
-            color.r = 150 - 150 * diff;
+            color.r = 50 - 50 * diff;
             color.a = std::floor(alpha);
         }
     }
