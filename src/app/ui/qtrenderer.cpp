@@ -171,7 +171,7 @@ void QtRenderer::rotate(float_t deg)
     mPainter->rotate(deg);
 }
 
-void QtRenderer::translate(float_t x, float_t y)
+void QtRenderer::translate(int32_t x, int32_t y)
 {
     if (mPainter == nullptr) {
         engine::Logger::critical() << "No painter set!!!";

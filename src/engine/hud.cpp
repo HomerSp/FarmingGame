@@ -10,7 +10,7 @@ using namespace engine;
 Hud::Hud()
 {
     mClockImage = AssetManager::get()->image(AssetManager::Ui, "hud_clock");
-    mLeftItemImage = AssetManager::get()->image(AssetManager::Ui, "hud_item_left");
+    mItemEquipped = AssetManager::get()->image(AssetManager::Ui, "hud_item_equipped");
     mTestItem = AssetManager::get()->image(AssetManager::Ui, "item_hammer");
     mBarSmall = AssetManager::get()->image(AssetManager::Ui, "hud_bar_small");
 }
@@ -20,18 +20,18 @@ void Hud::draw(Renderer& renderer, Clock& clock, FrameTimer& frameTimer)
     renderer.save();
 
     // Bottom hud
-    renderer.translate(renderer.width() / 2, renderer.height() - static_cast<int32_t>(mClockImage->height() / 2) - 16);
+    renderer.translate(renderer.width() / 2, renderer.height() - (mClockImage->height() / 2) - 16);
 
-    renderer.translate(-static_cast<int32_t>(mClockImage->height() / 2), 0);
+    renderer.translate(-(mClockImage->height() / 2), 0);
     drawItems(renderer);
-    renderer.translate(static_cast<int32_t>(mClockImage->height() / 2), 0);
+    renderer.translate((mClockImage->height() / 2), 0);
 
-    renderer.translate(static_cast<int32_t>(mClockImage->height() / 2), 0);
+    renderer.translate((mClockImage->height() / 2), 0);
     drawHealth(renderer);
-    renderer.translate(-static_cast<int32_t>(mClockImage->height() / 2), 0);
+    renderer.translate(-(mClockImage->height() / 2), 0);
 
     drawClock(renderer, clock);
-    renderer.translate(-(renderer.width() / 2), -(renderer.height() - static_cast<int32_t>(mClockImage->height() / 2) - 16));
+    renderer.translate(-(renderer.width() / 2), -(renderer.height() - (mClockImage->height() / 2) - 16));
 
     // FPS Counter
     Types::Rect<> fpsRc(0, 0, 24 * 6, 24);
@@ -49,8 +49,8 @@ void Hud::drawClock(Renderer& renderer, Clock& clock)
 {
     Types::Dimension<> clockDimen(mClockImage->width() / 2, mClockImage->height());
 
-    int32_t centreX = static_cast<int32_t>(clockDimen.width / 2);
-    int32_t centreY = static_cast<int32_t>(clockDimen.height / 2);
+    int32_t centreX = (clockDimen.width / 2);
+    int32_t centreY = (clockDimen.height / 2);
 
     renderer.translate(-centreX, -centreY);
 
@@ -82,7 +82,7 @@ void Hud::drawHealth(Renderer& renderer)
     renderer.translate(0, 42);
 
     // Health
-    renderer.translate(0, -static_cast<int32_t>(mBarSmall->height()));
+    renderer.translate(0, -(mBarSmall->height()));
     drawBarSmall(renderer, 96, {255, 0, 0, 175}, 50);
     renderer.translate(0, mBarSmall->height());
 
@@ -91,18 +91,18 @@ void Hud::drawHealth(Renderer& renderer)
 
 void Hud::drawItems(Renderer& renderer)
 {
-    Types::Rect<> leftItemRc(0, 0, mLeftItemImage->width() / 2, mLeftItemImage->height());
+    Types::Rect<> leftItemRc(0, 0, mItemEquipped->width() / 2, mItemEquipped->height());
     renderer.translate(-(leftItemRc.width / 2), -(leftItemRc.height / 2));
-    renderer.drawImage(*mLeftItemImage.get(), {}, leftItemRc);
+    renderer.drawImage(*mItemEquipped.get(), {}, leftItemRc);
 
     renderer.translate(leftItemRc.height / 2, leftItemRc.height / 2);
-    renderer.translate(-static_cast<int32_t>(mTestItem->width() / 2), -static_cast<int32_t>(mTestItem->height() / 2));
+    renderer.translate(-(mTestItem->width() / 2), -(mTestItem->height() / 2));
     renderer.drawImage(*mTestItem.get());
     renderer.translate(mTestItem->width() / 2, mTestItem->height() / 2);
     renderer.translate(-leftItemRc.height / 2, -leftItemRc.height / 2);
 
     leftItemRc.x = leftItemRc.width;
-    renderer.drawImage(*mLeftItemImage.get(), {}, leftItemRc);
+    renderer.drawImage(*mItemEquipped.get(), {}, leftItemRc);
 
     renderer.translate((leftItemRc.width / 2), (leftItemRc.height / 2));
 }

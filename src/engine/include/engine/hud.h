@@ -23,8 +23,7 @@ protected:
 private:
     std::shared_ptr<Image> mClockImage;
 
-    std::shared_ptr<Image> mLeftItemImage;
-    std::shared_ptr<Image> mItemImage;
+    std::shared_ptr<Image> mItemEquipped;
     std::shared_ptr<Image> mTestItem;
 
     std::shared_ptr<Image> mBarSmall;

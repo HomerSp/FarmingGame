@@ -37,7 +37,7 @@ public:
     void drawOverlay(const engine::Types::Point<>& dst, const engine::Types::Overlay& overlay);
 
     void rotate(float_t deg);
-    void translate(float_t x, float_t y);
+    void translate(int32_t x, int32_t y);
 
     void save();
     void restore();
