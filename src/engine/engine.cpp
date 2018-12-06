@@ -145,13 +145,14 @@ void Engine::processAsync()
     while (mRunning) {
         uint64_t diff = mProcessFrameTimer.start();
 
-        engine::KeyList downKeys;
+        engine::KeyList keys;
         {
             std::lock_guard<std::mutex> lock(mDownKeysMutex);
-            downKeys = mDownKeys;
+            keys = mKeys;
+            mKeys.update();
         }
 
-        if (downKeys.contains(Keys::TestPause)) {
+        if (keys.down(Keys::TestPause)) {
             if (!mEnableThreading) {
                 break;
             }
@@ -160,23 +161,29 @@ void Engine::processAsync()
             continue;
         }
 
-        if (downKeys.contains(engine::Keys::TestFastForward)) {
-            if (downKeys.contains(engine::Keys::Run)) {
+        if (keys.down(engine::Keys::TestFastForward)) {
+            if (keys.down(engine::Keys::Run)) {
                 mClock->fastForward(diff * 0.5f);
             } else {
                 mClock->fastForward(diff * 0.05f);
             }
         }
 
-        if (downKeys.contains(engine::Keys::TestSlowMode)) {
+        if (keys.down(engine::Keys::TestSlowMode)) {
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
 
+        mHud->expandItems(keys.longPress(Keys::ExpandHudItems));
+
         float_t x = 0, y = 0;
-        if (mHasFocus && !downKeys.empty()) {
+        if (mHasFocus && !keys.empty()) {
             bool turned = false;
-            for (auto it = downKeys.rbegin(); it != downKeys.rend(); it++) {
-                switch (*it) {
+            for (auto it = keys.rbegin(); it != keys.rend(); it++) {
+                if (!it->down) {
+                    continue;
+                }
+
+                switch (it->key) {
                 case engine::Keys::Up:
                     if (y == 0) {
                         y = -1;
@@ -222,18 +229,24 @@ void Engine::processAsync()
                 }
             }
 
-            if (downKeys.contains(engine::Keys::TestFriction)) {
+            if (keys.down(engine::Keys::TestFriction)) {
                 mPlayer->setFriction(0.1f);
             } else {
                 mPlayer->setFriction(1.0f);
             }
 
-            if (downKeys.contains(engine::Keys::Run)) {
+            if (keys.down(engine::Keys::Run)) {
                 mPlayer->setSpeed(2.0f);
-            } else if (downKeys.contains(engine::Keys::Walk)) {
+            } else if (keys.down(engine::Keys::Walk)) {
                 mPlayer->setSpeed(0.5f);
             } else {
                 mPlayer->setSpeed(1.0f);
+            }
+
+            if (keys.up(Keys::Use)) {
+                mPlayer->useItem();
+            } else if (keys.up(Keys::ExpandHudItems)) {
+                mPlayer->incrementItem();
             }
         } else {
             mPlayer->setSpeed(1.0f);
@@ -323,7 +336,7 @@ void Engine::paint()
     }
 
     mScreenEffects->draw(renderer, *mClock.get(), *mCamera.get(), mLights);
-    mHud->draw(renderer, *mClock.get(), mProcessFrameTimer);
+    mHud->draw(renderer, *mClock.get(), *mPlayer.get(), mProcessFrameTimer);
 
     mNeedRepaint = false;
 }
@@ -332,20 +345,20 @@ void Engine::setKeyMap(const std::unordered_map<int32_t, Keys::Type>& keys)
 {
     std::lock_guard<std::mutex> lock(mDownKeysMutex);
     for (auto key : keys) {
-        mDownKeys[key.first] = key.second;
+        mKeys.mapKey(key.first, key.second);
     }
 }
 
 void Engine::setKeyDown(int32_t key)
 {
     std::lock_guard<std::mutex> lock(mDownKeysMutex);
-    mDownKeys.append(key);
+    mKeys.setDown(key);
 }
 
 void Engine::setKeyUp(int32_t key)
 {
     std::lock_guard<std::mutex> lock(mDownKeysMutex);
-    mDownKeys.remove(key);
+    mKeys.setUp(key);
 }
 
 void Engine::setSize(uint32_t width, uint32_t height)

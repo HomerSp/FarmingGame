@@ -22,8 +22,10 @@ MapItemView::MapItemView(QQuickItem* parent)
     keys[Qt::Key_Left] = engine::Keys::Left;
     keys[Qt::Key_Right] = engine::Keys::Right;
     keys[Qt::Key_Shift] = engine::Keys::Run;
-    keys[Qt::Key_Control] = engine::Keys::Walk;
-    keys[Qt::Key_Q] = engine::Keys::TestFriction;
+    keys[Qt::Key_E] = engine::Keys::Use;
+    keys[Qt::Key_Q] = engine::Keys::ExpandHudItems;
+    keys[Qt::Key_P] = engine::Keys::TestPause;
+    keys[Qt::Key_F] = engine::Keys::TestFriction;
     keys[Qt::Key_S] = engine::Keys::TestSlowMode;
     keys[Qt::Key_T] = engine::Keys::TestFastForward;
     keys[Qt::Key_P] = engine::Keys::TestPause;

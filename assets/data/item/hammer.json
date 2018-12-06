@@ -1,0 +1,8 @@
+{
+    "image": {
+        "ui": "item_hammer"
+    },
+    "use": {
+        "stamina": -10
+    }
+}

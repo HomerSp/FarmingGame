@@ -81,6 +81,9 @@ std::string AssetManager::dataPath(Type type, const std::string& name)
     case Font:
         ret += "font";
         break;
+    case Item:
+        ret += "item";
+        break;
     default:
         return "";
     }

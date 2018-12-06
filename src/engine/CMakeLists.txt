@@ -21,6 +21,7 @@ set(HEADERS
     include/engine/fontmanager.h
     include/engine/hud.h
 	include/engine/image.h
+    include/engine/item.h
 	include/engine/keys.h
 	include/engine/listeners.h
 	include/engine/logger.h
@@ -46,6 +47,7 @@ set(SOURCES
     fontmanager.cpp
     hud.cpp
 	image.cpp
+    item.cpp
 	keys.cpp
 	listeners.cpp
     logger.cpp

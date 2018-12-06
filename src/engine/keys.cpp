@@ -4,36 +4,95 @@
 
 using namespace engine;
 
-void KeyList::append(Keys::Type key)
+KeyItem::KeyItem(Keys::Type key)
+	: key(key)
+	, start(std::chrono::steady_clock::now())
+	, down(true)
+	, longPress(false)
 {
-    if (!empty() && back() == key) {
-        return;
-    }
-
-    remove_if([key](Keys::Type n) { return n == key; });
-    push_back(key);
 }
 
-void KeyList::append(int32_t key)
+void KeyList::setDown(int32_t key)
 {
     if (mKeyTable.find(key) == mKeyTable.end()) {
         return;
     }
 
-    append(mKeyTable.find(key)->second);
+    auto type = mKeyTable.find(key)->second;
+    if (!empty() && back().key == type) {
+        return;
+    }
+
+    remove_if([type](KeyItem n) { return n.key == type; });
+    push_back({type});
 }
 
-void KeyList::remove(int32_t key)
+void KeyList::setUp(int32_t key)
 {
     if (mKeyTable.find(key) == mKeyTable.end()) {
         return;
     }
 
     Keys::Type type = mKeyTable.find(key)->second;
-    remove_if([type](Keys::Type n) { return n == type; });
+    for (auto& item: *this) {
+    	if (item.key == type) {
+    		item.down = false;
+    	}
+    }
 }
 
-bool KeyList::contains(Keys::Type key)
+bool KeyList::down(Keys::Type key)
 {
-    return std::find(begin(), end(), key) != end();
+	for (auto it = begin(); it != end(); it++) {
+		if (it->key == key) {
+			return it->down;
+		}
+	}
+
+    return false;
+}
+
+bool KeyList::up(Keys::Type key)
+{
+	for (auto it = begin(); it != end(); it++) {
+		if (it->key == key) {
+			return !it->longPress && !it->down;
+		}
+	}
+
+    return false;
+}
+
+bool KeyList::longPress(Keys::Type key)
+{
+	for (auto it = begin(); it != end(); it++) {
+		if (it->key == key) {
+			return it->longPress;
+		}
+	}
+
+    return false;
+}
+
+void KeyList::update()
+{
+    remove_if([](KeyItem n) { return !n.down; });
+
+    auto now = std::chrono::steady_clock::now();
+    for (auto& item: *this) {
+    	if (item.longPress) {
+    		continue;
+    	}
+
+    	uint64_t d = std::chrono::duration_cast<std::chrono::milliseconds>(now - item.start).count();
+    	if (d >= 250) {
+    		item.longPress = true;
+    	}
+    }
+}
+
+
+void KeyList::mapKey(int32_t i, Keys::Type key)
+{
+	mKeyTable[i] = key;
 }

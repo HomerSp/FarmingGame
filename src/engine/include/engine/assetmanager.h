@@ -20,6 +20,7 @@ public:
         Tileset,
         Font,
         Ui,
+        Item,
     };
 
     static std::shared_ptr<AssetManager> get();

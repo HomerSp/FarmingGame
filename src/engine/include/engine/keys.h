@@ -1,5 +1,6 @@
 #pragma once
 
+#include <chrono>
 #include <list>
 #include <unordered_map>
 
@@ -14,6 +15,8 @@ public:
         Up,
         Run,
         Walk,
+        Use,
+        ExpandHudItems,
 
         // Just for testing
         TestFriction,
@@ -23,21 +26,30 @@ public:
     } Type;
 };
 
-class KeyList : public std::list<Keys::Type> {
+struct KeyItem {
+public:
+	KeyItem(Keys::Type key);
+
+	Keys::Type key;
+	std::chrono::time_point<std::chrono::steady_clock> start;
+	bool down;
+	bool longPress;
+};
+
+class KeyList : public std::list<KeyItem> {
 public:
     explicit KeyList() = default;
 
-    void append(Keys::Type key);
-    void append(int32_t key);
+    void setDown(int32_t key);
+    void setUp(int32_t key);
 
-    void remove(int32_t key);
+    bool down(Keys::Type key);
+    bool up(Keys::Type key);
+    bool longPress(Keys::Type key);
 
-    bool contains(Keys::Type key);
+    void update();
 
-    Keys::Type& operator[](int32_t type)
-    {
-        return mKeyTable[type];
-    }
+    void mapKey(int32_t i, Keys::Type key);
 
 private:
     std::unordered_map<int32_t, Keys::Type> mKeyTable;

@@ -83,7 +83,7 @@ private:
     uint32_t mHeight;
 
     std::mutex mDownKeysMutex;
-    engine::KeyList mDownKeys;
+    engine::KeyList mKeys;
 
     std::shared_ptr<Renderer> mRenderer;
 

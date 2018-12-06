@@ -1,0 +1,8 @@
+{
+    "image": {
+        "ui": "item_axe"
+    },
+    "use": {
+        "stamina": -10
+    }
+}
