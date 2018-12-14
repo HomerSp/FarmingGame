@@ -173,10 +173,27 @@ void Engine::processAsync()
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
 
-        mHud->expandItems(keys.longPress(Keys::ExpandHudItems));
+        if (keys.longPress(Keys::ExpandHudItems)) {
+            mHud->expandItems(true);
+            mPlayer->setControl(false);
+
+            if (keys.up(Keys::Left)) {
+                mPlayer->decrementItem();
+            } else if(keys.up(Keys::Right)) {
+                mPlayer->incrementItem();
+            }
+
+        } else {
+            mHud->expandItems(false);
+            mPlayer->setControl(true);
+        }
+
+        if (keys.up(Keys::ExpandHudItems)) {
+            mPlayer->incrementItem();
+        }
 
         float_t x = 0, y = 0;
-        if (mHasFocus && !keys.empty()) {
+        if (mPlayer->canControl()) {
             bool turned = false;
             for (auto it = keys.rbegin(); it != keys.rend(); it++) {
                 if (!it->down) {
@@ -245,8 +262,10 @@ void Engine::processAsync()
 
             if (keys.up(Keys::Use)) {
                 mPlayer->useItem();
-            } else if (keys.up(Keys::ExpandHudItems)) {
-                mPlayer->incrementItem();
+            }
+
+            if (mClock->processAsync(diff, mMap.get())) {
+                mNeedRepaint = true;
             }
         } else {
             mPlayer->setSpeed(1.0f);
@@ -256,9 +275,6 @@ void Engine::processAsync()
 
         // Process movement, etc
         if (mCamera->processAsync(diff, mMap.get())) {
-            mNeedRepaint = true;
-        }
-        if (mClock->processAsync(diff, mMap.get())) {
             mNeedRepaint = true;
         }
         if (mPlayer->processAsync(diff, mMap.get(), &mCharacters, mCamera.get())) {

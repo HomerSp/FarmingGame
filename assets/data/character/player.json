@@ -1,5 +1,10 @@
 {
     "name": "The Player",
     "portrait": "player",
-    "charset": "player"
+    "charset": "player",
+    "stats": {
+        "max_level": 50,
+        "stamina": [500, 10000],
+        "health": [500, 10000]
+    }
 } 

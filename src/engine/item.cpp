@@ -66,11 +66,11 @@ void Item::use(Player& player)
         switch(v.first) {
         case ItemEffect::Stamina:
             current = &player.mStamina;
-            max = player.mMaxStamina;
+            max = player.maxStamina();
             break;
         case ItemEffect::Health:
             current = &player.mHealth;
-            max = player.mMaxHealth;
+            max = player.maxHealth();
             break;
         default:
             break;

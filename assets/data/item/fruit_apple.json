@@ -1,10 +1,11 @@
 {
+    "name": "Apple",
+    "description": "A fresh red apple.",
     "image": {
         "ui": "item_apple"
     },
     "consume": true,
     "use": {
-        "stamina": 25,
-        "health": 5
+        "stamina": 5
     }
 }

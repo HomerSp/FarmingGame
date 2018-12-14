@@ -88,13 +88,13 @@ void Hud::drawHealth(Renderer& renderer, Player& player)
 
     // Stamina
     float_t p = player.stamina() / static_cast<float_t>(player.maxStamina());
-    drawBarSmall(renderer, 96, {255, 255, 0, 175}, p);
+    drawBarSmall(renderer, 96, {255, 255, 0, 200}, p);
     renderer.translate(0, 42);
 
     // Health
     renderer.translate(0, -(mBarSmall->height()));
-    p = player.health() / static_cast<float_t>(player.health());
-    drawBarSmall(renderer, 96, {255, 0, 0, 175}, p);
+    p = player.health() / static_cast<float_t>(player.maxHealth());
+    drawBarSmall(renderer, 96, {255, 0, 0, 200}, p);
     renderer.translate(0, mBarSmall->height());
 
     renderer.translate(10, -(42 / 2));
@@ -124,26 +124,30 @@ void Hud::drawItems(Renderer& renderer, Player& player)
         renderer.translate(-(leftItemRc.width / 2), -(leftItemRc.height / 2));
 
         Types::Rect<> itemRc(0, 0, mHudItem->width() / 2, mHudItem->height());
-        for (const auto& p: player.items()) {
-            int32_t x = (itemRc.width - 5) * (p.first + 1);
-            renderer.translate(-x, 0);
+        renderer.translate(-(itemRc.width - 5) * 10, 0);
+
+        const auto& items = player.items();
+        for (uint8_t i = 0; i < 10; i++) {
             renderer.drawImage(*mHudItem.get(), {}, itemRc);
 
-            if (p.first == player.currentItemIndex()) {
+            if (i == player.currentItemIndex()) {
                 renderer.fillRect(itemRc, {255, 255, 0, 175});
             }
 
-            auto itemImage = p.second->uiImage();
-            renderer.translate((itemRc.width / 2), (itemRc.height / 2));
-            renderer.translate(-(itemImage->width() / 2), -(itemImage->height() / 2));
-            renderer.drawImage(*itemImage.get());
-            renderer.translate((itemImage->width() / 2), (itemImage->height() / 2));
-            renderer.translate(-(itemRc.width / 2), -(itemRc.height / 2));
+            if (items.find(i) != items.end()) {
+                auto itemImage = items.at(i)->uiImage();
+                renderer.translate((itemRc.width / 2), (itemRc.height / 2));
+                renderer.translate(-(itemImage->width() / 2), -(itemImage->height() / 2));
+                renderer.drawImage(*itemImage.get());
+                renderer.translate((itemImage->width() / 2), (itemImage->height() / 2));
+                renderer.translate(-(itemRc.width / 2), -(itemRc.height / 2));
+            }
 
             renderer.drawImage(*mHudItem.get(), {}, {itemRc.x + itemRc.width, itemRc.y, itemRc.width, itemRc.height});
 
-            renderer.translate(x, 0);
+            renderer.translate(itemRc.width - 5, 0);
         }
+
         renderer.translate((leftItemRc.width / 2), (leftItemRc.height / 2));
     }
 }
