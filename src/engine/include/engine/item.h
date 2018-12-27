@@ -7,6 +7,8 @@ class Player;
 
 struct ItemValue {
 public:
+    ItemValue(bool percent, int32_t value);
+    
     bool percent;
     int32_t value;
 };

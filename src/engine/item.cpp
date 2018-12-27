@@ -13,6 +13,12 @@
 
 using namespace engine;
 
+ItemValue::ItemValue(bool percent, int32_t value)
+    : percent(percent)
+    , value(value)
+{
+}
+
 Item::Item(const std::string& name)
     : mUiImage(nullptr)
 {
@@ -51,10 +57,7 @@ Item::Item(const std::string& name)
                 continue;
             }
 
-            auto v = std::make_shared<ItemValue>();
-            v->percent = false;
-            v->value = it->asInt();
-            mEffects[type] = v;
+            mEffects[type] = std::make_shared<ItemValue>(false, it->asInt());
         }
     }
 }
@@ -80,7 +83,7 @@ void Item::use(Player& player)
             continue;
         }
 
-        int32_t s = static_cast<int32_t>(*current);
+        auto s = static_cast<int32_t>(*current);
         if (!v.second->percent) {
             s += v.second->value;
         } else {

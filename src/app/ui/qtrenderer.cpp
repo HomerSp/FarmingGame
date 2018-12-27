@@ -48,7 +48,7 @@ void QtRenderer::fillEllipse(const engine::Types::Rect<>& dst, const engine::Typ
     }
 
     mPainter->setBrush(QColor(color.r, color.g, color.b, color.a));
-    mPainter->drawEllipse(QPointF(dst.x, dst.y), dst.width / 2, dst.height / 2);
+    mPainter->drawEllipse(QPointF(dst.x, dst.y), std::floor(dst.width / 2), std::floor(dst.height / 2));
     mPainter->setBrush(Qt::NoBrush);
 }
 

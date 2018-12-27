@@ -43,9 +43,9 @@ void KeyList::setUp(int32_t key)
 
 bool KeyList::down(Keys::Type key)
 {
-	for (auto it = begin(); it != end(); it++) {
-		if (it->key == key) {
-			return it->down;
+	for (const auto& i: *this) {
+		if (i.key == key) {
+			return i.down;
 		}
 	}
 
@@ -54,9 +54,9 @@ bool KeyList::down(Keys::Type key)
 
 bool KeyList::up(Keys::Type key)
 {
-	for (auto it = begin(); it != end(); it++) {
-		if (it->key == key) {
-			return !it->longPress && !it->down;
+	for (const auto& i: *this) {
+		if (i.key == key) {
+			return !i.longPress && !i.down;
 		}
 	}
 
@@ -65,9 +65,9 @@ bool KeyList::up(Keys::Type key)
 
 bool KeyList::longPress(Keys::Type key)
 {
-	for (auto it = begin(); it != end(); it++) {
-		if (it->key == key) {
-			return it->longPress;
+	for (const auto& i: *this) {
+		if (i.key == key) {
+			return i.longPress;
 		}
 	}
 
