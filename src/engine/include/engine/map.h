@@ -20,9 +20,9 @@ public:
     MapLightSource(Types::Point<int32_t> pos, int32_t radius, float_t strength);
     virtual ~MapLightSource() = default;
 
-    virtual Types::Point<int32_t> position();
-    virtual int32_t radius();
-    virtual float_t strength();
+    virtual Types::Point<int32_t> lightPosition();
+    virtual int32_t lightRadius();
+    virtual float_t lightStrength();
 
 private:
     Types::Point<int32_t> mPosition;

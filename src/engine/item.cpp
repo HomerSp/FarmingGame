@@ -21,6 +21,8 @@ ItemValue::ItemValue(bool percent, int32_t value)
 
 Item::Item(const std::string& name)
     : mUiImage(nullptr)
+    , mLightRadius(0)
+    , mLightStrength(0.0f)
 {
     std::shared_ptr<Json::Value> docPtr = AssetManager::get()->data(AssetManager::Item, name);
     Json::Value doc = *docPtr;
@@ -36,6 +38,36 @@ Item::Item(const std::string& name)
     }
 
     mUiImage = AssetManager::get()->image(AssetManager::Ui, imageObj["ui"].asString());
+
+    if (doc.isMember("attributes")) {
+        Json::Value attrsObj = doc["attributes"];
+
+        for (const auto& attrObj : attrsObj) {
+            std::string key = attrObj.asString();
+            switch (Types::hash(key.c_str())) {
+            case Types::hash("consume"):
+                mAttributes[ItemAttribute::Consume] = true;
+                break;
+            case Types::hash("light_source"):
+                mAttributes[ItemAttribute::LightSource] = true;
+                break;
+            default:
+                Logger::warning() << "Unknown attribute" << key << "for item" << name;
+                break;
+            }
+        }
+    }
+
+    if (mAttributes[ItemAttribute::LightSource] && doc.isMember("light")) {
+        Json::Value lightObj = doc["light"];
+        if (lightObj.isMember("radius")) {
+            mLightRadius = lightObj["radius"].asInt();
+        }
+
+        if (lightObj.isMember("strength")) {
+            mLightStrength = lightObj["strength"].asInt() / 100.0f;
+        }
+    }
 
     if (doc.isMember("use")) {
         Json::Value useObj = doc["use"];
@@ -60,6 +92,26 @@ Item::Item(const std::string& name)
             mEffects[type] = std::make_shared<ItemValue>(false, it->asInt());
         }
     }
+}
+
+Types::Point<int32_t> Item::lightPosition()
+{
+    return {0, 0};
+}
+
+int32_t Item::lightRadius()
+{
+    return mLightRadius;
+}
+
+float_t Item::lightStrength()
+{
+    return mLightStrength;
+}
+
+Types::Color Item::lightColor()
+{
+    return {255, 100, 0, 175};
 }
 
 void Item::use(Player& player)

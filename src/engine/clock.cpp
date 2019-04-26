@@ -13,8 +13,6 @@ Clock::Clock()
     : mCurrent(0)
     , mCurrentMod(0.0f)
     , mDawn(6)
-    , mSunrise(8)
-    , mSunset(18)
     , mDusk(20)
 {
 }
@@ -67,28 +65,41 @@ uint8_t Clock::minuteRounded() const
 
 uint8_t Clock::dawn() const
 {
-    return mDawn;
+    return mDawn - sunMonthMod();
 }
 
 uint8_t Clock::sunrise() const
 {
-    return mSunrise;
+    return dawn() + 2;
 }
 
 uint8_t Clock::sunset() const
 {
-    return mSunset;
+    return dusk() - 2;
 }
 
 uint8_t Clock::dusk() const
 {
-    return mDusk;
+    return mDusk + sunMonthMod();
+}
+
+uint8_t Clock::sunMonthMod() const
+{
+    uint8_t m = month();
+    switch (m)  {
+    case 2:
+        return 2;
+    case 4:
+        return -2;
+    default:
+        return 0;
+    }
 }
 
 bool Clock::daylight() const
 {
     auto h = hour();
-    return h >= mSunrise && h < mSunset;
+    return h >= sunrise() && h < sunset();
 }
 
 std::string Clock::timeFormatted() const

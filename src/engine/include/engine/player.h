@@ -13,9 +13,13 @@ class Player : public Character, public ScreenEffects::LightSource {
 public:
     Player();
 
-    virtual Types::Point<int32_t> position();
-    virtual int32_t radius();
-    virtual float_t strength();
+    // Light source
+    virtual Types::Point<int32_t> lightPosition();
+    virtual int32_t lightRadius();
+    virtual float_t lightStrength();
+    virtual Types::Color lightColor();
+
+    Types::Point<int32_t> position();
 
     bool canControl() const;
     void setControl(bool control);

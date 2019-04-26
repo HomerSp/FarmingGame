@@ -1,11 +1,13 @@
 {
     "name": "Rotten apple",
-    "description": "An apple that has been left for too long.\nConsume on your own risk.",
+    "description": "An apple that has been left for too long.\nConsume at your own risk.",
     "image": {
         "ui": "item_apple_rotten"
     },
-    "consume": true,
     "use": {
         "stamina": -25
-    }
+    },
+    "attributes": [
+        "consume"
+    ]
 }

@@ -41,26 +41,37 @@ Player::Player()
 
     mInventory[0] = std::make_shared<Item>("tool_axe_1");
     mInventory[1] = std::make_shared<Item>("tool_hammer_1");
-    mInventory[2] = std::make_shared<Item>("tool_sickle_1");
-    mInventory[3] = std::make_shared<Item>("fruit_apple");
-    mInventory[4] = std::make_shared<Item>("fruit_rotten_apple");
-    mInventory[5] = std::make_shared<Item>("vial_poison");
-    mInventory[6] = std::make_shared<Item>("vial_potion");
+    mInventory[2] = std::make_shared<Item>("tool_torch_1");
+    mInventory[3] = std::make_shared<Item>("vial_potion");
+    mInventory[4] = std::make_shared<Item>("fruit_apple");
+    mInventory[5] = std::make_shared<Item>("fruit_rotten_apple");
+    mInventory[6] = std::make_shared<Item>("vial_poison");
+    mInventory[7] = std::make_shared<Item>("vial_potion");
+}
+
+Types::Point<int32_t> Player::lightPosition()
+{
+    return position();
+}
+
+int32_t Player::lightRadius()
+{
+    return mInventory[mCurrentItem]->lightRadius();
+}
+
+float_t Player::lightStrength()
+{
+    return mInventory[mCurrentItem]->lightStrength();
+}
+
+Types::Color Player::lightColor()
+{
+    return mInventory[mCurrentItem]->lightColor();
 }
 
 Types::Point<int32_t> Player::position()
 {
     return {static_cast<int32_t>(x() + width() / 2), static_cast<int32_t>(y() + height() * 0.75f)};
-}
-
-int32_t Player::radius()
-{
-    return Character::width() * 4;
-}
-
-float_t Player::strength()
-{
-    return 0.25f;
 }
 
 bool Player::canControl() const

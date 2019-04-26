@@ -4,8 +4,10 @@
     "image": {
         "ui": "item_apple"
     },
-    "consume": true,
     "use": {
         "stamina": 5
-    }
+    },
+    "attributes": [
+        "consume"
+    ]
 }

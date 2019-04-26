@@ -6,6 +6,11 @@
 
 using namespace engine;
 
+Types::Color ScreenEffects::LightSource::lightColor()
+{
+    return {0, 0, 0, 0};
+}
+
 ScreenEffects::ScreenEffects()
     : mRadiusMod(2.0f)
 {
@@ -47,10 +52,16 @@ void ScreenEffects::draw(Renderer& renderer, Clock& clock, Camera& camera, const
 
     Types::Overlay overlay(renderer.width(), renderer.height(), color);
     for (auto& source: sources) {
+        if (source->lightRadius() == 0) {
+            continue;
+        }
+
         Types::Color l = color;
-        l.r = l.r * (1.0f - source->strength());
-        l.a = l.a * (1.0f - source->strength());
-        overlay.addEllipse(Types::FilledEllipse(source->position().x - camera.x(), source->position().y - camera.y(), source->radius() + radiusMod, l));
+        l.r = l.r * (1.0f - source->lightStrength());
+        l.a = l.a * (1.0f - source->lightStrength());
+
+        overlay.addEllipse(Types::FilledEllipse(source->lightPosition().x - camera.x(), source->lightPosition().y - camera.y(), source->lightRadius() + radiusMod, l));
+        overlay.addEllipse(Types::FilledEllipse(source->lightPosition().x - camera.x(), source->lightPosition().y - camera.y(), source->lightRadius() + radiusMod, source->lightColor()));
     }
 
     renderer.drawOverlay({0, 0}, overlay);

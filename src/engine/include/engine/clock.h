@@ -48,6 +48,7 @@ public:
     uint8_t minute() const;
     uint8_t minuteRounded() const;
 
+    // Used for calculating screen overlay colour and opacity.
     uint8_t dawn() const;
     uint8_t sunrise() const;
     uint8_t sunset() const;
@@ -69,12 +70,13 @@ public:
     static void registerClass(asIScriptEngine* engine);
     static std::string className();
 
+protected:
+    uint8_t sunMonthMod() const;
+
 private:
     std::atomic<uint64_t> mCurrent;
     float_t mCurrentMod;
     uint8_t mDawn;
-    uint8_t mSunrise;
-    uint8_t mSunset;
     uint8_t mDusk;
 
     std::mutex mListenerMutex;

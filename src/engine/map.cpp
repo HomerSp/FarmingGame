@@ -431,17 +431,17 @@ MapLightSource::MapLightSource(Types::Point<int32_t> pos, int32_t radius, float_
 {
 }
 
-Types::Point<int32_t> MapLightSource::position()
+Types::Point<int32_t> MapLightSource::lightPosition()
 {
     return mPosition;
 }
 
-int32_t MapLightSource::radius()
+int32_t MapLightSource::lightRadius()
 {
     return mRadius;
 }
 
-float_t MapLightSource::strength()
+float_t MapLightSource::lightStrength()
 {
     return mStrength;
 }
