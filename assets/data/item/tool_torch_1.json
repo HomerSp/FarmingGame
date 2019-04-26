@@ -1,0 +1,15 @@
+{
+    "image": {
+        "ui": "item_torch"
+    },
+    "light": {
+        "radius": 256,
+        "strength": 75
+    },
+    "use": {
+        "stamina": -4
+    },
+    "attributes": [
+        "light_source"
+    ]
+}
