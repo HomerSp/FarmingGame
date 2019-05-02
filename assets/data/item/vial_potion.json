@@ -2,7 +2,7 @@
     "name": "Red potion",
     "description": "A vial of some red substance.",
     "image": {
-        "ui": "item_potion"
+        "item": "vial_potion"
     },
     "consume": true,
     "use": {

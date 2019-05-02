@@ -25,12 +25,16 @@ protected:
     void drawItems(Renderer& renderer, Player& player);
     void drawExpandedItem(Renderer& renderer, Item& item);
 
-    void drawBarSmall(Renderer& renderer, uint32_t width, Types::Color fillColor, float_t fillPercent);
+    void drawBarSmall(Renderer& renderer, uint32_t width, Types::Color fillColor, float_t fillPercent, uint32_t indicatorX);
 
 private:
+    Types::Point<> mBoxSize;
+    uint32_t mHealthStaminaWidth;
+
     std::shared_ptr<Image> mClockImage;
     std::shared_ptr<Image> mHudItemEquipped, mHudItem;
     std::shared_ptr<Image> mBarSmall;
+    std::shared_ptr<Image> mHealthStamina;
 
     std::atomic<bool> mExpanded;
 };

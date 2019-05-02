@@ -39,14 +39,14 @@ Player::Player()
     mStamina = mStats.currentStamina(mLevel);
     mHealth = mStats.currentHealth(mLevel);
 
-    mInventory[0] = std::make_shared<Item>("tool_axe_1");
-    mInventory[1] = std::make_shared<Item>("tool_hammer_1");
-    mInventory[2] = std::make_shared<Item>("tool_torch_1");
-    mInventory[3] = std::make_shared<Item>("vial_potion");
-    mInventory[4] = std::make_shared<Item>("fruit_apple");
-    mInventory[5] = std::make_shared<Item>("fruit_rotten_apple");
-    mInventory[6] = std::make_shared<Item>("vial_poison");
-    mInventory[7] = std::make_shared<Item>("vial_potion");
+    uint32_t i = 0;
+    mInventory[i++] = std::make_shared<Item>("tool_axe_1");
+    mInventory[i++] = std::make_shared<Item>("tool_hammer_1");
+    mInventory[i++] = std::make_shared<Item>("tool_torch_1");
+    mInventory[i++] = std::make_shared<Item>("fruit_apple");
+    mInventory[i++] = std::make_shared<Item>("fruit_rotten_apple");
+    mInventory[i++] = std::make_shared<Item>("vial_poison");
+    mInventory[i++] = std::make_shared<Item>("vial_potion");
 }
 
 Types::Point<int32_t> Player::lightPosition()

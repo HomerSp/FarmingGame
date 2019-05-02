@@ -26,7 +26,7 @@ public:
 
 struct ItemAttribute {
     typedef enum {
-        Consume = 0,
+        Tool = 0,
         LightSource,
 
         Last,

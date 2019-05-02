@@ -97,6 +97,9 @@ std::string AssetManager::imagePath(Type type, const std::string& name)
     case Charset:
         ret += "charset";
         break;
+    case Item:
+        ret += "item";
+        break;
     case Tileset:
         ret += "tileset";
         break;

@@ -1,8 +1,11 @@
 {
     "image": {
-        "ui": "item_sickle"
+        "item": "tool_sickle"
     },
     "use": {
         "stamina": -4
-    }
+    },
+    "attributes": [
+        "tool"
+    ]
 }

@@ -1,6 +1,6 @@
 {
     "image": {
-        "ui": "item_torch"
+        "item": "tool_torch"
     },
     "light": {
         "radius": 256,
@@ -10,6 +10,7 @@
         "stamina": -4
     },
     "attributes": [
+        "tool",
         "light_source"
     ]
 }

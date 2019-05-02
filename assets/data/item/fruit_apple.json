@@ -2,12 +2,9 @@
     "name": "Apple",
     "description": "A fresh red apple.",
     "image": {
-        "ui": "item_apple"
+        "item": "fruit_apple"
     },
     "use": {
         "stamina": 5
-    },
-    "attributes": [
-        "consume"
-    ]
+    }
 }

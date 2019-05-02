@@ -11,12 +11,15 @@
 using namespace engine;
 
 Hud::Hud()
-    : mExpanded(false)
+    : mBoxSize(32, 32)
+    , mHealthStaminaWidth(96)
+    , mExpanded(false)
 {
     mClockImage = AssetManager::get()->image(AssetManager::Ui, "hud_clock");
     mHudItemEquipped = AssetManager::get()->image(AssetManager::Ui, "hud_item_equipped");
     mHudItem = AssetManager::get()->image(AssetManager::Ui, "hud_item");
     mBarSmall = AssetManager::get()->image(AssetManager::Ui, "hud_bar_small");
+    mHealthStamina = AssetManager::get()->image(AssetManager::Ui, "hud_health_stamina");
 }
 
 void Hud::draw(Renderer& renderer, Clock& clock, Player& player, FrameTimer& frameTimer)
@@ -84,20 +87,20 @@ void Hud::drawClock(Renderer& renderer, Clock& clock)
 
 void Hud::drawHealth(Renderer& renderer, Player& player)
 {
-    renderer.translate(-10, -(42 / 2));
+    renderer.translate(-10, -(50 / 2));
 
     // Stamina
     float_t p = player.stamina() / static_cast<float_t>(player.maxStamina());
-    drawBarSmall(renderer, 96, {255, 255, 0, 200}, p);
-    renderer.translate(0, 42);
+    drawBarSmall(renderer, mHealthStaminaWidth, {255, 255, 0, 200}, p, 0);
+    renderer.translate(0, 50);
 
     // Health
     renderer.translate(0, -(mBarSmall->height()));
     p = player.health() / static_cast<float_t>(player.maxHealth());
-    drawBarSmall(renderer, 96, {255, 0, 0, 200}, p);
+    drawBarSmall(renderer, mHealthStaminaWidth, {255, 0, 0, 200}, p, mHealthStamina->width() / 2);
     renderer.translate(0, mBarSmall->height());
 
-    renderer.translate(10, -(42 / 2));
+    renderer.translate(10, -(50 / 2));
 }
 
 void Hud::drawItems(Renderer& renderer, Player& player)
@@ -110,9 +113,9 @@ void Hud::drawItems(Renderer& renderer, Player& player)
 
     std::shared_ptr<Image> itemImage = player.currentItem()->uiImage();
 
-    renderer.translate(-(itemImage->width() / 2), -(itemImage->height() / 2));
-    renderer.drawImage(*itemImage.get());
-    renderer.translate(itemImage->width() / 2, itemImage->height() / 2);
+    renderer.translate(-(mBoxSize.x / 2), -(mBoxSize.y / 2));
+    renderer.drawImage(*itemImage.get(), {0, 0, mBoxSize.x, mBoxSize.y});
+    renderer.translate(mBoxSize.x / 2, mBoxSize.y / 2);
     renderer.translate(-leftItemRc.height / 2, -leftItemRc.height / 2);
 
     leftItemRc.x = leftItemRc.width;
@@ -137,9 +140,9 @@ void Hud::drawItems(Renderer& renderer, Player& player)
             if (items.find(i) != items.end()) {
                 auto itemImage = items.at(i)->uiImage();
                 renderer.translate((itemRc.width / 2), (itemRc.height / 2));
-                renderer.translate(-(itemImage->width() / 2), -(itemImage->height() / 2));
-                renderer.drawImage(*itemImage.get());
-                renderer.translate((itemImage->width() / 2), (itemImage->height() / 2));
+                renderer.translate(-(mBoxSize.x / 2), -(mBoxSize.y / 2));
+                renderer.drawImage(*itemImage.get(), {0, 0, mBoxSize.x, mBoxSize.y});
+                renderer.translate((mBoxSize.x / 2), (mBoxSize.y / 2));
                 renderer.translate(-(itemRc.width / 2), -(itemRc.height / 2));
             }
 
@@ -152,7 +155,7 @@ void Hud::drawItems(Renderer& renderer, Player& player)
     }
 }
 
-void Hud::drawBarSmall(Renderer& renderer, uint32_t width, Types::Color fillColor, float_t fillPercent)
+void Hud::drawBarSmall(Renderer& renderer, uint32_t width, Types::Color fillColor, float_t fillPercent, uint32_t indicatorX)
 {
     Types::Rect<int32_t> bgRc(0, 0, (mBarSmall->width() / 2) / 5, mBarSmall->height());
     Types::Rect<int32_t> fillRc(0, 0, std::max(0, static_cast<int32_t>(width - (bgRc.width * 2))), bgRc.height);
@@ -182,6 +185,12 @@ void Hud::drawBarSmall(Renderer& renderer, uint32_t width, Types::Color fillColo
     renderer.translate(bgRc.width, 0);
     renderer.fillRect({0, 0, static_cast<int32_t>(width * fillPercent), fillRc.height}, fillColor);
     renderer.translate(-(bgRc.width), 0);
+
+    Types::Rect<> healthStaminaRc(indicatorX, 0, mHealthStamina->width() / 2, mHealthStamina->height());
+
+    renderer.translate(5 + mHealthStaminaWidth - healthStaminaRc.width, 5);
+    renderer.drawImage(*mHealthStamina.get(), {}, healthStaminaRc);
+    renderer.translate(-(5 + mHealthStaminaWidth - healthStaminaRc.width), -5);
 
     // Foreground
     bgRc.x = bgRc.width * 5;

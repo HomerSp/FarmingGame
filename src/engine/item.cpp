@@ -32,12 +32,12 @@ Item::Item(const std::string& name)
     }
 
     Json::Value imageObj = doc["image"];
-    if (!imageObj.isObject() || !imageObj.isMember("ui")) {
+    if (!imageObj.isObject() || !imageObj.isMember("item")) {
         Logger::critical() << "Invalid JSON image data for item" << name;
         return;
     }
 
-    mUiImage = AssetManager::get()->image(AssetManager::Ui, imageObj["ui"].asString());
+    mUiImage = AssetManager::get()->image(AssetManager::Item, imageObj["item"].asString());
 
     if (doc.isMember("attributes")) {
         Json::Value attrsObj = doc["attributes"];
@@ -45,8 +45,8 @@ Item::Item(const std::string& name)
         for (const auto& attrObj : attrsObj) {
             std::string key = attrObj.asString();
             switch (Types::hash(key.c_str())) {
-            case Types::hash("consume"):
-                mAttributes[ItemAttribute::Consume] = true;
+            case Types::hash("tool"):
+                mAttributes[ItemAttribute::Tool] = true;
                 break;
             case Types::hash("light_source"):
                 mAttributes[ItemAttribute::LightSource] = true;

@@ -2,12 +2,9 @@
     "name": "Rotten apple",
     "description": "An apple that has been left for too long.\nConsume at your own risk.",
     "image": {
-        "ui": "item_apple_rotten"
+        "item": "fruit_apple_rotten"
     },
     "use": {
         "stamina": -25
-    },
-    "attributes": [
-        "consume"
-    ]
+    }
 }

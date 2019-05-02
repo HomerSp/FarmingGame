@@ -2,7 +2,7 @@
     "name": "Poison",
     "description": "A vial of poison.\nNot for consumption.",
     "image": {
-        "ui": "item_poison"
+        "item": "vial_poison"
     },
     "consume": true,
     "use": {
