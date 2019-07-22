@@ -1,5 +1,5 @@
+#include <engine/character/character.h>
 #include <engine/assetmanager.h>
-#include <engine/character.h>
 #include <engine/clock.h>
 #include <engine/frametimer.h>
 #include <engine/hud.h>
@@ -16,10 +16,11 @@ Hud::Hud()
     , mExpanded(false)
 {
     mClockImage = AssetManager::get()->image(AssetManager::Ui, "hud_clock");
-    mHudItemEquipped = AssetManager::get()->image(AssetManager::Ui, "hud_item_equipped");
+    mHudItemEquipped = AssetManager::get()->image(AssetManager::Ui, "hud_bar_left");
     mHudItem = AssetManager::get()->image(AssetManager::Ui, "hud_item");
     mBarSmall = AssetManager::get()->image(AssetManager::Ui, "hud_bar_small");
     mHealthStamina = AssetManager::get()->image(AssetManager::Ui, "hud_health_stamina");
+    mSeasonsImage = AssetManager::get()->image(AssetManager::Ui, "seasons");
 }
 
 void Hud::draw(Renderer& renderer, Clock& clock, Player& player, FrameTimer& frameTimer)
@@ -29,13 +30,13 @@ void Hud::draw(Renderer& renderer, Clock& clock, Player& player, FrameTimer& fra
     // Bottom hud
     renderer.translate(renderer.width() / 2, renderer.height() - (mClockImage->height() / 2) - 16);
 
-    renderer.translate(-(mClockImage->height() / 2), 0);
+    renderer.translate(-(mClockImage->width() / 4), 0);
     drawItems(renderer, player);
-    renderer.translate((mClockImage->height() / 2), 0);
+    renderer.translate((mClockImage->width() / 4), 0);
 
-    renderer.translate((mClockImage->height() / 2), 0);
+    renderer.translate((mClockImage->width() / 4), 0);
     drawHealth(renderer, player);
-    renderer.translate(-(mClockImage->height() / 2), 0);
+    renderer.translate(-(mClockImage->width() / 4), 0);
 
     drawClock(renderer, clock);
     renderer.translate(-(renderer.width() / 2), -(renderer.height() - (mClockImage->height() / 2) - 16));
@@ -57,6 +58,10 @@ void Hud::expandItems(bool expand)
     mExpanded = expand;
 }
 
+bool Hud::isExpanded() const {
+    return mExpanded;
+}
+
 void Hud::drawClock(Renderer& renderer, Clock& clock)
 {
     Types::Dimension<> clockDimen(mClockImage->width() / 2, mClockImage->height());
@@ -71,10 +76,24 @@ void Hud::drawClock(Renderer& renderer, Clock& clock)
     renderer.drawImage(*mClockImage.get(), {}, clockRc);
 
     // Hour and minutes
-    Types::Rect<> textRc(0, 0, clockDimen.width, clockDimen.height);
-    renderer.drawText(textRc, clock.timeFormatted(), {0, 0, 0, 175}, 18, Types::TextAlign({Types::TextAlign::CentreH, Types::TextAlign::CentreV}), "hud");
+    Types::Rect<> timeRc(0, 0, clockDimen.width, clockDimen.height);
+    renderer.drawText(timeRc, clock.timeFormatted(), {0, 0, 0, 175}, 18, Types::TextAlign({Types::TextAlign::CentreH, Types::TextAlign::CentreV}), "hud");
 
     renderer.translate(centreX, centreY);
+
+    // Week day
+    renderer.translate(-centreX, -centreY);
+
+    Types::Rect<> weekDayRc(0, 0, clockDimen.width, clockDimen.height / 2);
+    renderer.drawText(weekDayRc, clock.weekDayFormattedShort() + "\n" + clock.dayFormatted(), {0, 0, 0, 175}, 18, Types::TextAlign({Types::TextAlign::CentreH, Types::TextAlign::CentreV}), "hud");
+
+    renderer.translate(centreX, centreY);
+
+    // Season
+    Types::Rect<> seasonsRect(0, 0, mSeasonsImage->width() / 4, mSeasonsImage->height());
+    renderer.translate(-(16/2), (clockRc.height / 4) - (16 / 2));
+    renderer.drawImage(*mSeasonsImage.get(), {0, 0, 16, 16}, seasonsRect);
+    renderer.translate((16 / 2), -(clockRc.height / 4) + (16 / 2));
 
     // Foreground
     renderer.translate(-centreX, -centreY);

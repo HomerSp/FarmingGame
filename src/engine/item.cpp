@@ -3,8 +3,8 @@
 
 #include <json/json.h>
 
+#include <engine/character/character.h>
 #include <engine/assetmanager.h>
-#include <engine/character.h>
 #include <engine/image.h>
 #include <engine/item.h>
 #include <engine/logger.h>

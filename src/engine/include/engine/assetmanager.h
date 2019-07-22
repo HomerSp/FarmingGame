@@ -21,6 +21,7 @@ public:
         Font,
         Ui,
         Item,
+        Schedule,
     };
 
     static std::shared_ptr<AssetManager> get();

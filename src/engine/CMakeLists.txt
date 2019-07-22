@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.1.0)
 
+set(engine_DIR ${CMAKE_CURRENT_LIST_DIR})
+
 set(PROJECT "engine")
 project(${PROJECT})
 
@@ -12,7 +14,6 @@ include_directories(
 set(HEADERS
 	include/engine/assetmanager.h
 	include/engine/camera.h
-	include/engine/character.h
 	include/engine/charset.h
 	include/engine/clock.h
 	include/engine/collisionmap.h
@@ -38,7 +39,6 @@ set(HEADERS
 set(SOURCES
 	assetmanager.cpp
 	camera.cpp
-	character.cpp
 	charset.cpp
 	clock.cpp
 	collisionmap.cpp
@@ -60,6 +60,8 @@ set(SOURCES
     time.cpp
     types.cpp   
 )
+
+include(character/character.cmake)
 
 source_group("Header Files" FILES ${HEADERS})
 source_group("Source Files" FILES ${SOURCES})

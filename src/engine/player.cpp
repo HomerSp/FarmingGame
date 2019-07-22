@@ -1,5 +1,5 @@
+#include <engine/character/character.h>
 #include <engine/assetmanager.h>
-#include <engine/character.h>
 #include <engine/item.h>
 #include <engine/logger.h>
 #include <engine/player.h>
@@ -14,7 +14,7 @@ Player::Player()
     , mHealth(0)
     , mCurrentItem(0)
 {
-    std::shared_ptr<Json::Value> docPtr = AssetManager::get()->data(AssetManager::get()->Character, "player");
+    std::shared_ptr<Json::Value> docPtr = AssetManager::get()->data(AssetManager::Character, "player");
     Json::Value doc = *docPtr;
     if (!doc.isObject() || !doc.isMember("stats")) {
         Logger::critical() << "Invalid JSON data for player";
@@ -79,7 +79,7 @@ bool Player::canControl() const
     return mControl;
 }
 
-void Player::setControl(bool control)
+void Player::setCanControl(bool control)
 {
     mControl = control;
 }
@@ -146,7 +146,7 @@ uint8_t Player::currentItemIndex()
     return mCurrentItem;
 }
 
-Character* Player::character()
+character::Character* Player::character()
 {
     return this;
 }
@@ -154,7 +154,9 @@ Character* Player::character()
 void Player::registerClass(asIScriptEngine* engine)
 {
     registerReference<Player>(engine);
-    REGISTER_FUNC(engine, Player, Character&, character);
+    REGISTER_FUNC(engine, Player, character::Character&, character);
+    REGISTER_FUNC(engine, Player, bool, canControl);
+    REGISTER_FUNC_ARGS(engine, Player, void, setCanControl, bool);
 }
 
 std::string Player::className()

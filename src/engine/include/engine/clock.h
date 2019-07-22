@@ -57,6 +57,8 @@ public:
     bool daylight() const;
 
     std::string timeFormatted() const;
+    std::string dayFormatted() const;
+    std::string weekDayFormattedShort() const;
 
     bool processAsync(uint64_t frameDiff, Map* map);
     void processListeners();

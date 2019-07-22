@@ -9,11 +9,13 @@ void main() {
         print("Clock " + clock.year() + "-" + clock.month() + "-" + clock.day() + " " + clock.hour() + ":" + clock.minute());
         print("Player " + player.character().x() + " " + player.character().y());
 
+        player.setCanControl(false);
         camera.moveTo(290, 290, function() {
             camera.follow(player.character());
             print("camera finished");
 
             player.character().moveTo(290, 290, function() {
+                player.setCanControl(true);
                 print("move done");
             });
         });

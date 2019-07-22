@@ -7,8 +7,8 @@
 
 #include <angelscript.h>
 
+#include <engine/character/character.h>
 #include <engine/camera.h>
-#include <engine/character.h>
 #include <engine/clock.h>
 #include <engine/frametimer.h>
 #include <engine/hud.h>
@@ -93,7 +93,7 @@ private:
     std::shared_ptr<engine::Clock> mClock;
     std::shared_ptr<engine::Map> mMap;
     std::shared_ptr<engine::Player> mPlayer;
-    std::vector<std::shared_ptr<engine::Character>> mCharacters;
+    std::vector<std::shared_ptr<engine::character::Character>> mCharacters;
 
     std::vector<std::shared_ptr<engine::ScreenEffects::LightSource>> mLights;
 

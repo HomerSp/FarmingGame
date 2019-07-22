@@ -10,9 +10,10 @@
 #include <engine/types.h>
 
 namespace engine {
-
 class Map;
 class Renderer;
+
+namespace character {
 
 class Character : public Camera::Target, public ScriptObject {
 public:
@@ -87,4 +88,5 @@ private:
     std::mutex mListenerMutex;
     std::vector<std::shared_ptr<Listeners::MoveListener>> mMoveListeners;
 };
+}
 }

@@ -115,6 +115,33 @@ std::string Clock::timeFormatted() const
     return str.str();
 }
 
+std::string Clock::dayFormatted() const
+{
+    std::stringstream str;
+    str << std::setw(2) << std::setfill('0') << static_cast<int32_t>(day());
+    return str.str();
+}
+
+std::string Clock::weekDayFormattedShort() const
+{
+    switch (weekDay()) {
+    case 2:
+        return "Tue";
+    case 3:
+        return "Wed";
+    case 4:
+        return "Thu";
+    case 5:
+        return "Fri";
+    case 6:
+        return "Sat";
+    case 7:
+        return "Sun";
+    }
+
+    return "Mon";
+}
+
 bool Clock::processAsync(uint64_t frameDiff, Map* map)
 {
     mCurrentMod += (frameDiff / 1000.0f);

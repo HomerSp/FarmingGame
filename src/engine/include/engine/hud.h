@@ -19,6 +19,8 @@ public:
 
     void expandItems(bool expand);
 
+    bool isExpanded() const;
+
 protected:
     void drawClock(Renderer& renderer, Clock& clock);
     void drawHealth(Renderer& renderer, Player& player);
@@ -35,6 +37,7 @@ private:
     std::shared_ptr<Image> mHudItemEquipped, mHudItem;
     std::shared_ptr<Image> mBarSmall;
     std::shared_ptr<Image> mHealthStamina;
+    std::shared_ptr<Image> mSeasonsImage;
 
     std::atomic<bool> mExpanded;
 };

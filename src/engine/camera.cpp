@@ -1,7 +1,7 @@
 #include <cmath>
 
+#include <engine/character/character.h>
 #include <engine/camera.h>
-#include <engine/character.h>
 #include <engine/logger.h>
 #include <engine/map.h>
 
@@ -58,7 +58,7 @@ void Camera::moveTo(int32_t dstX, int32_t dstY, asIScriptFunction* fun)
     mTargetPos.y = dstY;
 }
 
-bool Camera::contains(Character& character, const Types::Dimension<>& buf)
+bool Camera::contains(character::Character& character, const Types::Dimension<>& buf)
 {
     std::lock_guard<std::mutex> lock(mMovementMutex);
     return character.x() + character.width() >= mPos.x - buf.width && character.x() < mPos.x + mDimen.width + buf.width
@@ -232,5 +232,5 @@ void Camera::registerClass(asIScriptEngine* engine)
     REGISTER_FUNC_ARGS(engine, Camera, void, moveTo, int32_t, int32_t);
     REGISTER_FUNC_ARGS(engine, Camera, void, moveTo, int32_t, int32_t, ScriptCallback&&);
     REGISTER_FUNC_ARGS(engine, Camera, void, follow, Camera::Target&&);
-    REGISTER_FUNC_ARGS(engine, Camera, void, follow, const Character&);
+    REGISTER_FUNC_ARGS(engine, Camera, void, follow, const character::Character&);
 }

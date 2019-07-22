@@ -6,10 +6,13 @@
 
 namespace engine {
 
+namespace character {
 class Character;
+}
+
 class Item;
 
-class Player : public Character, public ScreenEffects::LightSource {
+class Player : public character::Character, public ScreenEffects::LightSource {
 public:
     Player();
 
@@ -22,7 +25,7 @@ public:
     Types::Point<int32_t> position();
 
     bool canControl() const;
-    void setControl(bool control);
+    void setCanControl(bool control);
 
     void useItem();
     void incrementItem();
@@ -39,7 +42,7 @@ public:
     const std::unordered_map<uint8_t, std::shared_ptr<Item>>& items();
     uint8_t currentItemIndex();
 
-    Character* character();
+    character::Character* character();
 
     static void registerClass(asIScriptEngine* engine);
     static std::string className();

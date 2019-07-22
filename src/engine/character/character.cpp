@@ -3,13 +3,13 @@
 
 #include <json/json.h>
 
+#include <engine/character/character.h>
 #include <engine/assetmanager.h>
-#include <engine/character.h>
 #include <engine/logger.h>
 #include <engine/map.h>
 #include <engine/renderer.h>
 
-using namespace engine;
+using namespace engine::character;
 
 Character::Character(const std::string& name)
     : mValid(false)

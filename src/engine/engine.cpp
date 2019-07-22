@@ -14,6 +14,7 @@
 #include <engine/logger.h>
 
 using namespace engine;
+using namespace engine::character;
 
 Engine::Engine(uint32_t width, uint32_t height, std::shared_ptr<Renderer> renderer)
     : mRunning(true)
@@ -41,17 +42,12 @@ Engine::Engine(uint32_t width, uint32_t height, std::shared_ptr<Renderer> render
     mPlayer->setX(std::floor((mMap->pixelWidth() - mPlayer->width()) / 2));
     mPlayer->setY(std::floor((mMap->pixelHeight() - mPlayer->height()) / 2));
 
-    std::random_device r;
-    std::default_random_engine gen(r());
-    std::uniform_int_distribution<> dis(0, static_cast<int32_t>(Character::Direction::Up));
-    for(uint32_t i = 0; i < 24 * 10; i++) {
-        mCharacters.push_back(std::make_shared<engine::Character>("dude"));
-        mCharacters.back()->setX((8 * 48) + ((i % 24) * 48));
-        mCharacters.back()->setY(48 + (std::floor(i / 24) * 48));
-        mCharacters.back()->setDirection(static_cast<Character::Direction::Type>(dis(gen)));
-    }
+    mCharacters.push_back(std::make_shared<Character>("dude"));
+    mCharacters.back()->setX((8 * 48));
+    mCharacters.back()->setY(48);
+    mCharacters.back()->setDirection(Character::Direction::Down);
 
-    mCharacters.push_back(std::make_shared<engine::Character>("horse"));
+    mCharacters.push_back(std::make_shared<Character>("horse"));
     mCharacters.back()->setX(48);
     mCharacters.back()->setY(96);
     mCharacters.back()->setDirection(Character::Direction::Right);
@@ -173,105 +169,105 @@ void Engine::processAsync()
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
 
-        if (keys.longPress(Keys::ExpandHudItems)) {
-            mHud->expandItems(true);
-            mPlayer->setControl(false);
+        if (mPlayer->canControl()) {
+            if (keys.longPress(Keys::ExpandHudItems)) {
+                mHud->expandItems(true);
 
-            if (keys.up(Keys::Left)) {
-                mPlayer->decrementItem();
-            } else if(keys.up(Keys::Right)) {
+                if (keys.up(Keys::Left)) {
+                    mPlayer->decrementItem();
+                } else if(keys.up(Keys::Right)) {
+                    mPlayer->incrementItem();
+                }
+
+            } else {
+                mHud->expandItems(false);
+            }
+
+            if (keys.up(Keys::ExpandHudItems)) {
                 mPlayer->incrementItem();
             }
 
-        } else {
-            mHud->expandItems(false);
-            mPlayer->setControl(true);
-        }
+            float_t x = 0, y = 0;
+            if (!mHud->isExpanded()) {
+                bool turned = false;
+                for (auto it = keys.rbegin(); it != keys.rend(); it++) {
+                    if (!it->down) {
+                        continue;
+                    }
 
-        if (keys.up(Keys::ExpandHudItems)) {
-            mPlayer->incrementItem();
-        }
+                    switch (it->key) {
+                    case engine::Keys::Up:
+                        if (y == 0) {
+                            y = -1;
+                        }
+                        if (!turned) {
+                            mPlayer->turnTo(engine::character::Character::Direction::Up);
+                            turned = true;
+                        }
+                        break;
+                    case engine::Keys::Down:
+                        if (y == 0) {
+                            y = 1;
+                        }
+                        if (!turned) {
+                            mPlayer->turnTo(engine::character::Character::Direction::Down);
+                            turned = true;
+                        }
+                        break;
+                    case engine::Keys::Left:
+                        if (x == 0) {
+                            x = -1;
+                        }
+                        if (!turned) {
+                            mPlayer->turnTo(engine::character::Character::Direction::Left);
+                            turned = true;
+                        }
+                        break;
+                    case engine::Keys::Right:
+                        if (x == 0) {
+                            x = 1;
+                        }
+                        if (!turned) {
+                            mPlayer->turnTo(engine::character::Character::Direction::Right);
+                            turned = true;
+                        }
+                        break;
+                    default:
+                        break;
+                    }
 
-        float_t x = 0, y = 0;
-        if (mPlayer->canControl()) {
-            bool turned = false;
-            for (auto it = keys.rbegin(); it != keys.rend(); it++) {
-                if (!it->down) {
-                    continue;
+                    if (x != 0 && y != 0) {
+                        break;
+                    }
                 }
 
-                switch (it->key) {
-                case engine::Keys::Up:
-                    if (y == 0) {
-                        y = -1;
-                    }
-                    if (!turned) {
-                        mPlayer->turnTo(engine::Character::Direction::Up);
-                        turned = true;
-                    }
-                    break;
-                case engine::Keys::Down:
-                    if (y == 0) {
-                        y = 1;
-                    }
-                    if (!turned) {
-                        mPlayer->turnTo(engine::Character::Direction::Down);
-                        turned = true;
-                    }
-                    break;
-                case engine::Keys::Left:
-                    if (x == 0) {
-                        x = -1;
-                    }
-                    if (!turned) {
-                        mPlayer->turnTo(engine::Character::Direction::Left);
-                        turned = true;
-                    }
-                    break;
-                case engine::Keys::Right:
-                    if (x == 0) {
-                        x = 1;
-                    }
-                    if (!turned) {
-                        mPlayer->turnTo(engine::Character::Direction::Right);
-                        turned = true;
-                    }
-                    break;
-                default:
-                    break;
+                if (keys.down(engine::Keys::TestFriction)) {
+                    mPlayer->setFriction(0.1f);
+                } else {
+                    mPlayer->setFriction(1.0f);
                 }
 
-                if (x != 0 && y != 0) {
-                    break;
+                if (keys.down(engine::Keys::Run)) {
+                    mPlayer->setSpeed(2.0f);
+                } else if (keys.down(engine::Keys::Walk)) {
+                    mPlayer->setSpeed(0.5f);
+                } else {
+                    mPlayer->setSpeed(1.0f);
                 }
-            }
 
-            if (keys.down(engine::Keys::TestFriction)) {
-                mPlayer->setFriction(0.1f);
-            } else {
-                mPlayer->setFriction(1.0f);
-            }
+                if (keys.up(Keys::Use)) {
+                    mPlayer->useItem();
+                }
 
-            if (keys.down(engine::Keys::Run)) {
-                mPlayer->setSpeed(2.0f);
-            } else if (keys.down(engine::Keys::Walk)) {
-                mPlayer->setSpeed(0.5f);
+                if (mClock->processAsync(diff, mMap.get())) {
+                    mNeedRepaint = true;
+                }
             } else {
                 mPlayer->setSpeed(1.0f);
             }
 
-            if (keys.up(Keys::Use)) {
-                mPlayer->useItem();
-            }
-
-            if (mClock->processAsync(diff, mMap.get())) {
-                mNeedRepaint = true;
-            }
-        } else {
-            mPlayer->setSpeed(1.0f);
+            mPlayer->velocity(diff, x, y);
         }
-
-        mPlayer->velocity(diff, x, y);
 
         // Process movement, etc
         if (mCamera->processAsync(diff, mMap.get())) {

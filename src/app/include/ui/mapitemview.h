@@ -7,7 +7,7 @@
 #include <QQuickPaintedItem>
 #include <QTimer>
 
-#include <engine/character.h>
+#include <engine/character/character.h>
 #include <engine/engine.h>
 #include <engine/frametimer.h>
 #include <engine/keys.h>
