@@ -30,7 +30,6 @@ set(HEADERS
     include/engine/player.h
     include/engine/renderer.h
     include/engine/screeneffects.h
-	include/engine/scriptobject.h
 	include/engine/tileset.h
 	include/engine/time.h
 	include/engine/types.h
@@ -55,13 +54,16 @@ set(SOURCES
     player.cpp
     renderer.cpp
     screeneffects.cpp
-    scriptobject.cpp
     tileset.cpp
     time.cpp
     types.cpp   
 )
 
-include(character/character.cmake)
+file(GLOB dirs */dir.cmake)
+
+foreach(loop_var ${dirs})
+  include(${loop_var})
+endforeach(loop_var)
 
 source_group("Header Files" FILES ${HEADERS})
 source_group("Source Files" FILES ${SOURCES})

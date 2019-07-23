@@ -15,7 +15,7 @@ void main() {
             camera.follow(dude);
             print("camera finished");
 
-            dude.moveTo(290, 290, function() {
+            dude.moveTo(player.character().x(), player.character().y(), function() {
                 camera.follow(player.character());
                 player.setCanControl(true);
                 print("move done");

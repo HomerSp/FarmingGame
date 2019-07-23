@@ -9,16 +9,18 @@
 #define SCRIPT_METHOD(c, m) asSMethodPtr<sizeof(void (c::*)())>::Convert(reinterpret_cast<void (c::*)()>(&c::m))
 
 // Class, return type, function name, parameter types ...
-#define REGISTER_FUNC(e, c, r, n) ScriptObject::registerMethod<c>(e, FunctionPtrHelper::functionString<r>(#n), SCRIPT_METHOD(c, n))
-#define REGISTER_FUNC_ARGS(e, c, r, n, ...) ScriptObject::registerMethod<c>(e, FunctionPtrHelper::functionString<r, __VA_ARGS__>(#n), SCRIPT_METHOD(c, n))
+#define REGISTER_FUNC(e, c, r, n) script::ScriptObject::registerMethod<c>(e, FunctionPtrHelper::functionString<r>(#n), SCRIPT_METHOD(c, n))
+#define REGISTER_FUNC_ARGS(e, c, r, n, ...) script::ScriptObject::registerMethod<c>(e, FunctionPtrHelper::functionString<r, __VA_ARGS__>(#n), SCRIPT_METHOD(c, n))
 
 namespace engine {
+namespace script {
+
+class ScriptEngine;
+
 class ScriptObject {
 public:
-    ScriptObject();
+    ScriptObject(std::shared_ptr<script::ScriptEngine> &engine);
     virtual ~ScriptObject() = default;
-
-    void setContext(asIScriptContext* context);
 
     // Called from AngelScript
     void AddRef();
@@ -51,7 +53,7 @@ protected:
 private:
     static void registerReference(asIScriptEngine* engine, const std::string& name);
 
-    asIScriptContext* mContext;
+    std::shared_ptr<script::ScriptEngine> mEngine;
     int32_t mRefs;
 };
 
@@ -63,7 +65,7 @@ struct ScriptCallback : public FunctionPtrCallback {
 };
 
 template<class T, typename... Ts>
-void ScriptObject::registerCallback(asIScriptEngine* engine)
+void script::ScriptObject::registerCallback(asIScriptEngine* engine)
 {
     static_assert (std::is_base_of<FunctionPtrCallback, T>::value, "Callback must inherit FunctionPtrCallback!");
 
@@ -72,21 +74,21 @@ void ScriptObject::registerCallback(asIScriptEngine* engine)
 }
 
 template<typename T>
-void ScriptObject::registerReference(asIScriptEngine* engine)
+void script::ScriptObject::registerReference(asIScriptEngine* engine)
 {
     FunctionPtrHelper::registerType(T::className(), typeid(T));
     registerReference(engine, T::className());
 }
 
 template<typename T>
-void ScriptObject::registerType(asIScriptEngine* engine)
+void script::ScriptObject::registerType(asIScriptEngine* engine)
 {
     FunctionPtrHelper::registerType(T::className(), typeid(T));
     engine->RegisterObjectType(T::className().c_str(), 0, asOBJ_REF | asOBJ_NOCOUNT);
 }
 
 template<typename T>
-void ScriptObject::registerClass(asIScriptEngine* engine, const asSFuncPtr& construct, const asSFuncPtr& destruct)
+void script::ScriptObject::registerClass(asIScriptEngine* engine, const asSFuncPtr& construct, const asSFuncPtr& destruct)
 {
     engine->RegisterObjectType(T::className().c_str(), sizeof(T), asOBJ_VALUE);
     engine->RegisterObjectBehaviour(T::className().c_str(), asBEHAVE_CONSTRUCT, "void f()", construct, asCALL_CDECL_OBJLAST);
@@ -94,20 +96,21 @@ void ScriptObject::registerClass(asIScriptEngine* engine, const asSFuncPtr& cons
 }
 
 template<typename T>
-void ScriptObject::registerInstance(asIScriptEngine* engine, const std::string &instanceName, T* ptr)
+void script::ScriptObject::registerInstance(asIScriptEngine* engine, const std::string &instanceName, T* ptr)
 {
     engine->RegisterGlobalProperty(std::string(T::className() + " " + instanceName).c_str(), ptr);
 }
 
 template<typename T>
-void ScriptObject::registerMethod(asIScriptEngine* engine, const std::string& decl, const asSFuncPtr &funcPointer)
+void script::ScriptObject::registerMethod(asIScriptEngine* engine, const std::string& decl, const asSFuncPtr &funcPointer)
 {
     engine->RegisterObjectMethod(T::className().c_str(), decl.c_str(), funcPointer, asCALL_THISCALL);
 }
 
 template<typename T>
-void ScriptObject::registerProperty(asIScriptEngine* engine, const std::string& decl, int32_t offset)
+void script::ScriptObject::registerProperty(asIScriptEngine* engine, const std::string& decl, int32_t offset)
 {
     engine->RegisterObjectProperty(T::className().c_str(), decl.c_str(), offset);
+}
 }
 }

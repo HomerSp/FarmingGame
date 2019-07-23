@@ -1,13 +1,13 @@
-#include <engine/character/character.h>
 #include <engine/assetmanager.h>
+#include <engine/character/character.h>
 #include <engine/item.h>
 #include <engine/logger.h>
 #include <engine/player.h>
 
 using namespace engine;
 
-Player::Player()
-    : Character("player")
+Player::Player(std::shared_ptr<script::ScriptEngine> &engine)
+    : Character(engine, "player")
     , mControl(true)
     , mLevel(1)
     , mStamina(0)

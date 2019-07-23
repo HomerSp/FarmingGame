@@ -1,5 +1,5 @@
-#include <engine/character/character.h>
 #include <engine/assetmanager.h>
+#include <engine/character/character.h>
 #include <engine/clock.h>
 #include <engine/frametimer.h>
 #include <engine/hud.h>

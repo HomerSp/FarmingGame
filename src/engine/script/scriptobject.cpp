@@ -1,22 +1,19 @@
 #include <engine/logger.h>
-#include <engine/scriptobject.h>
+#include <engine/script/scriptengine.h>
+#include <engine/script/scriptobject.h>
 
 using namespace engine;
+using namespace engine::script;
 
-ScriptObject::ScriptObject()
-    : mContext(nullptr)
+ScriptObject::ScriptObject(std::shared_ptr<script::ScriptEngine> &engine)
+    : mEngine(engine)
     , mRefs(0)
 {
 }
 
-void ScriptObject::setContext(asIScriptContext* context)
-{
-    mContext = context;
-}
-
 asIScriptContext& ScriptObject::scriptContext()
 {
-    return *mContext;
+    return *mEngine->context();
 }
 
 void ScriptObject::registerReference(asIScriptEngine* engine, const std::string& name)

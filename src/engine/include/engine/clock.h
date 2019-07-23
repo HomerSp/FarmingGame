@@ -6,14 +6,14 @@
 #include <unordered_map>
 
 #include <engine/listeners.h>
-#include <engine/scriptobject.h>
+#include <engine/script/scriptobject.h>
 #include <engine/types.h>
 
 namespace engine {
 
 class Map;
 
-class Clock : public ScriptObject {
+class Clock : public script::ScriptObject {
 private:
     class ChangeListener : public Listeners::Listener {
     public:
@@ -36,7 +36,7 @@ private:
     };
 
 public:
-    Clock();
+    Clock(std::shared_ptr<script::ScriptEngine> &engine);
  
     uint64_t current() const;
     uint8_t year() const;

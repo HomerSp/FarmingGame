@@ -4,7 +4,7 @@
 #include <mutex>
 
 #include <engine/listeners.h>
-#include <engine/scriptobject.h>
+#include <engine/script/scriptobject.h>
 #include <engine/types.h>
 
 namespace engine {
@@ -13,9 +13,13 @@ namespace character {
 class Character;
 }
 
+namespace script {
+class ScriptObject;
+}
+
 class Map;
 
-class Camera : public ScriptObject {
+class Camera : public engine::script::ScriptObject {
 public:
     class Target {
     public:
@@ -40,7 +44,7 @@ public:
         }
     };
 
-    Camera(uint32_t width, uint32_t height);
+    Camera(std::shared_ptr<script::ScriptEngine> &engine, uint32_t width, uint32_t height);
 
     int32_t x();
     int32_t y();

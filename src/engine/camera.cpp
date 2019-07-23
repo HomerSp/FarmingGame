@@ -1,14 +1,15 @@
 #include <cmath>
 
-#include <engine/character/character.h>
 #include <engine/camera.h>
+#include <engine/character/character.h>
 #include <engine/logger.h>
 #include <engine/map.h>
 
 using namespace engine;
 
-Camera::Camera(uint32_t width, uint32_t height)
-    : mTarget(nullptr)
+Camera::Camera(std::shared_ptr<script::ScriptEngine> &engine, uint32_t width, uint32_t height)
+    : ScriptObject(engine)
+    , mTarget(nullptr)
     , mDimen(width, height)
     , mPos(0.0f, 0.0f)
     , mTargetPos(-1, -1)
@@ -230,7 +231,7 @@ void Camera::registerClass(asIScriptEngine* engine)
     REGISTER_FUNC(engine, Camera, float_t, x);
     REGISTER_FUNC(engine, Camera, float_t, y);
     REGISTER_FUNC_ARGS(engine, Camera, void, moveTo, int32_t, int32_t);
-    REGISTER_FUNC_ARGS(engine, Camera, void, moveTo, int32_t, int32_t, ScriptCallback&&);
+    REGISTER_FUNC_ARGS(engine, Camera, void, moveTo, int32_t, int32_t, script::ScriptCallback&&);
     REGISTER_FUNC_ARGS(engine, Camera, void, follow, Camera::Target&&);
     REGISTER_FUNC_ARGS(engine, Camera, void, follow, const character::Character&);
 }

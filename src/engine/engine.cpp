@@ -6,8 +6,6 @@
 #include <thread>
 
 #include <scriptbuilder/scriptbuilder.h>
-#include <scripthandle/scripthandle.h>
-#include <scriptstdstring/scriptstdstring.h>
 
 #include <engine/assetmanager.h>
 #include <engine/engine.h>
@@ -31,23 +29,24 @@ Engine::Engine(uint32_t width, uint32_t height, std::shared_ptr<Renderer> render
 
     AssetManager::get()->setRenderer(mRenderer);
 
-    mScript = std::make_shared<Engine::ScriptCreator>();
+    mScript = std::make_shared<script::ScriptEngine>();
+    mEngineObject = std::make_shared<EngineObject>(mScript, this);
 
     mHud = std::make_shared<engine::Hud>();
     mScreenEffects = std::make_shared<engine::ScreenEffects>();
-    mCamera = std::make_shared<engine::Camera>(mWidth, mHeight);
-    mClock = std::make_shared<engine::Clock>();
+    mCamera = std::make_shared<engine::Camera>(mScript, mWidth, mHeight);
+    mClock = std::make_shared<engine::Clock>(mScript);
     mMap = std::make_shared<engine::Map>("map");
-    mPlayer = std::make_shared<engine::Player>();
+    mPlayer = std::make_shared<engine::Player>(mScript);
     mPlayer->setX(std::floor((mMap->pixelWidth() - mPlayer->width()) / 2));
     mPlayer->setY(std::floor((mMap->pixelHeight() - mPlayer->height()) / 2));
 
-    mCharacters.push_back(std::make_shared<Character>("dude"));
+    mCharacters.push_back(std::make_shared<Character>(mScript, "dude"));
     mCharacters.back()->setX((8 * 48));
     mCharacters.back()->setY(48);
     mCharacters.back()->setDirection(Character::Direction::Down);
 
-    mCharacters.push_back(std::make_shared<Character>("horse"));
+    mCharacters.push_back(std::make_shared<Character>(mScript, "horse"));
     mCharacters.back()->setX(48);
     mCharacters.back()->setY(96);
     mCharacters.back()->setDirection(Character::Direction::Right);
@@ -169,6 +168,7 @@ void Engine::processAsync()
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
 
+        float_t x = 0, y = 0;
         if (mPlayer->canControl()) {
             if (keys.longPress(Keys::ExpandHudItems)) {
                 mHud->expandItems(true);
@@ -187,7 +187,6 @@ void Engine::processAsync()
                 mPlayer->incrementItem();
             }
 
-            float_t x = 0, y = 0;
             if (!mHud->isExpanded()) {
                 bool turned = false;
                 for (auto it = keys.rbegin(); it != keys.rend(); it++) {
@@ -265,9 +264,9 @@ void Engine::processAsync()
             } else {
                 mPlayer->setSpeed(1.0f);
             }
-
-            mPlayer->velocity(diff, x, y);
         }
+
+        mPlayer->velocity(diff, x, y);
 
         // Process movement, etc
         if (mCamera->processAsync(diff, mMap.get())) {
@@ -382,14 +381,20 @@ void Engine::setSize(uint32_t width, uint32_t height)
 
 bool Engine::registerScript()
 {
-    FunctionPtrHelper::init();
-
     if (!mScript->create()) {
         return false;
     }
 
-    // This needs to be done after all other types have been registered.
-    registerClass();
+    // Generic objects
+    script::ScriptObject::registerCallback<script::ScriptCallback>(mScript->engine());
+
+    Character::registerClass(mScript->engine());
+    Clock::registerClass(mScript->engine());
+    Player::registerClass(mScript->engine());
+    Camera::registerClass(mScript->engine());
+    EngineObject::registerClass(mScript->engine());
+
+    mEngineObject->registerObject();
 
     mScript->engine()->RegisterGlobalFunction("void print(const string &in)", asFUNCTION(Logger::scriptPrint), asCALL_CDECL);
 
@@ -426,7 +431,6 @@ bool Engine::registerScript()
     }
 
     mScript->context()->Prepare(func);
-    registerContext();
 
     int32_t r = mScript->context()->Execute();
     if (r == asEXECUTION_EXCEPTION) {
@@ -437,127 +441,53 @@ bool Engine::registerScript()
     return (r == asEXECUTION_FINISHED);
 }
 
-std::string Engine::className()
+Engine::EngineObject::EngineObject(std::shared_ptr<script::ScriptEngine> &engine, Engine* e)
+    : ScriptObject(engine)
+    , mEngine(e)
+{
+}
+
+std::string Engine::EngineObject::className()
 {
     return "Engine";
 }
 
-void Engine::registerClass()
+void Engine::EngineObject::registerClass(asIScriptEngine* engine)
 {
-    registerReference<Engine>(mScript->engine());
-    REGISTER_FUNC(mScript->engine(), Engine, Camera&, camera);
-    REGISTER_FUNC(mScript->engine(), Engine, Clock&, clock);
-    REGISTER_FUNC(mScript->engine(), Engine, Player&, player);
-    REGISTER_FUNC_ARGS(mScript->engine(), Engine, Character&, character, const std::string);
-    registerInstance<Engine>(mScript->engine(), "engine", this);
+    registerReference<EngineObject>(engine);
+    REGISTER_FUNC(engine, EngineObject, Camera&, camera);
+    REGISTER_FUNC(engine, EngineObject, Clock&, clock);
+    REGISTER_FUNC(engine, EngineObject, Player&, player);
+    REGISTER_FUNC_ARGS(engine, EngineObject, Character&, character, const std::string);
 }
 
-void Engine::registerContext()
+void Engine::EngineObject::registerObject()
 {
-    mCamera->setContext(mScript->context());
-    mClock->setContext(mScript->context());
-    mPlayer->setContext(mScript->context());
-    for (auto& i: mCharacters) {
-        i->setContext(mScript->context());
-    }
+    registerInstance<EngineObject>(mEngine->mScript->engine(), "engine", this);
 }
 
-engine::Camera* Engine::camera()
+engine::Camera* Engine::EngineObject::camera()
 {
-    return mCamera.get();
+    return mEngine->mCamera.get();
 }
 
-engine::Clock* Engine::clock()
+engine::Clock* Engine::EngineObject::clock()
 {
-    return mClock.get();
+    return mEngine->mClock.get();
 }
 
-engine::Player* Engine::player()
+engine::Player* Engine::EngineObject::player()
 {
-    return mPlayer.get();
+    return mEngine->mPlayer.get();
 }
 
-engine::character::Character* Engine::character(const std::string& id)
+engine::character::Character* Engine::EngineObject::character(const std::string& id)
 {
-    for (auto& i: mCharacters) {
+    for (auto& i: mEngine->mCharacters) {
         if (i->id() == id) {
             return i.get();
         }
     }
 
     return nullptr;
-}
-
-Engine::ScriptCreator::ScriptCreator()
-    : mScriptEngine(nullptr)
-    , mScriptContext(nullptr)
-{
-}
-
-Engine::ScriptCreator::~ScriptCreator()
-{
-    if (mScriptContext != nullptr) {
-        mScriptContext->Release();
-    }
-
-    if (mScriptEngine != nullptr) {
-        mScriptEngine->ShutDownAndRelease();
-    }
-}
-
-void scriptMessageCallback(const asSMessageInfo *msg, void *param)
-{
-    ((void) param);
-
-    std::stringstream stream;
-    stream << "["
-        << msg->section
-        << ":"
-        << msg->row
-        << ":"
-        << msg->col
-        << "]";
-
-    Logger::error() << stream.str() << msg->message;
-}
-
-bool Engine::ScriptCreator::create()
-{
-    assert(mScriptEngine == nullptr);
-    mScriptEngine = asCreateScriptEngine();
-    if (mScriptEngine->SetMessageCallback(asFUNCTION(scriptMessageCallback), nullptr, asCALL_CDECL) != 0) {
-        Logger::error() << "Could not register message callback";
-        return false;
-    }
-
-    RegisterStdString(mScriptEngine);
-    RegisterScriptHandle(mScriptEngine);
-
-    // Generic objects
-    ScriptObject::registerCallback<ScriptCallback>(mScriptEngine);
-
-    Character::registerClass(mScriptEngine);
-    Clock::registerClass(mScriptEngine);
-    Player::registerClass(mScriptEngine);
-    Camera::registerClass(mScriptEngine);
-
-    return true;
-}
-
-bool Engine::ScriptCreator::createContext()
-{
-    assert(mScriptContext == nullptr);
-    mScriptContext = mScriptEngine->CreateContext();
-
-    return true;
-}
-
-asIScriptEngine* Engine::ScriptCreator::engine()
-{
-    return mScriptEngine;
-}
-
-asIScriptContext* Engine::ScriptCreator::context()
-{
-    return mScriptContext;
 }

@@ -9,8 +9,9 @@
 
 using namespace engine;
 
-Clock::Clock()
-    : mCurrent(0)
+Clock::Clock(std::shared_ptr<script::ScriptEngine> &engine)
+    : ScriptObject(engine)
+    , mCurrent(0)
     , mCurrentMod(0.0f)
     , mDawn(6)
     , mDusk(20)
@@ -226,7 +227,7 @@ void Clock::registerClass(asIScriptEngine* engine)
     REGISTER_FUNC(engine, Clock, uint, weekDay);
     REGISTER_FUNC(engine, Clock, uint, hour);
     REGISTER_FUNC(engine, Clock, uint, minute);
-    REGISTER_FUNC_ARGS(engine, Clock, void, on, const std::string, const std::string, ScriptCallback&&);
+    REGISTER_FUNC_ARGS(engine, Clock, void, on, const std::string, const std::string, script::ScriptCallback&&);
 }
 
 Clock::ChangeListener::ChangeListener(asIScriptFunction* fun, const std::string& format)

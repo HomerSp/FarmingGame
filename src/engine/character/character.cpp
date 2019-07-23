@@ -3,16 +3,17 @@
 
 #include <json/json.h>
 
-#include <engine/character/character.h>
 #include <engine/assetmanager.h>
+#include <engine/character/character.h>
 #include <engine/logger.h>
 #include <engine/map.h>
 #include <engine/renderer.h>
 
 using namespace engine::character;
 
-Character::Character(std::string id)
-    : mValid(false)
+Character::Character(std::shared_ptr<script::ScriptEngine> &engine, std::string id)
+    : ScriptObject(engine)
+    , mValid(false)
     , mID(std::move(id))
     , mName("")
     , mCharsetType(Charset::TypeWalk)
@@ -450,5 +451,5 @@ void Character::registerClass(asIScriptEngine* engine)
     REGISTER_FUNC(engine, Character, int32_t, x);
     REGISTER_FUNC(engine, Character, int32_t, y);
     REGISTER_FUNC_ARGS(engine, Character, void, moveTo, int32_t, int32_t);
-    REGISTER_FUNC_ARGS(engine, Character, void, moveTo, int32_t, int32_t, ScriptCallback&&);
+    REGISTER_FUNC_ARGS(engine, Character, void, moveTo, int32_t, int32_t, script::ScriptCallback&&);
 }

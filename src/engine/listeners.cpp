@@ -2,14 +2,14 @@
 
 #include <engine/listeners.h>
 #include <engine/logger.h>
-#include <engine/scriptobject.h>
+#include <engine/script/scriptobject.h>
 
 using namespace engine;
 
 Listeners::Listener::Listener(asIScriptFunction* fun)
     : mCanTrigger(false)
 {
-    mFunction = FunctionPtrHelper::get<ScriptCallback>(fun);
+    mFunction = FunctionPtrHelper::get<script::ScriptCallback>(fun);
 }
 
 Listeners::Listener::~Listener()

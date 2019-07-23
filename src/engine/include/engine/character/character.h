@@ -6,7 +6,7 @@
 #include <engine/camera.h>
 #include <engine/charset.h>
 #include <engine/listeners.h>
-#include <engine/scriptobject.h>
+#include <engine/script/scriptobject.h>
 #include <engine/types.h>
 
 namespace engine {
@@ -15,7 +15,7 @@ class Renderer;
 
 namespace character {
 
-class Character : public Camera::Target, public ScriptObject {
+class Character : public Camera::Target, public script::ScriptObject {
 public:
     struct Direction {
         typedef enum {
@@ -26,7 +26,7 @@ public:
         } Type;
     };
 
-    Character(std::string id);
+    Character(std::shared_ptr<script::ScriptEngine> &engine, std::string id);
 
     void draw(Renderer& renderer, const Types::Point<>& camera);
 

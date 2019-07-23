@@ -16,10 +16,11 @@
 #include <engine/map.h>
 #include <engine/player.h>
 #include <engine/screeneffects.h>
-#include <engine/scriptobject.h>
+#include <engine/script/scriptengine.h>
+#include <engine/script/scriptobject.h>
 
 namespace engine {
-class Engine : public ScriptObject {
+class Engine {
 public:
     Engine(uint32_t width, uint32_t height, std::shared_ptr<Renderer> renderer);
     ~Engine();
@@ -41,41 +42,36 @@ public:
 
     void setSize(uint32_t width, uint32_t height);
 
-    // Scripting
-    engine::Camera* camera();
-    engine::Clock* clock();
-    engine::Player* player();
-    engine::character::Character* character(const std::string& id);
-
-    static std::string className();
-
 protected:
     void animateAsync();
     void processAsync();
 
     bool registerScript();
-    void registerClass();
     void registerContext();
 
 private:
-    class ScriptCreator {
+    class EngineObject : public script::ScriptObject {
     public:
-        ScriptCreator();
-        ~ScriptCreator();
+        EngineObject(std::shared_ptr<script::ScriptEngine> &engine, Engine* e);
 
-        bool create();
-        bool createContext();
+        // Scripting
+        engine::Camera* camera();
+        engine::Clock* clock();
+        engine::Player* player();
+        engine::character::Character* character(const std::string& id);
 
-        asIScriptEngine* engine();
-        asIScriptContext* context();
+        void registerObject();
+
+        static void registerClass(asIScriptEngine* engine);
+        static std::string className();
 
     private:
-        asIScriptEngine* mScriptEngine;
-        asIScriptContext* mScriptContext;
+        Engine* mEngine;
     };
 
 private:
-    std::shared_ptr<ScriptCreator> mScript;
+    std::shared_ptr<script::ScriptEngine> mScript;
+    std::shared_ptr<EngineObject> mEngineObject;
 
     std::atomic<bool> mRunning;
     std::atomic<bool> mNeedRepaint;
