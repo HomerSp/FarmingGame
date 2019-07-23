@@ -26,7 +26,7 @@ public:
         } Type;
     };
 
-    Character(const std::string& name);
+    Character(std::string id);
 
     void draw(Renderer& renderer, const Types::Point<>& camera);
 
@@ -35,6 +35,8 @@ public:
     void processListeners();
 
     void velocity(uint64_t frameDiff, float_t x, float_t y);
+
+    const std::string& id() const;
 
     virtual int32_t x();
     virtual int32_t y();
@@ -67,6 +69,7 @@ protected:
 
 private:
     bool mValid;
+    std::string mID;
     std::string mName;
     std::shared_ptr<Charset> mCharset;
     Charset::Type mCharsetType;

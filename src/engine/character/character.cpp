@@ -11,8 +11,9 @@
 
 using namespace engine::character;
 
-Character::Character(const std::string& name)
+Character::Character(std::string id)
     : mValid(false)
+    , mID(std::move(id))
     , mName("")
     , mCharsetType(Charset::TypeWalk)
     , mFrame(1)
@@ -25,12 +26,12 @@ Character::Character(const std::string& name)
     , mTarget(-1, -1)
     , mFriction(1.0f)
 {
-    Logger::debug() << "Character" << name;
+    Logger::debug() << "Character" << mID;
 
-    std::shared_ptr<Json::Value> docPtr = AssetManager::get()->data(AssetManager::get()->Character, name);
+    std::shared_ptr<Json::Value> docPtr = AssetManager::get()->data(AssetManager::Character, mID);
     Json::Value doc = *docPtr;
     if (!doc.isObject() || !doc.isMember("name") || !doc.isMember("charset")) {
-        Logger::critical() << "Invalid JSON data for character" << name;
+        Logger::critical() << "Invalid JSON data for character" << mID;
         return;
     }
 
@@ -38,6 +39,11 @@ Character::Character(const std::string& name)
     mCharset = std::make_shared<Charset>(doc["charset"].asString());
 
     mValid = true;
+}
+
+const std::string& Character::id() const
+{
+    return mID;
 }
 
 int32_t Character::x()

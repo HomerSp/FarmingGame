@@ -448,6 +448,7 @@ void Engine::registerClass()
     REGISTER_FUNC(mScript->engine(), Engine, Camera&, camera);
     REGISTER_FUNC(mScript->engine(), Engine, Clock&, clock);
     REGISTER_FUNC(mScript->engine(), Engine, Player&, player);
+    REGISTER_FUNC_ARGS(mScript->engine(), Engine, Character&, character, const std::string);
     registerInstance<Engine>(mScript->engine(), "engine", this);
 }
 
@@ -456,6 +457,9 @@ void Engine::registerContext()
     mCamera->setContext(mScript->context());
     mClock->setContext(mScript->context());
     mPlayer->setContext(mScript->context());
+    for (auto& i: mCharacters) {
+        i->setContext(mScript->context());
+    }
 }
 
 engine::Camera* Engine::camera()
@@ -471,6 +475,17 @@ engine::Clock* Engine::clock()
 engine::Player* Engine::player()
 {
     return mPlayer.get();
+}
+
+engine::character::Character* Engine::character(const std::string& id)
+{
+    for (auto& i: mCharacters) {
+        if (i->id() == id) {
+            return i.get();
+        }
+    }
+
+    return nullptr;
 }
 
 Engine::ScriptCreator::ScriptCreator()

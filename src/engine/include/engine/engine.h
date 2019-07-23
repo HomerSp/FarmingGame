@@ -45,6 +45,7 @@ public:
     engine::Camera* camera();
     engine::Clock* clock();
     engine::Player* player();
+    engine::character::Character* character(const std::string& id);
 
     static std::string className();
 

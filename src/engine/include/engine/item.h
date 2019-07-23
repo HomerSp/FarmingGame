@@ -36,6 +36,7 @@ struct ItemAttribute {
 class Item : public ScreenEffects::LightSource {
 public:
     Item(const std::string& name);
+    virtual ~Item() {}
 
     // Light source
     virtual Types::Point<int32_t> lightPosition();
