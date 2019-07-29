@@ -513,6 +513,9 @@ Tileset::Tileset(const std::string& name)
                     case Types::hash("light_source"):
                         attrs[TilesetAttribute::LightSource] = true;
                         break;
+                    case Types::hash("path"):
+                        attrs[TilesetAttribute::Path] = true;
+                        break;
                     default:
                         Logger::warning() << "Unknown attribute" << key << "for tileset" << name;
                         break;

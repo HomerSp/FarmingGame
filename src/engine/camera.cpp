@@ -59,11 +59,17 @@ void Camera::moveTo(int32_t dstX, int32_t dstY, asIScriptFunction* fun)
     mTargetPos.y = dstY;
 }
 
-bool Camera::contains(character::Character& character, const Types::Dimension<>& buf)
+bool Camera::contains(const Types::Rect<float_t>& rc, const Types::Dimension<>& buf)
 {
     std::lock_guard<std::mutex> lock(mMovementMutex);
-    return character.x() + character.width() >= mPos.x - buf.width && character.x() < mPos.x + mDimen.width + buf.width
-        && character.y() + character.height() >= mPos.y - buf.height && character.y() < mPos.y + mDimen.height + buf.height;
+    return rc.x + rc.width >= mPos.x - buf.width && rc.x < mPos.x + mDimen.width + buf.width
+        && rc.y + rc.height >= mPos.y - buf.height && rc.y < mPos.y + mDimen.height + buf.height;
+}
+
+bool Camera::outsideView(const Types::Point<float_t>& pos)
+{
+    std::lock_guard<std::mutex> lock(mMovementMutex);
+    return pos.x < mPos.x || pos.x > mPos.x + mDimen.width || pos.y < mPos.y || pos.y > mPos.y + mDimen.height;
 }
 
 bool Camera::processAsync(uint64_t frameDiff, Map* map)

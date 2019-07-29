@@ -145,21 +145,40 @@ bool MapLayer::updateLightSources(std::vector<std::shared_ptr<MapLightSource>>& 
     return true;
 }
 
-Map::Map(const std::string& name)
+bool MapLayer::updatePaths(std::vector<Types::Point<int32_t> > &paths)
+{
+    for (auto& above: mNodes) {
+        for(auto &nodeY: above.second) {
+            for (auto &nodeX: nodeY.second) {
+                TilesetNode* node = nodeX.second.get();
+                if (node->type->hasAttribute(TilesetAttribute::Path)) {
+                    auto dst = Types::Point<int32_t>(nodeX.first, nodeY.first);
+                    Logger::debug() << "Found path at" << dst.x << dst.y;
+                    paths.push_back(dst);
+                }
+            }
+        }
+    }
+
+    return true;
+}
+
+Map::Map(const std::string& id)
     : mValid(false)
+    , mID(id)
     , mDimensions(0, 0)
 {
-    Logger::debug() << "Loading Map" << name;
+    Logger::debug() << "Loading Map" << id;
 
-    std::shared_ptr<Json::Value> docPtr = AssetManager::get()->data(AssetManager::get()->Map, name);
+    std::shared_ptr<Json::Value> docPtr = AssetManager::get()->data(AssetManager::get()->Map, id);
     Json::Value doc = *docPtr;
     if (!doc.isObject()) {
-        Logger::critical() << "Invalid JSON data for" << name;
+        Logger::critical() << "Invalid JSON data for" << id;
         return;
     }
 
     if (!doc.isMember("width") || !doc.isMember("height") || !doc.isMember("layers")) {
-        Logger::critical() << "Could not find required map JSON attributes for" << name;
+        Logger::critical() << "Could not find required map JSON attributes for" << id;
         return;
     }
 
@@ -169,7 +188,7 @@ Map::Map(const std::string& name)
     Json::Value layers = doc["layers"];
     for (auto layerObj : layers) {
         if (!layerObj.isMember("tileset")) {
-            Logger::critical() << "Could not find required map layer JSON attributes for" << name;
+            Logger::critical() << "Could not find required map layer JSON attributes for" << id;
             return;
         }
 
@@ -180,7 +199,7 @@ Map::Map(const std::string& name)
 
         mTilesets[name] = std::make_shared<Tileset>(name);
         if (!*mTilesets[name]) {
-            Logger::critical() << "Could not load tileset for" << name;
+            Logger::critical() << "Could not load tileset for" << id;
             return;
         }
     }
@@ -193,7 +212,7 @@ Map::Map(const std::string& name)
         }
 
         if (!layerObj.isMember("data")) {
-            Logger::critical() << "Could not find required layer JSON attributes for" << name;
+            Logger::critical() << "Could not find required layer JSON attributes for" << id;
             return;
         }
 
@@ -207,7 +226,7 @@ Map::Map(const std::string& name)
 
         std::shared_ptr<MapLayer> layer = std::make_shared<MapLayer>(data, mTilesets.find(name)->second, mDimensions.width, mDimensions.height);
         if (!*layer) {
-            Logger::critical() << "Could not load layer for" << name;
+            Logger::critical() << "Could not load layer for" << id;
             return;
         }
 
@@ -217,11 +236,15 @@ Map::Map(const std::string& name)
     mCollisionMap = std::make_shared<CollisionMap>(pixelWidth(), pixelHeight());
     for (const auto& layer : mLayers) {
         if (!layer->updateCollisionMap(*mCollisionMap.get())) {
-            Logger::warning() << "Could not load collision map for" << name;
+            Logger::warning() << "Could not load collision map for" << id;
         }
 
         if (!layer->updateLightSources(mLights)) {
-            Logger::warning() << "Could not load light sources for" << name;
+            Logger::warning() << "Could not load light sources for" << id;
+        }
+
+        if (!layer->updatePaths(mPaths)) {
+            Logger::warning() << "Could not load paths for" << id;
         }
     }
 
@@ -343,6 +366,16 @@ void Map::checkCollision(const Types::Point<float_t>& pos, const Types::Dimensio
     }
 }
 
+bool Map::isSolid(int32_t x, int32_t y, const Types::Dimension<>& size)
+{
+    return mCollisionMap->get(x, y, size.width, size.height);
+}
+
+bool Map::isPath(int32_t x, int32_t y)
+{
+    return std::find(mPaths.begin(), mPaths.end(), Types::Point<int32_t>(x, y)) != mPaths.end();
+}
+
 void Map::addLightSources(std::vector<std::shared_ptr<ScreenEffects::LightSource>>& sources)
 {
     for (auto& s: mLights) {
@@ -388,6 +421,11 @@ bool Map::isColliding(const Types::Point<float_t>& pos, const Types::Dimension<>
     }
 
     return found;
+}
+
+const std::string& Map::id() const
+{
+    return mID;
 }
 
 uint32_t Map::width() const

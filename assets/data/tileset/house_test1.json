@@ -1,0 +1,25 @@
+{
+    "image": "House_Test1",
+    "dimen": [48, 48],
+    "collision": "House_Test1",
+    "nodes": [
+        // 1 - House 1
+        {
+            "tile": "single",
+            "base": 7,
+            "count": [7, 9],
+            "above": "row"
+        },
+        // 2 - Door 1
+        {
+            "tile": "single",
+            "count": [1, 2]
+        },
+        // 3 - Door 1
+        {
+            "tile": "single",
+            "count": [1, 1],
+            "above": "all"
+        }
+    ]
+}

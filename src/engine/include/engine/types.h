@@ -24,9 +24,21 @@ public:
     template<typename T = int32_t, typename R = T>
     struct Point {
     public:
-        Point(R x = 0, R y = 0)
+        Point(R x = 0, R y = 0) noexcept
             : x(x), y(y)
         {}
+
+        Point operator+(const Point<T, R>& o) const {
+            return Point<T>(x + o.x, y + o.y);
+        }
+
+        bool operator==(const Point<T, R>& o) const {
+            return x == o.x && y == o.y;
+        }
+
+        bool operator!=(const Point<T, R>& o) const {
+            return ! operator==(o);
+        }
 
         T x, y;
     };

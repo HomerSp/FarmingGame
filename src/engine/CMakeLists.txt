@@ -27,6 +27,7 @@ set(HEADERS
 	include/engine/listeners.h
 	include/engine/logger.h
 	include/engine/map.h
+    include/engine/pathfinding.h
     include/engine/player.h
     include/engine/renderer.h
     include/engine/screeneffects.h
@@ -51,6 +52,7 @@ set(SOURCES
 	listeners.cpp
     logger.cpp
     map.cpp
+    pathfinding.cpp
     player.cpp
     renderer.cpp
     screeneffects.cpp

@@ -90,7 +90,7 @@ private:
     std::shared_ptr<engine::Clock> mClock;
     std::shared_ptr<engine::Map> mMap;
     std::shared_ptr<engine::Player> mPlayer;
-    std::vector<std::shared_ptr<engine::character::Character>> mCharacters;
+    std::unordered_map<std::string, std::shared_ptr<engine::character::Character>> mCharacters;
 
     std::vector<std::shared_ptr<engine::ScreenEffects::LightSource>> mLights;
 

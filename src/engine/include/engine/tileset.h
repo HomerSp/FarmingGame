@@ -33,6 +33,7 @@ struct TilesetAttribute {
         Water = 0,
         Toggle,
         LightSource,
+        Path,
 
         Last,
     } Type;

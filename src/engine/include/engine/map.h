@@ -43,6 +43,7 @@ public:
 
     bool updateCollisionMap(CollisionMap& map);
     bool updateLightSources(std::vector<std::shared_ptr<MapLightSource>>& sources);
+    bool updatePaths(std::vector<Types::Point<int32_t> > &paths);
 
     bool operator!() const
     {
@@ -61,7 +62,7 @@ private:
 
 class Map {
 public:
-    Map(const std::string& name);
+    Map(const std::string& id);
 
     bool animate(uint64_t frameDiff);
 
@@ -69,10 +70,14 @@ public:
     void drawRow(Renderer& renderer, const Types::Rect<>& dst, int32_t row, TilesetAbove::Type above, bool clip = true);
 
     void checkCollision(const Types::Point<float_t>& pos, const Types::Dimension<>& size, Types::Point<float_t>& dst, float_t& velocityX, float_t& velocityY) const;
+    bool isSolid(int32_t x, int32_t y, const Types::Dimension<>& size);
+    bool isPath(int32_t x, int32_t y);
 
     void addLightSources(std::vector<std::shared_ptr<ScreenEffects::LightSource>>& sources);
 
     void toggleLights(bool on);
+
+    const std::string& id() const;
 
     uint32_t width() const;
     uint32_t pixelWidth() const;
@@ -89,10 +94,12 @@ protected:
 
 private:
     bool mValid;
+    std::string mID;
     std::unordered_map<std::string, std::shared_ptr<Tileset>> mTilesets;
     std::vector<std::shared_ptr<MapLayer>> mLayers;
     std::shared_ptr<CollisionMap> mCollisionMap;
     Types::Dimension<uint32_t> mDimensions;
     std::vector<std::shared_ptr<MapLightSource>> mLights;
+    std::vector<Types::Point<int32_t >> mPaths;
 };
 }

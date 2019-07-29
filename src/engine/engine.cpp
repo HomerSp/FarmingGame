@@ -38,18 +38,19 @@ Engine::Engine(uint32_t width, uint32_t height, std::shared_ptr<Renderer> render
     mClock = std::make_shared<engine::Clock>(mScript);
     mMap = std::make_shared<engine::Map>("map");
     mPlayer = std::make_shared<engine::Player>(mScript);
-    mPlayer->setX(std::floor((mMap->pixelWidth() - mPlayer->width()) / 2));
-    mPlayer->setY(std::floor((mMap->pixelHeight() - mPlayer->height()) / 2));
+    mPlayer->setPosition("map", std::floor((mMap->pixelWidth() - mPlayer->width()) / 2), std::floor((mMap->pixelHeight() - mPlayer->height()) / 2));
 
-    mCharacters.push_back(std::make_shared<Character>(mScript, "dude"));
-    mCharacters.back()->setX((8 * 48));
-    mCharacters.back()->setY(48);
-    mCharacters.back()->setDirection(Character::Direction::Down);
+    mCharacters.emplace("player", mPlayer);
 
-    mCharacters.push_back(std::make_shared<Character>(mScript, "horse"));
-    mCharacters.back()->setX(48);
-    mCharacters.back()->setY(96);
-    mCharacters.back()->setDirection(Character::Direction::Right);
+    std::shared_ptr<character::Character> dude = std::make_shared<character::Character>(mScript, "dude");
+    dude->setPosition("map", 10 * 48, (9 * 48) - 24);
+    dude->setDirection(Character::Direction::Down);
+    mCharacters.emplace("dude", std::move(dude));
+
+    std::shared_ptr<character::Character> horse = std::make_shared<Character>(mScript, "horse");
+    horse->setPosition("map", 48, 96);
+    horse->setDirection(Character::Direction::Right);
+    mCharacters.emplace("horse", std::move(horse));
 
     mCamera->setTarget(mPlayer.get());
     mClock->setTime(6, 0);
@@ -99,7 +100,7 @@ bool Engine::process()
     mClock->processListeners();
     mPlayer->processListeners();
     for(auto &i: mCharacters) {
-        i->processListeners();
+        i.second->processListeners();
     }
     return mNeedRepaint;
 }
@@ -109,19 +110,14 @@ void Engine::animateAsync()
     while (mRunning) {
         uint64_t diff = mAnimationFrameTimer.start();
 
-        // Process animations
-        if (mPlayer->animate(diff, !mPlayer->isMoving())) {
-            mNeedRepaint = true;
-        }
-
         if (mMap->animate(diff)) {
             mNeedRepaint = true;
         }
 
         Types::Dimension<> d = mMap->getTileDimension();
         for(auto &i: mCharacters) {
-            if (mCamera->contains(*i, d)) {
-                if (i->animate(diff, false)) {
+            if (mCamera->contains(i.second->rect(), d)) {
+                if (i.second->animate(diff, !i.second->isMoving())) {
                     mNeedRepaint = true;
                 }
             }
@@ -272,12 +268,9 @@ void Engine::processAsync()
         if (mCamera->processAsync(diff, mMap.get())) {
             mNeedRepaint = true;
         }
-        if (mPlayer->processAsync(diff, mMap.get(), &mCharacters, mCamera.get())) {
-            mNeedRepaint = true;
-        }
 
         for(auto &i: mCharacters) {
-            if (i->processAsync(diff, mMap.get())) {
+            if (i.second->processAsync(diff, mMap, &mCharacters, mCamera.get())) {
                 mNeedRepaint = true;
             }
         }
@@ -321,17 +314,16 @@ void Engine::paint()
 
     std::multimap<int32_t, Character*> drawCharacters;
     for (auto& i: mCharacters) {
-        if (mCamera->contains(*i, d)) {
-            drawCharacters.emplace(std::make_pair(i->y() + i->height(), i.get()));
+        auto rc = i.second->rect();
+        if (i.second->map() == mMap->id() && mCamera->contains(rc, d)) {
+            drawCharacters.emplace(rc.y + rc.height - d.height, i.second.get());
         }
     }
-
-    drawCharacters.emplace(std::make_pair(mPlayer->y() + mPlayer->height(), mPlayer.get()));
 
     for (int32_t row = startY - 1; row <= startY + std::ceil(mHeight / d.height) + 1; row++) {
         auto it = drawCharacters.begin();
         while (it != drawCharacters.end()) {
-            if (row * d.height >= it->first - d.height) {
+            if (row * d.height >= it->first) {
                 it->second->draw(renderer, Types::Point<>(mCamera->x(), mCamera->y()));
                 it = drawCharacters.erase(it);
             } else {
@@ -484,8 +476,8 @@ engine::Player* Engine::EngineObject::player()
 engine::character::Character* Engine::EngineObject::character(const std::string& id)
 {
     for (auto& i: mEngine->mCharacters) {
-        if (i->id() == id) {
-            return i.get();
+        if (i.second->id() == id) {
+            return i.second.get();
         }
     }
 

@@ -9,6 +9,7 @@
 #include <engine/map.h>
 #include <engine/renderer.h>
 
+using namespace engine;
 using namespace engine::character;
 
 Character::Character(std::shared_ptr<script::ScriptEngine> &engine, std::string id)
@@ -22,10 +23,13 @@ Character::Character(std::shared_ptr<script::ScriptEngine> &engine, std::string 
     , mDirectionTo(Direction::Down)
     , mDirection(Direction::Down)
     , mSpeed(1.0f)
+    , mMap("")
     , mPos(0, 0)
     , mVelocity(0, 0)
     , mTarget(-1, -1)
     , mFriction(1.0f)
+    , mTargetNodePos(-1, -1)
+    , mTargetNodesCurrent(0)
 {
     Logger::debug() << "Character" << mID;
 
@@ -45,6 +49,12 @@ Character::Character(std::shared_ptr<script::ScriptEngine> &engine, std::string 
 const std::string& Character::id() const
 {
     return mID;
+}
+
+const std::string& Character::map()
+{
+    std::lock_guard<std::mutex> lock(mMovementMutex);
+    return mMap;
 }
 
 int32_t Character::x()
@@ -67,6 +77,12 @@ uint32_t Character::width() const
 uint32_t Character::height() const
 {
     return mCharset->height(mCharsetType);
+}
+
+Types::Rect<float_t> Character::rect()
+{
+    std::lock_guard<std::mutex> lock(mMovementMutex);
+    return {mPos.x, mPos.y, static_cast<float_t>(mCharset->width(mCharsetType)), static_cast<float_t>(mCharset->height(mCharsetType))};
 }
 
 void Character::draw(Renderer& renderer, const Types::Point<>& camera)
@@ -101,7 +117,7 @@ bool Character::animate(uint64_t frameDiff, bool reset)
     return changed;
 }
 
-bool Character::processAsync(uint64_t frameDiff, Map* map, std::vector<std::shared_ptr<Character>> *characters, Camera* camera)
+bool Character::processAsync(uint64_t frameDiff, std::shared_ptr<Map>& map, std::unordered_map<std::string, std::shared_ptr<Character>> *characters, Camera* camera)
 {
     bool changed = false;
     float_t posX, posY;
@@ -110,6 +126,24 @@ bool Character::processAsync(uint64_t frameDiff, Map* map, std::vector<std::shar
         posX = mPos.x;
         posY = mPos.y;
 
+        if (mTargetNodePos.x != -1 && mTargetNodePos.y != -1 && mTargetNodes.empty()) {
+            Types::Dimension<> d = map->getTileDimension();
+            mTargetNodes = PathFinding::find(map, {static_cast<uint32_t>(std::floor(posX / d.width)), static_cast<uint32_t>(std::floor(posY / d.height)), width(), height()}, mTargetNodePos);
+            mTargetNodesCurrent = 1;
+
+            // Did we actually find a path to the destination?
+            if (mTargetNodesCurrent < mTargetNodes.size()) {
+                Types::Dimension<> d = map->getTileDimension();
+                mTarget.x = mTargetNodes.at(mTargetNodesCurrent).x * d.width;
+                mTarget.y = mTargetNodes.at(mTargetNodesCurrent).y * d.height;
+                mTargetNodesCurrent++;
+            } else {
+                mTargetNodePos.x = mTargetNodePos.y = -1;
+                mTargetNodesCurrent = 0;
+                mTargetNodes.clear();
+            }
+        }
+        
         // Do we have a target? Process it.
         if (mTarget.x != -1 || mTarget.y != -1) {
             float_t val = frameDiff / 200.0f;
@@ -182,16 +216,22 @@ bool Character::processAsync(uint64_t frameDiff, Map* map, std::vector<std::shar
             // Check collisions with other characters.
             if (characters != nullptr && (dst.x != 0.0f || dst.y != 0.0f)) {
                 for(auto& i: *characters) {
-                    // Skip characters that are outside the visible view
-                    if (i->mPos.x < camera->x() || i->mPos.x > camera->x() + camera->width() || i->mPos.y < camera->y() || i->mPos.y > camera->y() + camera->height()) {
+                    // Don't check collision against ourself
+                    if (i.second.get() == this) {
                         continue;
                     }
 
-                    checkCollision(*(i.get()), dst);
+                    // Skip characters that are outside the visible view
+                    if (camera->outsideView(i.second->mPos)) {
+                        continue;
+                    }
+
+                    checkCollision(*(i.second.get()), dst);
                 }
             }
 
             // Check if we have reached the x target.
+            float_t velocityX = mVelocity.x, velocityY = mVelocity.y;
             if (mTarget.x != -1 && (
                     (posX > mTarget.x && posX + dst.x <= mTarget.x) ||
                     (posX < mTarget.x && posX + dst.x >= mTarget.x)
@@ -215,6 +255,35 @@ bool Character::processAsync(uint64_t frameDiff, Map* map, std::vector<std::shar
                 mVelocity.y = 0;
             } else {
                 posY += dst.y;
+            }
+
+            if (!mTargetNodes.empty() && mTarget.x == -1 && mTarget.y == -1) {
+                if (mTargetNodesCurrent < mTargetNodes.size()) {
+                    Types::Dimension<> d = map->getTileDimension();
+                    int32_t targetX = mTargetNodes.at(mTargetNodesCurrent).x * d.width;
+                    int32_t targetY = mTargetNodes.at(mTargetNodesCurrent).y * d.height;
+                    mTargetNodesCurrent++;
+
+                    // Use the saved velocity if we are moving in the same direction
+                    if ( (targetX < mPos.x && velocityX < 0.0f)
+                        || (targetX > mPos.x && velocityX > 0.0f)
+                    ) {
+                        mVelocity.x = velocityX;
+                    }
+
+                    if ( (targetY < mPos.y && velocityY < 0.0f)
+                        || (targetY > mPos.y && velocityY > 0.0f)
+                    ) {
+                        mVelocity.y = velocityY;
+                    }
+
+                    mTarget.x = targetX;
+                    mTarget.y = targetY;
+                } else {
+                    mTargetNodePos.x = mTargetNodePos.y = -1;
+                    mTargetNodesCurrent = -1;
+                    mTargetNodes.clear();
+                }
             }
         }
 
@@ -297,8 +366,8 @@ void Character::moveTo(int32_t x, int32_t y, asIScriptFunction* fun)
     }
 
     std::lock_guard<std::mutex> lock(mMovementMutex);
-    mTarget.x = x;
-    mTarget.y = y;
+    mTargetNodePos.x = x;
+    mTargetNodePos.y = y;
 }
 
 void Character::turnTo(Direction::Type direction)
@@ -327,6 +396,14 @@ void Character::setFriction(float_t friction)
 {
     std::lock_guard<std::mutex> lock(mMovementMutex);
     mFriction = friction;
+}
+
+void Character::setPosition(const std::string& map, float_t x, float_t y)
+{
+    std::lock_guard<std::mutex> lock(mMovementMutex);
+    mMap = map;
+    mPos.x = x;
+    mPos.y = y;
 }
 
 void Character::setX(float_t x)

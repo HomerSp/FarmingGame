@@ -6,6 +6,7 @@
 #include <engine/camera.h>
 #include <engine/charset.h>
 #include <engine/listeners.h>
+#include <engine/pathfinding.h>
 #include <engine/script/scriptobject.h>
 #include <engine/types.h>
 
@@ -31,17 +32,19 @@ public:
     void draw(Renderer& renderer, const Types::Point<>& camera);
 
     bool animate(uint64_t frameDiff, bool reset = false);
-    bool processAsync(uint64_t frameDiff, Map* map, std::vector<std::shared_ptr<Character>> *characters = nullptr, Camera* camera = nullptr);
+    bool processAsync(uint64_t frameDiff, std::shared_ptr<Map>& map, std::unordered_map<std::string, std::shared_ptr<Character>> *characters = nullptr, Camera* camera = nullptr);
     void processListeners();
 
     void velocity(uint64_t frameDiff, float_t x, float_t y);
 
     const std::string& id() const;
 
+    const std::string& map();
     virtual int32_t x();
     virtual int32_t y();
     virtual uint32_t width() const;
     virtual uint32_t height() const;
+    Types::Rect<float_t> rect();
 
     bool isMoving();
 
@@ -51,6 +54,8 @@ public:
     void setDirection(Direction::Type direction);
     void setSpeed(float_t speed);
     void setFriction(float_t friction);
+
+    void setPosition(const std::string& map, float_t x, float_t y);
     void setX(float_t x);
     void setY(float_t y);
 
@@ -82,10 +87,14 @@ private:
     Direction::Type mDirection;
 
     float_t mSpeed;
+    std::string mMap;
     Types::Point<float_t> mPos;
     Types::Point<float_t> mVelocity;
     Types::Point<int32_t> mTarget;
     float_t mFriction;
+    Types::Point<int32_t> mTargetNodePos;
+    std::vector<Types::Point<int32_t>> mTargetNodes;
+    uint32_t mTargetNodesCurrent;
     std::mutex mMovementMutex;
 
     std::mutex mListenerMutex;

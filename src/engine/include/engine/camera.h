@@ -55,7 +55,8 @@ public:
     void follow(Target* target);
     void moveTo(int32_t dstX, int32_t dstY, asIScriptFunction* fun = nullptr);
 
-    bool contains(character::Character& character, const Types::Dimension<>& buf);
+    bool contains(const Types::Rect<float_t>& rc, const Types::Dimension<>& buf);
+    bool outsideView(const Types::Point<float_t>& pos);
 
     bool processAsync(uint64_t frameDiff, Map* map);
     void processListeners();
