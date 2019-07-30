@@ -19,7 +19,7 @@ class TilesetType;
 class Tileset;
 
 struct TilesetNode {
-    Types::Point<> pos[4];
+    std::array<Types::Point<>, 4> pos;
     Types::Point<> anim;
     uint8_t frames;
     std::atomic<float_t> current;
@@ -115,7 +115,7 @@ public:
 
     std::shared_ptr<CollisionMap> loadCollisionMap();
 
-    void updateCollisionMap(CollisionMap& tilesetMap, CollisionMap& map, TilesetNode& node, uint32_t x, uint32_t y);
+    void updateCollisionMap(std::shared_ptr<CollisionMap>& tilesetMap, std::shared_ptr<CollisionMap>& map, std::shared_ptr<TilesetNode>& node, uint32_t x, uint32_t y);
     bool updateTiles(Types::Map2D& tiles, std::map<int32_t, std::map<int32_t, std::shared_ptr<TilesetNode>>>& map, uint32_t width, uint32_t height, TilesetAbove::Type above);
 
     bool operator!() const

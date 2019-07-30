@@ -90,9 +90,8 @@ private:
     std::string mMap;
     Types::Point<float_t> mPos;
     Types::Point<float_t> mVelocity;
-    Types::Point<int32_t> mTarget;
     float_t mFriction;
-    Types::Point<int32_t> mTargetNodePos;
+    Types::Point<int32_t> mTargetPos;
     std::vector<Types::Point<int32_t>> mTargetNodes;
     uint32_t mTargetNodesCurrent;
     std::mutex mMovementMutex;

@@ -99,22 +99,23 @@ void MapLayer::toggleLights(bool on)
     }
 }
 
-bool MapLayer::updateCollisionMap(CollisionMap& map)
+bool MapLayer::updateCollisionMap(std::shared_ptr<CollisionMap>& map)
 {
     std::shared_ptr<CollisionMap> tilesetCollisionMap = mTileset->loadCollisionMap();
     if (!*tilesetCollisionMap) {
+        Logger::error() << "Could not load tileset collision map";
         return false;
     }
 
     for(auto &nodeY: mNodes[TilesetAbove::None]) {
         for (auto &nodeX: nodeY.second) {
-            mTileset->updateCollisionMap(*tilesetCollisionMap, map, *nodeX.second, nodeX.first, nodeY.first);
+            mTileset->updateCollisionMap(tilesetCollisionMap, map, nodeX.second, nodeX.first, nodeY.first);
         }
     }
 
     for(auto &nodeY: mNodes[TilesetAbove::Row]) {
         for (auto &nodeX: nodeY.second) {
-            mTileset->updateCollisionMap(*tilesetCollisionMap, map, *nodeX.second, nodeX.first, nodeY.first);
+            mTileset->updateCollisionMap(tilesetCollisionMap, map, nodeX.second, nodeX.first, nodeY.first);
         }
     }
 
@@ -235,7 +236,7 @@ Map::Map(const std::string& id)
 
     mCollisionMap = std::make_shared<CollisionMap>(pixelWidth(), pixelHeight());
     for (const auto& layer : mLayers) {
-        if (!layer->updateCollisionMap(*mCollisionMap.get())) {
+        if (!layer->updateCollisionMap(mCollisionMap)) {
             Logger::warning() << "Could not load collision map for" << id;
         }
 
@@ -369,7 +370,7 @@ void Map::checkCollision(const Types::Point<float_t>& pos, const Types::Dimensio
 bool Map::isNodeSolid(int32_t x, int32_t y, const Types::Dimension<>& size)
 {
     Types::Dimension<> d = getTileDimension();
-    return mCollisionMap->get(x * d.width, y * d.height, size.width, size.height);
+    return mCollisionMap->get(x * d.width, y * d.height, ((size.width / d.width) + 1) * d.width, ((size.height / d.height) + 1) * d.height);
 }
 
 bool Map::isNodePath(int32_t x, int32_t y)

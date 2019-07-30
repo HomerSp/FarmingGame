@@ -41,7 +41,7 @@ public:
 
     void toggleLights(bool on);
 
-    bool updateCollisionMap(CollisionMap& map);
+    bool updateCollisionMap(std::shared_ptr<CollisionMap>& map);
     bool updateLightSources(std::vector<std::shared_ptr<MapLightSource>>& sources);
     bool updatePaths(std::vector<Types::Point<int32_t> > &paths);
 

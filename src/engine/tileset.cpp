@@ -611,18 +611,18 @@ std::shared_ptr<CollisionMap> Tileset::loadCollisionMap()
     return collisionMap;
 }
 
-void Tileset::updateCollisionMap(CollisionMap& tilesetMap, CollisionMap& map, TilesetNode& node, uint32_t x, uint32_t y)
+void Tileset::updateCollisionMap(std::shared_ptr<CollisionMap>& tilesetMap, std::shared_ptr<CollisionMap>& map, std::shared_ptr<TilesetNode>& node, uint32_t x, uint32_t y)
 {
     Types::Dimension<> dimen(mTileDimension.width / 2, mTileDimension.height / 2);
 
     uint32_t dx = 0, dy = 0;
-    for (auto& po : node.pos) {
+    for (const auto po : node->pos) {
         for (int32_t cy = 0; cy < dimen.height; cy++) {
             for (int32_t cx = 0; cx < dimen.width; cx++) {
-                if (tilesetMap.get(po.x + cx, po.y + cy)) {
+                if (tilesetMap->get(po.x + cx, po.y + cy)) {
                     uint32_t dstx = (x * mTileDimension.width) + (dx * (mTileDimension.width / 2)) + cx;
                     uint32_t dsty = (y * mTileDimension.height) + (dy * (mTileDimension.height / 2)) + cy;
-                    map.set(dstx, dsty, true);
+                    map->set(dstx, dsty, true);
                 }
             }
         }

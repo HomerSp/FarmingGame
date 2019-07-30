@@ -26,9 +26,8 @@ Character::Character(std::shared_ptr<script::ScriptEngine> &engine, std::string 
     , mMap("")
     , mPos(0, 0)
     , mVelocity(0, 0)
-    , mTarget(-1, -1)
     , mFriction(1.0f)
-    , mTargetNodePos(-1, -1)
+    , mTargetPos(-1, -1)
     , mTargetNodesCurrent(0)
 {
     Logger::debug() << "Character" << mID;
@@ -121,45 +120,49 @@ bool Character::processAsync(uint64_t frameDiff, std::shared_ptr<Map>& map, std:
 {
     bool changed = false;
     float_t posX, posY;
+    int32_t targetX = -1, targetY = -1;
     {
         std::lock_guard<std::mutex> lock(mMovementMutex);
         posX = mPos.x;
         posY = mPos.y;
 
-        if (mTargetNodePos.x != -1 && mTargetNodePos.y != -1 && mTargetNodes.empty()) {
-            Types::Dimension<> d = map->getTileDimension();
-            mTargetNodes = PathFinding::find(map, {static_cast<uint32_t>(std::floor(posX / d.width)), static_cast<uint32_t>(std::floor(posY / d.height)), width(), height()}, mTargetNodePos);
+        if (mTargetPos.x != -1 && mTargetPos.y != -1 && mTargetNodes.empty()) {
+            Types::Rect<> col = mCharset->collision(mCharsetType);
+
+            mTargetNodes = PathFinding::find(map, Types::Rect<uint32_t>(posX + col.x, posY + col.y, col.width, col.height), mTargetPos);
             mTargetNodesCurrent = 1;
 
             // Did we actually find a path to the destination?
             if (mTargetNodesCurrent < mTargetNodes.size()) {
-                Types::Dimension<> d = map->getTileDimension();
-                mTarget.x = mTargetNodes.at(mTargetNodesCurrent).x * d.width;
-                mTarget.y = mTargetNodes.at(mTargetNodesCurrent).y * d.height;
                 mTargetNodesCurrent++;
             } else {
-                mTargetNodePos.x = mTargetNodePos.y = -1;
+                mTargetPos.x = mTargetPos.y = -1;
                 mTargetNodesCurrent = 0;
                 mTargetNodes.clear();
             }
         }
-        
+
+        if (mTargetNodesCurrent < mTargetNodes.size()) {
+            targetX = mTargetNodes.at(mTargetNodesCurrent).x;
+            targetY = mTargetNodes.at(mTargetNodesCurrent).y;
+        }
+
         // Do we have a target? Process it.
-        if (mTarget.x != -1 || mTarget.y != -1) {
+        if (targetX != -1 || targetY != -1) {
             float_t val = frameDiff / 200.0f;
             int32_t x = 0, y = 0;
-            if (mTarget.x != -1) {
-                if (mTarget.x < posX) {
+            if (targetX != -1) {
+                if (targetX < posX) {
                     x = -1;
-                } else if(mTarget.x > posX) {
+                } else if(targetX > posX) {
                     x = 1;
                 }
             }
 
-            if (mTarget.y != -1) {
-                if (mTarget.y < posY) {
+            if (targetY != -1) {
+                if (targetY < posY) {
                     y = -1;
-                } else if (mTarget.y > posY) {
+                } else if (targetY > posY) {
                     y = 1;
                 }
             }
@@ -232,39 +235,40 @@ bool Character::processAsync(uint64_t frameDiff, std::shared_ptr<Map>& map, std:
 
             // Check if we have reached the x target.
             float_t velocityX = mVelocity.x, velocityY = mVelocity.y;
-            if (mTarget.x != -1 && (
-                    (posX > mTarget.x && posX + dst.x <= mTarget.x) ||
-                    (posX < mTarget.x && posX + dst.x >= mTarget.x)
+            if (targetX != -1 && (
+                    (posX > targetX && posX + dst.x <= targetX) ||
+                    (posX < targetX && posX + dst.x >= targetX) ||
+                    (posX == targetX)
                 )
             ) {
-                posX = mTarget.x;
-                mTarget.x = -1;
+                posX = targetX;
+                targetX = -1;
                 mVelocity.x = 0;
             } else {
                 posX += dst.x;
             }
 
             // Check if we have reached the y target.
-            if (mTarget.y != -1 && (
-                    (posY > mTarget.y && posY + dst.y <= mTarget.y) ||
-                    (posY < mTarget.y && posY + dst.y >= mTarget.y)
+            if (targetY != -1 && (
+                    (posY > targetY && posY + dst.y <= targetY) ||
+                    (posY < targetY && posY + dst.y >= targetY) ||
+                    (posY == targetY)
                 )
             ) {
-                posY = mTarget.y;
-                mTarget.y = -1;
+                posY = targetY;
+                targetY = -1;
                 mVelocity.y = 0;
             } else {
                 posY += dst.y;
             }
 
-            if (!mTargetNodes.empty() && mTarget.x == -1 && mTarget.y == -1) {
-                if (mTargetNodesCurrent < mTargetNodes.size()) {
-                    Types::Dimension<> d = map->getTileDimension();
-                    int32_t targetX = mTargetNodes.at(mTargetNodesCurrent).x * d.width;
-                    int32_t targetY = mTargetNodes.at(mTargetNodesCurrent).y * d.height;
+            if (!mTargetNodes.empty() && targetX == -1 && targetY == -1) {
+                if (mTargetNodesCurrent < mTargetNodes.size() - 1) {
                     mTargetNodesCurrent++;
+                    targetX = mTargetNodes.at(mTargetNodesCurrent).x;
+                    targetY = mTargetNodes.at(mTargetNodesCurrent).y;
 
-                    // Use the saved velocity if we are moving in the same direction
+                    // Use the saved velocity
                     if ( (targetX < mPos.x && velocityX < 0.0f)
                         || (targetX > mPos.x && velocityX > 0.0f)
                     ) {
@@ -276,11 +280,8 @@ bool Character::processAsync(uint64_t frameDiff, std::shared_ptr<Map>& map, std:
                     ) {
                         mVelocity.y = velocityY;
                     }
-
-                    mTarget.x = targetX;
-                    mTarget.y = targetY;
                 } else {
-                    mTargetNodePos.x = mTargetNodePos.y = -1;
+                    mTargetPos.x = mTargetPos.y = -1;
                     mTargetNodesCurrent = -1;
                     mTargetNodes.clear();
                 }
@@ -292,15 +293,6 @@ bool Character::processAsync(uint64_t frameDiff, std::shared_ptr<Map>& map, std:
         changed = std::floor(mPos.x) != std::floor(posX) || std::floor(mPos.y) != std::floor(posY);
         mPos.x = posX;
         mPos.y = posY;
-    }
-
-    // We may have reached the target without moving
-    if (mTarget.x != -1 && posX == mTarget.x) {
-        mTarget.x = -1;
-    }
-
-    if (mTarget.y != -1 && posY == mTarget.y) {
-        mTarget.y = -1;
     }
 
     // Check any listeners we may have set.
@@ -348,8 +340,8 @@ void Character::velocity(uint64_t frameDiff, float_t x, float_t y)
 {
     std::lock_guard<std::mutex> lock(mMovementMutex);
     float_t val = frameDiff / 200.0f;
-    updateVelocity(mVelocity.x, x, val, mTarget.x != -1);
-    updateVelocity(mVelocity.y, y, val, mTarget.y != -1);
+    updateVelocity(mVelocity.x, x, val, !mTargetNodes.empty());
+    updateVelocity(mVelocity.y, y, val, !mTargetNodes.empty());
 }
 
 bool Character::isMoving()
@@ -366,8 +358,8 @@ void Character::moveTo(int32_t x, int32_t y, asIScriptFunction* fun)
     }
 
     std::lock_guard<std::mutex> lock(mMovementMutex);
-    mTargetNodePos.x = x;
-    mTargetNodePos.y = y;
+    mTargetPos.x = x;
+    mTargetPos.y = y;
 }
 
 void Character::turnTo(Direction::Type direction)
