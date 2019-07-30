@@ -9,11 +9,13 @@
 
 using namespace engine;
 
-std::array<Types::Point<int32_t>, 8 > PathFinding::sNeighbours = {
-    Types::Point<int32_t>( -1, -1 ), Types::Point<int32_t>(  1, -1 ),
+std::array<Types::Point<int32_t>, 4 > PathFinding::sNeighbours = {
+    Types::Point<int32_t>( 0, -1 ), Types::Point<int32_t>( 1, 0 ),
+    Types::Point<int32_t>( 0, 1 ), Types::Point<int32_t>( -1, 0 )
+    /*Types::Point<int32_t>( -1, -1 ), Types::Point<int32_t>(  1, -1 ),
     Types::Point<int32_t>( -1,  1 ), Types::Point<int32_t>(  1,  1 ),
     Types::Point<int32_t>(  0, -1 ), Types::Point<int32_t>( -1,  0 ),
-    Types::Point<int32_t>(  0,  1 ), Types::Point<int32_t>(  1,  0 ),
+    Types::Point<int32_t>(  0,  1 ), Types::Point<int32_t>(  1,  0 ),*/
 };
 
 
@@ -28,17 +30,16 @@ PathFinding::Node::Node(Types::Point<int32_t> pos, Types::Point<int32_t> parent,
 
 std::vector<Types::Point<int32_t>> PathFinding::find(std::shared_ptr<Map>& map, Types::Rect<uint32_t> source, Types::Point<int32_t> dst)
 {
-    Types::Dimension<> tileDimen = map->getTileDimension();
     Types::Dimension<> sourceDimen(source.width, source.height);
 
-    if (map->isSolid(dst.x * tileDimen.width, dst.y * tileDimen.height, sourceDimen)) {
+    if (map->isNodeSolid(dst.x, dst.y, sourceDimen)) {
         Logger::error() << "Unreachable destination" << dst.x << dst.y;
         return {};
     }
 
     Types::Point<int32_t> start = Types::Point<int32_t>(source.x, source.y);
 
-    std::unordered_map<int32_t, Node> closed;
+    std::map<std::pair<int32_t, int32_t>, Node> closed;
     std::multimap<int32_t, Node > open;
 
     int32_t hStart = calcH(start, dst);
@@ -48,7 +49,7 @@ std::vector<Types::Point<int32_t>> PathFinding::find(std::shared_ptr<Map>& map, 
         std::pair<int32_t, Node> p = *open.begin();
         open.erase(open.begin());
 
-        closed.emplace(index(p.second.pos, map), p.second);
+        closed.emplace(std::make_pair(p.second.pos.x, p.second.pos.y), p.second);
 
         if (p.second.pos == dst) {
             break;
@@ -60,19 +61,20 @@ std::vector<Types::Point<int32_t>> PathFinding::find(std::shared_ptr<Map>& map, 
                 continue;
             }
 
-            int32_t in = index(neighbour, map);
-            if (closed.find(in) != closed.end()) {
+            if (closed.find({neighbour.x, neighbour.y}) != closed.end()) {
+                continue;
+            }
+
+            if (map->isNodeSolid(neighbour.x, neighbour.y, sourceDimen)) {
+                closed.emplace(std::make_pair(p.second.pos.x, p.second.pos.y), Node(neighbour, p.second.pos, INT_MAX, INT_MAX));
                 continue;
             }
 
             int32_t gScore = p.second.gCost;
-
-            if (map->isSolid(neighbour.x * tileDimen.width, neighbour.y * tileDimen.height, sourceDimen)) {
-                gScore = INT_MAX;
-            } else if (map->isPath(neighbour.x, neighbour.y)) {
+            if (map->isNodePath(neighbour.x, neighbour.y)) {
                 gScore += 1;
             } else {
-                gScore += 3;
+                gScore += 5;
             }
 
             bool addOpen = true;
@@ -96,39 +98,24 @@ std::vector<Types::Point<int32_t>> PathFinding::find(std::shared_ptr<Map>& map, 
         }
     }
 
-    int32_t dstIndex = index(dst, map);
-    if (closed.find(dstIndex) == closed.end()) {
+    // Did we find a valid path?
+    if (closed.find({dst.x, dst.y}) == closed.end()) {
         Logger::debug() << "Could not find destination";
         return {};
     }
 
+    // Go through the closed list in reverse order to find the optimal path
     std::stack<Types::Point<int32_t> > paths;
-
-    Node node = closed.at(dstIndex);
+    Node node = closed.at({dst.x, dst.y});
     while (node.pos != start && node.parent.x != -1) {
         paths.push(node.pos);
-        node = closed.at(index(node.parent, map));
+        node = closed.at({node.parent.x, node.parent.y});
     }
 
     std::vector<Types::Point<int32_t> > ret;
     while (!paths.empty()) {
         Types::Point<int32_t> point = paths.top();
         paths.pop();
-
-        // Simplify the list by only adding points where the direction changes
-        if (ret.size() > 1) {
-            Types::Point<int32_t> &retPt = ret.back();
-            if (point.x == retPt.x && point.y != retPt.y) {
-                retPt.y = point.y;
-                continue;
-            }
-
-            if (point.y == retPt.y && point.x != retPt.x) {
-                retPt.x = point.x;
-                continue;
-            }
-        }
-
         ret.emplace_back(point);
     }
 

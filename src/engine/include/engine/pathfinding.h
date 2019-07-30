@@ -28,6 +28,6 @@ private:
     static inline int32_t index(const Types::Point<int32_t>& p, std::shared_ptr<Map>& map);
     static inline bool isValid(const Types::Point<int32_t>& neighbour, std::shared_ptr<Map>& map);
 
-    static std::array<Types::Point<int32_t>, 8 > sNeighbours;
+    static std::array<Types::Point<int32_t>, 4 > sNeighbours;
 };
 } 

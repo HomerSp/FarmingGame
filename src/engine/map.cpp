@@ -366,12 +366,13 @@ void Map::checkCollision(const Types::Point<float_t>& pos, const Types::Dimensio
     }
 }
 
-bool Map::isSolid(int32_t x, int32_t y, const Types::Dimension<>& size)
+bool Map::isNodeSolid(int32_t x, int32_t y, const Types::Dimension<>& size)
 {
-    return mCollisionMap->get(x, y, size.width, size.height);
+    Types::Dimension<> d = getTileDimension();
+    return mCollisionMap->get(x * d.width, y * d.height, size.width, size.height);
 }
 
-bool Map::isPath(int32_t x, int32_t y)
+bool Map::isNodePath(int32_t x, int32_t y)
 {
     return std::find(mPaths.begin(), mPaths.end(), Types::Point<int32_t>(x, y)) != mPaths.end();
 }
