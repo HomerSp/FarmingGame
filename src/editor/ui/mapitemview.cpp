@@ -4,12 +4,13 @@
 
 MapItemView::MapItemView(QQuickItem* parent)
     : QQuickPaintedItem(parent)
+    , mContext(nullptr)
     , mMap(nullptr)
     , mSquare(-1, -1, 0, 0)
 {
     setAcceptHoverEvents(true);
 
-    mMap = std::make_shared<engine::Map>("map_small");
+    mMap = std::make_shared<engine::Map>(mContext, "map_small");
     setImplicitWidth(mMap->pixelWidth());
     setImplicitHeight(mMap->pixelHeight());
 

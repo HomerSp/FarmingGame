@@ -8,6 +8,7 @@
 #include <scriptbuilder/scriptbuilder.h>
 
 #include <engine/assetmanager.h>
+#include <engine/context.h>
 #include <engine/engine.h>
 #include <engine/logger.h>
 
@@ -27,27 +28,30 @@ Engine::Engine(uint32_t width, uint32_t height, std::shared_ptr<Renderer> render
 {
     Logger::debug() << "Creating Engine";
 
-    AssetManager::get()->setRenderer(mRenderer);
+    mScriptEngine = std::make_shared<script::ScriptEngine>();
+    mContext = std::make_shared<Context>(*this, mScriptEngine, *mRenderer);
 
-    mScript = std::make_shared<script::ScriptEngine>();
-    mEngineObject = std::make_shared<EngineObject>(mScript, this);
+    mRenderer->setContext(mContext);
+    mRenderer->init();
 
-    mHud = std::make_unique<engine::Hud>();
-    mScreenEffects = std::make_unique<engine::ScreenEffects>();
-    mCamera = std::make_unique<engine::Camera>(mScript, mWidth, mHeight);
-    mClock = std::make_unique<engine::Clock>(mScript);
-    mMap = std::make_unique<engine::Map>("map");
-    mPlayer = std::make_shared<engine::Player>(mScript);
+    mEngineObject = std::make_shared<EngineObject>(mContext);
+
+    mHud = std::make_unique<engine::Hud>(mContext);
+    mScreenEffects = std::make_unique<engine::ScreenEffects>(mContext);
+    mCamera = std::make_unique<engine::Camera>(mContext, mWidth, mHeight);
+    mClock = std::make_unique<engine::Clock>(mContext);
+    mMap = std::make_unique<engine::Map>(mContext, "map");
+    mPlayer = std::make_shared<engine::Player>(mContext);
     mPlayer->setPosition("map", std::floor((mMap->pixelWidth() - mPlayer->width()) / 2), std::floor((mMap->pixelHeight() - mPlayer->height()) / 2));
 
     mCharacters.emplace("player", mPlayer);
 
-    std::shared_ptr<character::Character> dude = std::make_shared<character::Character>(mScript, "dude");
+    std::shared_ptr<character::Character> dude = std::make_shared<character::Character>(mContext, "dude");
     dude->setPosition("map", 10 * 48, (9 * 48) - 24);
     dude->setDirection(Character::Direction::Down);
     mCharacters.emplace("dude", std::move(dude));
 
-    std::shared_ptr<character::Character> horse = std::make_shared<Character>(mScript, "horse");
+    std::shared_ptr<character::Character> horse = std::make_shared<Character>(mContext, "horse");
     horse->setPosition("map", 48, 96);
     horse->setDirection(Character::Direction::Right);
     mCharacters.emplace("horse", std::move(horse));
@@ -373,28 +377,28 @@ void Engine::setSize(uint32_t width, uint32_t height)
 
 bool Engine::registerScript()
 {
-    if (!mScript->create()) {
+    if (!mScriptEngine->create()) {
         return false;
     }
 
     // Generic objects
-    script::ScriptObject::registerCallback<script::ScriptCallback>(mScript->engine());
+    script::ScriptObject::registerCallback<script::ScriptCallback>(mScriptEngine->engine());
 
-    Character::registerClass(mScript->engine());
-    Clock::registerClass(mScript->engine());
-    Player::registerClass(mScript->engine());
-    Camera::registerClass(mScript->engine());
-    EngineObject::registerClass(mScript->engine());
+    Character::registerClass(mScriptEngine->engine());
+    Clock::registerClass(mScriptEngine->engine());
+    Player::registerClass(mScriptEngine->engine());
+    Camera::registerClass(mScriptEngine->engine());
+    EngineObject::registerClass(mScriptEngine->engine());
 
     mEngineObject->registerObject();
 
-    mScript->engine()->RegisterGlobalFunction("void print(const string &in)", asFUNCTION(Logger::scriptPrint), asCALL_CDECL);
+    mScriptEngine->engine()->RegisterGlobalFunction("void print(const string &in)", asFUNCTION(Logger::scriptPrint), asCALL_CDECL);
 
     // The CScriptBuilder helper is an add-on that loads the file,
     // performs a pre-processing pass if necessary, and then tells
     // the engine to build a script module.
     CScriptBuilder builder;
-    if (builder.StartNewModule(mScript->engine(), "MainModule") != 0) {
+    if (builder.StartNewModule(mScriptEngine->engine(), "MainModule") != 0) {
         Logger::error() << ("Unrecoverable error while starting a new module.");
         return false;
     }
@@ -410,7 +414,7 @@ bool Engine::registerScript()
     }
 
     // Find the function that is to be called. 
-    asIScriptModule *mod = mScript->engine()->GetModule("MainModule");
+    asIScriptModule *mod = mScriptEngine->engine()->GetModule("MainModule");
     asIScriptFunction *func = mod->GetFunctionByDecl("void main()");
     if (func == nullptr) {
         Logger::error() << ("The script must have the function 'void main()'. Please add it and try again.");
@@ -418,24 +422,23 @@ bool Engine::registerScript()
     }
 
     // Create our context, prepare it, and then execute
-    if (!mScript->createContext()) {
+    if (!mScriptEngine->createContext()) {
         return false;
     }
 
-    mScript->context()->Prepare(func);
+    mScriptEngine->context()->Prepare(func);
 
-    int32_t r = mScript->context()->Execute();
+    int32_t r = mScriptEngine->context()->Execute();
     if (r == asEXECUTION_EXCEPTION) {
-        Logger::error() << "An exception" << mScript->context()->GetExceptionString() << "occurred. Please correct the code and try again.";
+        Logger::error() << "An exception" << mScriptEngine->context()->GetExceptionString() << "occurred. Please correct the code and try again.";
         return false;
     }
 
     return (r == asEXECUTION_FINISHED);
 }
 
-Engine::EngineObject::EngineObject(std::shared_ptr<script::ScriptEngine> &engine, Engine* e)
-    : ScriptObject(engine)
-    , mEngine(e)
+Engine::EngineObject::EngineObject(std::shared_ptr<Context> &ctx)
+    : ScriptObject(ctx)
 {
 }
 
@@ -455,27 +458,27 @@ void Engine::EngineObject::registerClass(asIScriptEngine* engine)
 
 void Engine::EngineObject::registerObject()
 {
-    registerInstance<EngineObject>(mEngine->mScript->engine(), "engine", this);
+    registerInstance<EngineObject>(context().scriptEngine().engine(), "engine", this);
 }
 
 engine::Camera* Engine::EngineObject::camera()
 {
-    return mEngine->mCamera.get();
+    return context().engine().mCamera.get();
 }
 
 engine::Clock* Engine::EngineObject::clock()
 {
-    return mEngine->mClock.get();
+    return context().engine().mClock.get();
 }
 
 engine::Player* Engine::EngineObject::player()
 {
-    return mEngine->mPlayer.get();
+    return context().engine().mPlayer.get();
 }
 
 engine::character::Character* Engine::EngineObject::character(const std::string& id)
 {
-    for (auto& i: mEngine->mCharacters) {
+    for (auto& i: context().engine().mCharacters) {
         if (i.second->id() == id) {
             return i.second.get();
         }

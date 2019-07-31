@@ -13,7 +13,7 @@ class Character;
 
 class Player : public character::Character, public ScreenEffects::LightSource {
 public:
-    Player(std::shared_ptr<script::ScriptEngine> &engine);
+    Player(std::shared_ptr<Context> &ctx);
 
     // Light source
     virtual Types::Point<int32_t> lightPosition();

@@ -8,11 +8,15 @@
 
 namespace engine {
 
+class Context;
+class Engine;
 class Image;
 
 class Renderer {
 public:
     Renderer() = default;
+
+    virtual void init() = 0;
 
     virtual int32_t width() = 0;
     virtual int32_t height() = 0;
@@ -30,8 +34,16 @@ public:
     virtual void save() = 0;
     virtual void restore() = 0;
 
-    virtual std::unique_ptr<Image> loadImage(const std::string& path) = 0;
+    virtual std::unique_ptr<Image> loadImage(const std::string& path) const = 0;
+
+    Context& context();
+
+protected:
+    friend class Engine;
+
+    void setContext(std::shared_ptr<Context>& ctx);
 
 private:
+    std::shared_ptr<Context> mContext;
 };
 }

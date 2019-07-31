@@ -2,6 +2,8 @@
 
 #include <atomic>
 
+#include <engine/context.h>
+
 namespace engine {
 
 class Clock;
@@ -11,9 +13,9 @@ class Item;
 class Player;
 class Renderer;
 
-class Hud {
+class Hud : public ContextObject {
 public:
-    Hud();
+    Hud(std::shared_ptr<Context>& ctx);
 
     void draw(Renderer& renderer, Clock& clock, Player& player, FrameTimer& frameTimer);
 

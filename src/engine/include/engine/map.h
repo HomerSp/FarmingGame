@@ -7,6 +7,7 @@
 #include <unordered_set>
 
 #include <engine/collisionmap.h>
+#include <engine/context.h>
 #include <engine/screeneffects.h>
 #include <engine/tileset.h>
 #include <engine/types.h>
@@ -61,9 +62,9 @@ private:
     std::vector<TilesetNode*> mLightNodes;
 };
 
-class Map {
+class Map : public ContextObject {
 public:
-    Map(const std::string& id);
+    Map(std::shared_ptr<Context>& ctx, const std::string& id);
 
     bool animate(uint64_t frameDiff);
 

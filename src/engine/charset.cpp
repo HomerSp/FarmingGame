@@ -13,11 +13,12 @@ CharsetNode::CharsetNode(const Types::Rect<>& rc, const Types::Cells& cells, con
 {
 }
 
-Charset::Charset(const std::string& name)
-    : mValid(false)
+Charset::Charset(std::shared_ptr<Context>& ctx, const std::string& name)
+    : ContextObject(ctx)
+    , mValid(false)
     , mImage(nullptr)
 {
-    std::unique_ptr<Json::Value> doc = AssetManager::get()->data(AssetManager::get()->Charset, name);
+    std::unique_ptr<Json::Value> doc = context().assetManager().data(AssetManager::Charset, name);
     if (!doc || !doc->isObject()) {
         Logger::critical() << "Could not open charset JSON file" << name;
         return;
@@ -28,7 +29,7 @@ Charset::Charset(const std::string& name)
         return;
     }
 
-    mImage = AssetManager::get()->image(AssetManager::get()->Charset, (*doc)["image"].asString());
+    mImage = context().assetManager().image(AssetManager::Charset, (*doc)["image"].asString());
     if (!*mImage) {
         Logger::critical() << "Could not load charset image for" << name;
         return;

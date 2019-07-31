@@ -5,6 +5,7 @@
 
 #include <json/json.h>
 
+#include <engine/context.h>
 #include <engine/image.h>
 #include <engine/renderer.h>
 #include <engine/types.h>
@@ -19,13 +20,13 @@ public:
     Types::Rect<> collision;
 };
 
-class Charset {
+class Charset : public ContextObject {
 public:
     enum Type {
         TypeWalk = 0,
     };
 
-    Charset(const std::string& name);
+    Charset(std::shared_ptr<Context>& ctx, const std::string& name);
 
     void draw(Renderer& renderer, const Types::Point<>& pos, Charset::Type type, int32_t direction = 0, int32_t frame = 0);
 

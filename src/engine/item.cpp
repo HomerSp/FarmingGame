@@ -19,12 +19,13 @@ ItemValue::ItemValue(bool percent, int32_t value)
 {
 }
 
-Item::Item(const std::string& name)
-    : mUiImage(nullptr)
+Item::Item(std::shared_ptr<Context>& ctx, const std::string& name)
+    : ContextObject(ctx)
+    , mUiImage(nullptr)
     , mLightRadius(0)
     , mLightStrength(0.0f)
 {
-    std::unique_ptr<Json::Value> doc = AssetManager::get()->data(AssetManager::Item, name);
+    std::unique_ptr<Json::Value> doc = context().assetManager().data(AssetManager::Item, name);
     if (!doc->isObject() || !doc->isMember("image")) {
         Logger::critical() << "Invalid JSON data for item" << name;
         return;
@@ -36,7 +37,7 @@ Item::Item(const std::string& name)
         return;
     }
 
-    mUiImage = AssetManager::get()->image(AssetManager::Item, imageObj["item"].asString());
+    mUiImage = context().assetManager().image(AssetManager::Item, imageObj["item"].asString());
 
     if (doc->isMember("attributes")) {
         Json::Value attrsObj = (*doc)["attributes"];

@@ -163,14 +163,15 @@ bool MapLayer::updatePaths(std::vector<Types::Point<int32_t> > &paths)
     return true;
 }
 
-Map::Map(const std::string& id)
-    : mValid(false)
+Map::Map(std::shared_ptr<Context>& ctx, const std::string& id)
+    : ContextObject(ctx)
+    , mValid(false)
     , mID(id)
     , mDimensions(0, 0)
 {
     Logger::debug() << "Loading Map" << id;
 
-    auto doc = AssetManager::get()->data(AssetManager::get()->Map, id);
+    auto doc = context().assetManager().data(AssetManager::Map, id);
     if (!doc || !doc->isObject()) {
         Logger::critical() << "Invalid JSON data for" << id;
         return;
@@ -196,7 +197,7 @@ Map::Map(const std::string& id)
             continue;
         }
 
-        mTilesets[name] = std::make_shared<Tileset>(name);
+        mTilesets[name] = std::make_shared<Tileset>(contextPtr(), name);
         if (!*mTilesets[name]) {
             Logger::critical() << "Could not load tileset for" << id;
             return;

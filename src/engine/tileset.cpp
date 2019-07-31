@@ -420,12 +420,13 @@ std::shared_ptr<TilesetNode> TilesetType::toNode(Types::Map2D& tiles, uint32_t x
     return node;
 }
 
-Tileset::Tileset(const std::string& name)
-    : mValid(false)
+Tileset::Tileset(std::shared_ptr<Context>& ctx, const std::string& name)
+    : ContextObject(ctx)
+    , mValid(false)
     , mTileDimension({ 32, 32 })
     , mImage(nullptr)
 {
-    std::unique_ptr<Json::Value> docPtr = AssetManager::get()->data(AssetManager::get()->Tileset, name);
+    std::unique_ptr<Json::Value> docPtr = context().assetManager().data(AssetManager::Tileset, name);
     Json::Value doc = *docPtr;
     if (!doc.isObject()) {
         Logger::critical() << "Could not open tileset JSON file" << name;
@@ -437,7 +438,7 @@ Tileset::Tileset(const std::string& name)
         return;
     }
 
-    mImage = AssetManager::get()->image(AssetManager::get()->Tileset, doc["image"].asString());
+    mImage = context().assetManager().image(AssetManager::Tileset, doc["image"].asString());
     if (!mImage) {
         Logger::critical() << "Could not load tileset image for" << name;
         return;
@@ -603,7 +604,7 @@ void Tileset::draw(Renderer& renderer, TilesetNode& node, const Types::Point<>& 
 
 std::unique_ptr<CollisionMap> Tileset::loadCollisionMap()
 {
-    std::unique_ptr<CollisionMap> collisionMap = AssetManager::get()->collision(AssetManager::get()->Tileset, mCollisionMap);
+    std::unique_ptr<CollisionMap> collisionMap = context().assetManager().collision(AssetManager::Tileset, mCollisionMap);
     if (!collisionMap) {
         Logger::critical() << "Could not load tileset collision map" << mCollisionMap;
     }

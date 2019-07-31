@@ -2,6 +2,7 @@
 
 #include <atomic>
 
+#include <engine/context.h>
 #include <engine/types.h>
 
 namespace engine {
@@ -10,7 +11,7 @@ class Camera;
 class Clock;
 class Renderer;
 
-class ScreenEffects {
+class ScreenEffects : public ContextObject {
 public:
     class LightSource {
     public:
@@ -21,7 +22,7 @@ public:
     };
 
 public:
-    ScreenEffects();
+    ScreenEffects(std::shared_ptr<Context>& ctx);
 
     void draw(Renderer& renderer, Clock& clock, Camera& camera, const std::vector<std::shared_ptr<LightSource>> &sources);
 

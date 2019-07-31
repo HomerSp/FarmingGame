@@ -1,26 +1,16 @@
 #include <json/json.h>
 
 #include <engine/assetmanager.h>
+#include <engine/context.h>
 #include <engine/fontmanager.h>
 #include <engine/logger.h>
 
 using namespace engine;
 
-std::shared_ptr<FontManager> FontManager::sInstance = nullptr;
-
-std::shared_ptr<FontManager> FontManager::get()
+FontManager::FontManager(Context& context)
+    : mContext(context)
 {
-    if (!sInstance) {
-        struct make_shared_enabler : public FontManager {};
-        sInstance = std::make_shared<make_shared_enabler>();
-    }
-
-    return sInstance;
-}
-
-FontManager::FontManager()
-{
-    auto doc = AssetManager::get()->data(AssetManager::Font, "types");
+    auto doc = mContext.assetManager().data(AssetManager::Font, "types");
     if (!doc || !doc->isObject()) {
         Logger::critical() << "Invalid JSON data for font";
         return;
@@ -37,14 +27,14 @@ FontManager::FontManager()
 
 bool FontManager::files(std::vector<std::string>& out)
 {
-    auto doc = AssetManager::get()->data(AssetManager::Font, "files");
+    auto doc = mContext.assetManager().data(AssetManager::Font, "files");
     if (!doc || doc->empty()) {
         Logger::critical() << "Invalid JSON data for font files";
         return false;
     }
 
     for (Json::Value& v: *doc) {
-        out.emplace_back(AssetManager::get()->fontPath(v.asString()));
+        out.emplace_back(mContext.assetManager().fontPath(v.asString()));
     }
 
     return true;

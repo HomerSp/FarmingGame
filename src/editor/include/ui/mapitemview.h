@@ -6,6 +6,7 @@
 #include <QPainter>
 #include <QQuickPaintedItem>
 
+#include <engine/context.h>
 #include <engine/map.h>
 #include <engine/types.h>
 
@@ -25,6 +26,7 @@ protected:
 
 private:
     QtRenderer mRenderer;
+    std::shared_ptr<engine::Context> mContext;
     std::shared_ptr<engine::Map> mMap;
 
     engine::Types::Rect<> mSquare;

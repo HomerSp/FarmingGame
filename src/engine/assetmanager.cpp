@@ -8,24 +8,13 @@
 
 using namespace engine;
 
-std::shared_ptr<AssetManager> AssetManager::sInstance = nullptr;
-
-AssetManager::AssetManager()
+AssetManager::AssetManager(const Renderer& renderer)
     : mBase("assets")
+    , mRenderer(renderer)
 {
 }
 
-std::shared_ptr<AssetManager> AssetManager::get()
-{
-    if (!sInstance) {
-        struct make_shared_enabler : public AssetManager {};
-        sInstance = std::make_shared<make_shared_enabler>();
-    }
-
-    return sInstance;
-}
-
-std::unique_ptr<Json::Value> AssetManager::data(Type type, const std::string& name)
+std::unique_ptr<Json::Value> AssetManager::data(Type type, const std::string& name) const
 {
     std::unique_ptr<Json::Value> doc = std::make_unique<Json::Value>();
 
@@ -42,17 +31,17 @@ std::unique_ptr<Json::Value> AssetManager::data(Type type, const std::string& na
     return doc;
 }
 
-std::unique_ptr<engine::Image> AssetManager::image(Type type, const std::string& name)
+std::unique_ptr<engine::Image> AssetManager::image(Type type, const std::string& name) const
 {
     std::string path = AssetManager::imagePath(type, name);
     if (path.length() > 0) {
-        return mRenderer->loadImage(path);
+        return mRenderer.loadImage(path);
     }
 
     return nullptr;
 }
 
-std::unique_ptr<engine::CollisionMap> AssetManager::collision(Type type, const std::string& name)
+std::unique_ptr<engine::CollisionMap> AssetManager::collision(Type type, const std::string& name) const
 {
     std::string path = AssetManager::collisionPath(type, name);
     if (path.length() > 0) {
@@ -62,7 +51,7 @@ std::unique_ptr<engine::CollisionMap> AssetManager::collision(Type type, const s
     return std::make_unique<engine::CollisionMap>();
 }
 
-std::string AssetManager::dataPath(Type type, const std::string& name)
+std::string AssetManager::dataPath(Type type, const std::string& name) const
 {
     std::string ret = mBase + "/data/";
     switch (type) {
@@ -90,7 +79,7 @@ std::string AssetManager::dataPath(Type type, const std::string& name)
     return ret + "/" + name + ".json";
 }
 
-std::string AssetManager::imagePath(Type type, const std::string& name)
+std::string AssetManager::imagePath(Type type, const std::string& name) const
 {
     std::string ret = mBase + "/image/";
     switch (type) {
@@ -112,7 +101,7 @@ std::string AssetManager::imagePath(Type type, const std::string& name)
     return ret + "/" + name + ".png";
 }
 
-std::string AssetManager::collisionPath(Type type, const std::string& name)
+std::string AssetManager::collisionPath(Type type, const std::string& name) const
 {
     std::string ret = mBase + "/collision/";
     switch (type) {
@@ -125,12 +114,7 @@ std::string AssetManager::collisionPath(Type type, const std::string& name)
     return ret + "/" + name + ".png";
 }
 
-std::string AssetManager::fontPath(const std::string& name)
+std::string AssetManager::fontPath(const std::string& name) const
 {
     return mBase + "/font/" + name;
-}
-
-void AssetManager::setRenderer(std::shared_ptr<Renderer> renderer)
-{
-    mRenderer = std::move(renderer);
 }

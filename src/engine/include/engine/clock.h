@@ -36,7 +36,7 @@ private:
     };
 
 public:
-    Clock(std::shared_ptr<script::ScriptEngine> &engine);
+    Clock(std::shared_ptr<Context> &ctx);
  
     uint64_t current() const;
     uint8_t year() const;

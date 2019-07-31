@@ -6,15 +6,15 @@
 
 using namespace engine;
 
-Player::Player(std::shared_ptr<script::ScriptEngine> &engine)
-    : Character(engine, "player")
+Player::Player(std::shared_ptr<Context> &ctx)
+    : Character(ctx, "player")
     , mControl(true)
     , mLevel(1)
     , mStamina(0)
     , mHealth(0)
     , mCurrentItem(0)
 {
-    std::unique_ptr<Json::Value> doc = AssetManager::get()->data(AssetManager::Character, "player");
+    std::unique_ptr<Json::Value> doc = context().assetManager().data(AssetManager::Character, "player");
     if (!doc->isObject() || !doc->isMember("stats")) {
         Logger::critical() << "Invalid JSON data for player";
         return;
@@ -39,13 +39,13 @@ Player::Player(std::shared_ptr<script::ScriptEngine> &engine)
     mHealth = mStats.currentHealth(mLevel);
 
     uint32_t i = 0;
-    mInventory[i++] = std::make_unique<Item>("tool_axe_1");
-    mInventory[i++] = std::make_unique<Item>("tool_hammer_1");
-    mInventory[i++] = std::make_unique<Item>("tool_torch_1");
-    mInventory[i++] = std::make_unique<Item>("fruit_apple");
-    mInventory[i++] = std::make_unique<Item>("fruit_rotten_apple");
-    mInventory[i++] = std::make_unique<Item>("vial_poison");
-    mInventory[i++] = std::make_unique<Item>("vial_potion");
+    mInventory[i++] = std::make_unique<Item>(contextPtr(), "tool_axe_1");
+    mInventory[i++] = std::make_unique<Item>(contextPtr(), "tool_hammer_1");
+    mInventory[i++] = std::make_unique<Item>(contextPtr(), "tool_torch_1");
+    mInventory[i++] = std::make_unique<Item>(contextPtr(), "fruit_apple");
+    mInventory[i++] = std::make_unique<Item>(contextPtr(), "fruit_rotten_apple");
+    mInventory[i++] = std::make_unique<Item>(contextPtr(), "vial_poison");
+    mInventory[i++] = std::make_unique<Item>(contextPtr(), "vial_potion");
 }
 
 Types::Point<int32_t> Player::lightPosition()

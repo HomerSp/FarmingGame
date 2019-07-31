@@ -5,15 +5,15 @@
 using namespace engine;
 using namespace engine::script;
 
-ScriptObject::ScriptObject(std::shared_ptr<script::ScriptEngine> &engine)
-    : mEngine(engine)
+ScriptObject::ScriptObject(std::shared_ptr<Context> &ctx)
+    : ContextObject(ctx)
     , mRefs(0)
 {
 }
 
 asIScriptContext& ScriptObject::scriptContext()
 {
-    return *mEngine->context();
+    return *context().scriptEngine().context();
 }
 
 void ScriptObject::registerReference(asIScriptEngine* engine, const std::string& name)

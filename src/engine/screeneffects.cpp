@@ -11,8 +11,9 @@ Types::Color ScreenEffects::LightSource::lightColor()
     return {0, 0, 0, 0};
 }
 
-ScreenEffects::ScreenEffects()
-    : mRadiusMod(2.0f)
+ScreenEffects::ScreenEffects(std::shared_ptr<Context>& ctx)
+    : ContextObject(ctx)
+    , mRadiusMod(2.0f)
 {
 }
 

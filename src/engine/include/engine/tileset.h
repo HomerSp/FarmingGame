@@ -9,6 +9,7 @@
 #include <unordered_set>
 
 #include <engine/collisionmap.h>
+#include <engine/context.h>
 #include <engine/image.h>
 #include <engine/types.h>
 
@@ -102,9 +103,9 @@ private:
     float_t mLightStrength;
 };
 
-class Tileset {
+class Tileset : public ContextObject {
 public:
-    Tileset(const std::string& name);
+    Tileset(std::shared_ptr<Context>& ctx, const std::string& name);
 
     void draw(Renderer& renderer, TilesetNode& node, const Types::Point<>& pos);
 

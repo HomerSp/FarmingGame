@@ -20,6 +20,9 @@
 #include <engine/script/scriptobject.h>
 
 namespace engine {
+
+class Context;
+
 class Engine {
 public:
     Engine(uint32_t width, uint32_t height, std::shared_ptr<Renderer> renderer);
@@ -52,7 +55,7 @@ protected:
 private:
     class EngineObject : public script::ScriptObject {
     public:
-        EngineObject(std::shared_ptr<script::ScriptEngine> &engine, Engine* e);
+        EngineObject(std::shared_ptr<Context> &ctx);
 
         // Scripting
         engine::Camera* camera();
@@ -64,13 +67,12 @@ private:
 
         static void registerClass(asIScriptEngine* engine);
         static std::string className();
-
-    private:
-        Engine* mEngine;
     };
 
 private:
-    std::shared_ptr<script::ScriptEngine> mScript;
+    std::shared_ptr<script::ScriptEngine> mScriptEngine;
+    std::shared_ptr<Context> mContext;
+
     std::shared_ptr<EngineObject> mEngineObject;
 
     std::atomic<bool> mRunning;

@@ -28,6 +28,8 @@ public:
     QtRenderer();
     virtual ~QtRenderer() = default;
 
+    void init();
+
     int32_t width();
     int32_t height();
 
@@ -46,7 +48,7 @@ public:
 
     void setPainter(QPainter* painter);
 
-    std::unique_ptr<engine::Image> loadImage(const std::string& path);
+    std::unique_ptr<engine::Image> loadImage(const std::string& path) const;
 
 private:
     QPainter* mPainter;

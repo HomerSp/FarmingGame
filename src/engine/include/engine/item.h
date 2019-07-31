@@ -1,5 +1,6 @@
 #pragma once
 
+#include <engine/context.h>
 #include <engine/screeneffects.h>
 
 namespace engine {
@@ -33,9 +34,9 @@ struct ItemAttribute {
     } Type;
 };
 
-class Item : public ScreenEffects::LightSource {
+class Item : public ContextObject, public ScreenEffects::LightSource {
 public:
-    Item(const std::string& name);
+    Item(std::shared_ptr<Context>& ctx, const std::string& name);
     virtual ~Item() {}
 
     // Light source

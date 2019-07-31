@@ -4,6 +4,7 @@
 #include <QIODevice>
 #include <QImage>
 
+#include <engine/context.h>
 #include <engine/fontmanager.h>
 #include <engine/logger.h>
 
@@ -12,8 +13,12 @@
 QtRenderer::QtRenderer()
     : mPainter(nullptr)
 {
+}
+
+void QtRenderer::init()
+{
     std::vector<std::string> fonts;
-    if (engine::FontManager::get()->files(fonts)) {
+    if (context().fontManager().files(fonts)) {
         for (const std::string& f: fonts) {
             QFontDatabase::addApplicationFont(f.c_str());
         }
@@ -109,7 +114,7 @@ void QtRenderer::drawText(const engine::Types::Rect<>& dst, const std::string& t
     QString str = QString(text.c_str());
 
     QFont font = mPainter->font();
-    font.setFamily(engine::FontManager::get()->font(type).c_str());
+    font.setFamily(context().fontManager().font(type).c_str());
     int32_t oldSize = font.pixelSize();
     if (size >= 0) {
         font.setPixelSize(size);
@@ -215,7 +220,7 @@ void QtRenderer::setPainter(QPainter* painter)
     mPainter->setFont(font);
 }
 
-std::unique_ptr<engine::Image> QtRenderer::loadImage(const std::string& path)
+std::unique_ptr<engine::Image> QtRenderer::loadImage(const std::string& path) const
 {
     return std::make_unique<QtImage>(path);
 }

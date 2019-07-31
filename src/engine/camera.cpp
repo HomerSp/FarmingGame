@@ -7,8 +7,8 @@
 
 using namespace engine;
 
-Camera::Camera(std::shared_ptr<script::ScriptEngine> &engine, uint32_t width, uint32_t height)
-    : ScriptObject(engine)
+Camera::Camera(std::shared_ptr<Context> &ctx, uint32_t width, uint32_t height)
+    : ScriptObject(ctx)
     , mTarget(nullptr)
     , mDimen(width, height)
     , mPos(0.0f, 0.0f)

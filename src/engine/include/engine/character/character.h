@@ -27,7 +27,7 @@ public:
         } Type;
     };
 
-    Character(std::shared_ptr<script::ScriptEngine> &engine, std::string id);
+    Character(std::shared_ptr<Context> &ctx, std::string id);
 
     void draw(Renderer& renderer, const Types::Point<>& camera);
 

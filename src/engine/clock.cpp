@@ -9,8 +9,8 @@
 
 using namespace engine;
 
-Clock::Clock(std::shared_ptr<script::ScriptEngine> &engine)
-    : ScriptObject(engine)
+Clock::Clock(std::shared_ptr<Context> &ctx)
+    : ScriptObject(ctx)
     , mCurrent(0)
     , mCurrentMod(0.0f)
     , mDawn(6)

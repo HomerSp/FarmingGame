@@ -24,26 +24,19 @@ public:
         Schedule,
     };
 
-    static std::shared_ptr<AssetManager> get();
+    AssetManager(const Renderer& renderer);
 
-    std::unique_ptr<Json::Value> data(Type type, const std::string& name);
-    std::unique_ptr<Image> image(Type type, const std::string& name);
-    std::unique_ptr<CollisionMap> collision(Type type, const std::string& name);
+    std::unique_ptr<Json::Value> data(Type type, const std::string& name) const;
+    std::unique_ptr<Image> image(Type type, const std::string& name) const;
+    std::unique_ptr<CollisionMap> collision(Type type, const std::string& name) const;
 
-    std::string dataPath(Type type, const std::string& name);
-    std::string imagePath(Type type, const std::string& name);
-    std::string collisionPath(Type type, const std::string& name);
-    std::string fontPath(const std::string& name);
-
-    void setRenderer(std::shared_ptr<Renderer> renderer);
-
-protected:
-    AssetManager();
+    std::string dataPath(Type type, const std::string& name) const;
+    std::string imagePath(Type type, const std::string& name) const;
+    std::string collisionPath(Type type, const std::string& name) const;
+    std::string fontPath(const std::string& name) const;
 
 private:
-    static std::shared_ptr<AssetManager> sInstance;
-
     std::string mBase;
-    std::shared_ptr<Renderer> mRenderer;
+    const Renderer& mRenderer;
 };
 }

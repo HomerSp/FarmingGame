@@ -10,17 +10,18 @@
 
 using namespace engine;
 
-Hud::Hud()
-    : mBoxSize(32, 32)
+Hud::Hud(std::shared_ptr<Context>& ctx)
+    : ContextObject(ctx)
+    , mBoxSize(32, 32)
     , mHealthStaminaWidth(96)
     , mExpanded(false)
 {
-    mClockImage = AssetManager::get()->image(AssetManager::Ui, "hud_clock");
-    mHudItemEquipped = AssetManager::get()->image(AssetManager::Ui, "hud_bar_left");
-    mHudItem = AssetManager::get()->image(AssetManager::Ui, "hud_item");
-    mBarSmall = AssetManager::get()->image(AssetManager::Ui, "hud_bar_small");
-    mHealthStamina = AssetManager::get()->image(AssetManager::Ui, "hud_health_stamina");
-    mSeasonsImage = AssetManager::get()->image(AssetManager::Ui, "seasons");
+    mClockImage = context().assetManager().image(AssetManager::Ui, "hud_clock");
+    mHudItemEquipped = context().assetManager().image(AssetManager::Ui, "hud_bar_left");
+    mHudItem = context().assetManager().image(AssetManager::Ui, "hud_item");
+    mBarSmall = context().assetManager().image(AssetManager::Ui, "hud_bar_small");
+    mHealthStamina = context().assetManager().image(AssetManager::Ui, "hud_health_stamina");
+    mSeasonsImage = context().assetManager().image(AssetManager::Ui, "seasons");
 }
 
 void Hud::draw(Renderer& renderer, Clock& clock, Player& player, FrameTimer& frameTimer)

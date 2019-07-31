@@ -12,8 +12,8 @@
 using namespace engine;
 using namespace engine::character;
 
-Character::Character(std::shared_ptr<script::ScriptEngine> &engine, std::string id)
-    : ScriptObject(engine)
+Character::Character(std::shared_ptr<Context> &ctx, std::string id)
+    : ScriptObject(ctx)
     , mValid(false)
     , mID(std::move(id))
     , mName("")
@@ -32,7 +32,7 @@ Character::Character(std::shared_ptr<script::ScriptEngine> &engine, std::string 
 {
     Logger::debug() << "Character" << mID;
 
-    std::unique_ptr<Json::Value> docPtr = AssetManager::get()->data(AssetManager::Character, mID);
+    std::unique_ptr<Json::Value> docPtr = context().assetManager().data(AssetManager::Character, mID);
     Json::Value doc = *docPtr;
     if (!doc.isObject() || !doc.isMember("name") || !doc.isMember("charset")) {
         Logger::critical() << "Invalid JSON data for character" << mID;
@@ -40,7 +40,7 @@ Character::Character(std::shared_ptr<script::ScriptEngine> &engine, std::string 
     }
 
     mName = doc["name"].asString();
-    mCharset = std::make_shared<Charset>(doc["charset"].asString());
+    mCharset = std::make_shared<Charset>(ctx, doc["charset"].asString());
 
     mValid = true;
 }
