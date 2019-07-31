@@ -99,23 +99,23 @@ void MapLayer::toggleLights(bool on)
     }
 }
 
-bool MapLayer::updateCollisionMap(std::shared_ptr<CollisionMap>& map)
+bool MapLayer::updateCollisionMap(CollisionMap& outMap)
 {
-    std::shared_ptr<CollisionMap> tilesetCollisionMap = mTileset->loadCollisionMap();
-    if (!*tilesetCollisionMap) {
+    std::unique_ptr<CollisionMap> tilesetCollisionMap = mTileset->loadCollisionMap();
+    if (!tilesetCollisionMap) {
         Logger::error() << "Could not load tileset collision map";
         return false;
     }
 
     for(auto &nodeY: mNodes[TilesetAbove::None]) {
         for (auto &nodeX: nodeY.second) {
-            mTileset->updateCollisionMap(tilesetCollisionMap, map, nodeX.second, nodeX.first, nodeY.first);
+            mTileset->updateCollisionMap(*tilesetCollisionMap, outMap, *nodeX.second, nodeX.first, nodeY.first);
         }
     }
 
     for(auto &nodeY: mNodes[TilesetAbove::Row]) {
         for (auto &nodeX: nodeY.second) {
-            mTileset->updateCollisionMap(tilesetCollisionMap, map, nodeX.second, nodeX.first, nodeY.first);
+            mTileset->updateCollisionMap(*tilesetCollisionMap, outMap, *nodeX.second, nodeX.first, nodeY.first);
         }
     }
 
@@ -154,7 +154,6 @@ bool MapLayer::updatePaths(std::vector<Types::Point<int32_t> > &paths)
                 TilesetNode* node = nodeX.second.get();
                 if (node->type->hasAttribute(TilesetAttribute::Path)) {
                     auto dst = Types::Point<int32_t>(nodeX.first, nodeY.first);
-                    Logger::debug() << "Found path at" << dst.x << dst.y;
                     paths.push_back(dst);
                 }
             }
@@ -171,22 +170,21 @@ Map::Map(const std::string& id)
 {
     Logger::debug() << "Loading Map" << id;
 
-    std::shared_ptr<Json::Value> docPtr = AssetManager::get()->data(AssetManager::get()->Map, id);
-    Json::Value doc = *docPtr;
-    if (!doc.isObject()) {
+    auto doc = AssetManager::get()->data(AssetManager::get()->Map, id);
+    if (!doc || !doc->isObject()) {
         Logger::critical() << "Invalid JSON data for" << id;
         return;
     }
 
-    if (!doc.isMember("width") || !doc.isMember("height") || !doc.isMember("layers")) {
+    if (!doc->isMember("width") || !doc->isMember("height") || !doc->isMember("layers")) {
         Logger::critical() << "Could not find required map JSON attributes for" << id;
         return;
     }
 
-    mDimensions.width = doc["width"].asInt();
-    mDimensions.height = doc["height"].asInt();
+    mDimensions.width = (*doc)["width"].asInt();
+    mDimensions.height = (*doc)["height"].asInt();
 
-    Json::Value layers = doc["layers"];
+    Json::Value layers = (*doc)["layers"];
     for (auto layerObj : layers) {
         if (!layerObj.isMember("tileset")) {
             Logger::critical() << "Could not find required map layer JSON attributes for" << id;
@@ -234,9 +232,9 @@ Map::Map(const std::string& id)
         mLayers.push_back(layer);
     }
 
-    mCollisionMap = std::make_shared<CollisionMap>(pixelWidth(), pixelHeight());
+    mCollisionMap = std::make_unique<CollisionMap>(pixelWidth(), pixelHeight());
     for (const auto& layer : mLayers) {
-        if (!layer->updateCollisionMap(mCollisionMap)) {
+        if (!layer->updateCollisionMap(*mCollisionMap)) {
             Logger::warning() << "Could not load collision map for" << id;
         }
 
@@ -367,13 +365,13 @@ void Map::checkCollision(const Types::Point<float_t>& pos, const Types::Dimensio
     }
 }
 
-bool Map::isNodeSolid(int32_t x, int32_t y, const Types::Dimension<>& size)
+bool Map::isNodeSolid(int32_t x, int32_t y, const Types::Dimension<>& size) const
 {
     Types::Dimension<> d = getTileDimension();
     return mCollisionMap->get(x * d.width, y * d.height, ((size.width / d.width) + 1) * d.width, ((size.height / d.height) + 1) * d.height);
 }
 
-bool Map::isNodePath(int32_t x, int32_t y)
+bool Map::isNodePath(int32_t x, int32_t y) const
 {
     return std::find(mPaths.begin(), mPaths.end(), Types::Point<int32_t>(x, y)) != mPaths.end();
 }

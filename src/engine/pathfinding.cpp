@@ -24,15 +24,15 @@ PathFinding::Node::Node(Types::Point<int32_t> pos, Types::Point<int32_t> parent,
 
 }
 
-std::vector<Types::Point<int32_t>> PathFinding::find(std::shared_ptr<Map>& map, Types::Rect<uint32_t> source, Types::Point<int32_t> dst)
+std::vector<Types::Point<int32_t>> PathFinding::find(const Map& map, Types::Rect<uint32_t> source, Types::Point<int32_t> dst)
 {
-    Types::Dimension<> tileDimen = map->getTileDimension();
+    Types::Dimension<> tileDimen = map.getTileDimension();
     Types::Dimension<> sourceDimen(source.width, source.height);
 
     Types::Point<int32_t> start = Types::Point<int32_t>(std::floor(source.x / tileDimen.width), std::floor(source.y / tileDimen.height));
     Types::Point<int32_t> end = Types::Point<int32_t>(std::floor(dst.x / tileDimen.width), std::floor(dst.y / tileDimen.height));
 
-    if (map->isNodeSolid(end.x, end.y, sourceDimen)) {
+    if (map.isNodeSolid(end.x, end.y, sourceDimen)) {
         Logger::error() << "Unreachable destination" << dst.x << dst.y;
         return {};
     }
@@ -63,14 +63,13 @@ std::vector<Types::Point<int32_t>> PathFinding::find(std::shared_ptr<Map>& map, 
                 continue;
             }
 
-            if (map->isNodeSolid(neighbour.x, neighbour.y, sourceDimen)) {
-                Logger::debug() << "Node is solid" << neighbour.x << neighbour.y;
+            if (map.isNodeSolid(neighbour.x, neighbour.y, sourceDimen)) {
                 closed.emplace(std::make_pair(p.second.pos.x, p.second.pos.y), Node(neighbour, p.second.pos, INT_MAX, INT_MAX));
                 continue;
             }
 
             int32_t gScore = p.second.gCost;
-            if (map->isNodePath(neighbour.x, neighbour.y)) {
+            if (map.isNodePath(neighbour.x, neighbour.y)) {
                 gScore += 1;
             } else {
                 gScore += 5;
@@ -99,7 +98,7 @@ std::vector<Types::Point<int32_t>> PathFinding::find(std::shared_ptr<Map>& map, 
 
     // Did we find a valid path?
     if (closed.find({end.x, end.y}) == closed.end()) {
-        Logger::debug() << "Could not find destination";
+        Logger::error() << "Could not find destination";
         return {};
     }
 
@@ -113,7 +112,7 @@ std::vector<Types::Point<int32_t>> PathFinding::find(std::shared_ptr<Map>& map, 
 
     std::vector<Types::Point<int32_t> > ret;
     while (!paths.empty()) {
-        Types::Dimension<> d = map->getTileDimension();
+        Types::Dimension<> d = map.getTileDimension();
         Types::Point<int32_t> p = paths.top();
         paths.pop();
         ret.emplace_back(Types::Point<int32_t>(p.x * d.width, p.y * d.height));
@@ -132,12 +131,12 @@ int32_t PathFinding::calcH(const Types::Point<int32_t>& p, const Types::Point<in
     return std::max(std::abs(p.x - end.x), std::abs(p.y - end.y));
 }
 
-int32_t PathFinding::index(const Types::Point<int32_t>& p, std::shared_ptr<Map>& map)
+int32_t PathFinding::index(const Types::Point<int32_t>& p, const Map& map)
 {
-    return p.x + (p.y * map->width());
+    return p.x + (p.y * map.width());
 }
 
-bool PathFinding::isValid(const Types::Point<int32_t> &neighbour, std::shared_ptr<Map>& map)
+bool PathFinding::isValid(const Types::Point<int32_t> &neighbour, const Map& map)
 {
-    return (neighbour.x >= 0 && neighbour.x < static_cast<int32_t>(map->width()) && neighbour.y >= 0 && neighbour.y < static_cast<int32_t>(map->height()));
+    return (neighbour.x >= 0 && neighbour.x < static_cast<int32_t>(map.width()) && neighbour.y >= 0 && neighbour.y < static_cast<int32_t>(map.height()));
 }

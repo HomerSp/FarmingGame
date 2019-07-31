@@ -73,7 +73,7 @@ void Hud::drawClock(Renderer& renderer, Clock& clock)
 
     // Background
     Types::Rect<> clockRc(0, 0, clockDimen.width, clockDimen.height);
-    renderer.drawImage(*mClockImage.get(), {}, clockRc);
+    renderer.drawImage(*mClockImage, {}, clockRc);
 
     // Hour and minutes
     Types::Rect<> timeRc(0, 0, clockDimen.width, clockDimen.height);
@@ -92,14 +92,14 @@ void Hud::drawClock(Renderer& renderer, Clock& clock)
     // Season
     Types::Rect<> seasonsRect(0, 0, mSeasonsImage->width() / 4, mSeasonsImage->height());
     renderer.translate(-(16/2), (clockRc.height / 4) - (16 / 2));
-    renderer.drawImage(*mSeasonsImage.get(), {0, 0, 16, 16}, seasonsRect);
+    renderer.drawImage(*mSeasonsImage, {0, 0, 16, 16}, seasonsRect);
     renderer.translate((16 / 2), -(clockRc.height / 4) + (16 / 2));
 
     // Foreground
     renderer.translate(-centreX, -centreY);
 
     clockRc.x = clockDimen.width;
-    renderer.drawImage(*mClockImage.get(), {}, clockRc);
+    renderer.drawImage(*mClockImage, {}, clockRc);
 
     renderer.translate(centreX, centreY);
 }
@@ -126,19 +126,19 @@ void Hud::drawItems(Renderer& renderer, Player& player)
 {
     Types::Rect<> leftItemRc(0, 0, mHudItemEquipped->width() / 2, mHudItemEquipped->height());
     renderer.translate(-(leftItemRc.width / 2), -(leftItemRc.height / 2));
-    renderer.drawImage(*mHudItemEquipped.get(), {}, leftItemRc);
+    renderer.drawImage(*mHudItemEquipped, {}, leftItemRc);
 
     renderer.translate(leftItemRc.height / 2, leftItemRc.height / 2);
 
-    std::shared_ptr<Image> itemImage = player.currentItem()->uiImage();
+    const Image& itemImage = player.currentItem().uiImage();
 
     renderer.translate(-(mBoxSize.x / 2), -(mBoxSize.y / 2));
-    renderer.drawImage(*itemImage.get(), {0, 0, mBoxSize.x, mBoxSize.y});
+    renderer.drawImage(itemImage, {0, 0, mBoxSize.x, mBoxSize.y});
     renderer.translate(mBoxSize.x / 2, mBoxSize.y / 2);
     renderer.translate(-leftItemRc.height / 2, -leftItemRc.height / 2);
 
     leftItemRc.x = leftItemRc.width;
-    renderer.drawImage(*mHudItemEquipped.get(), {}, leftItemRc);
+    renderer.drawImage(*mHudItemEquipped, {}, leftItemRc);
 
     renderer.translate((leftItemRc.width / 2), (leftItemRc.height / 2));
 
@@ -148,24 +148,23 @@ void Hud::drawItems(Renderer& renderer, Player& player)
         Types::Rect<> itemRc(0, 0, mHudItem->width() / 2, mHudItem->height());
         renderer.translate(-(itemRc.width - 5) * 10, 0);
 
-        const auto& items = player.items();
         for (uint8_t i = 0; i < 10; i++) {
-            renderer.drawImage(*mHudItem.get(), {}, itemRc);
+            renderer.drawImage(*mHudItem, {}, itemRc);
 
             if (i == player.currentItemIndex()) {
                 renderer.fillRect(itemRc, {255, 255, 0, 175});
             }
 
-            if (items.find(i) != items.end()) {
-                auto itemImage = items.at(i)->uiImage();
+            if (player.hasItem(i)) {
+                const auto &itemsImage = player.item(i).uiImage();
                 renderer.translate((itemRc.width / 2), (itemRc.height / 2));
                 renderer.translate(-(mBoxSize.x / 2), -(mBoxSize.y / 2));
-                renderer.drawImage(*itemImage.get(), {0, 0, mBoxSize.x, mBoxSize.y});
+                renderer.drawImage(itemsImage, {0, 0, mBoxSize.x, mBoxSize.y});
                 renderer.translate((mBoxSize.x / 2), (mBoxSize.y / 2));
                 renderer.translate(-(itemRc.width / 2), -(itemRc.height / 2));
             }
 
-            renderer.drawImage(*mHudItem.get(), {}, {itemRc.x + itemRc.width, itemRc.y, itemRc.width, itemRc.height});
+            renderer.drawImage(*mHudItem, {}, {itemRc.x + itemRc.width, itemRc.y, itemRc.width, itemRc.height});
 
             renderer.translate(itemRc.width - 5, 0);
         }
@@ -180,23 +179,23 @@ void Hud::drawBarSmall(Renderer& renderer, uint32_t width, Types::Color fillColo
     Types::Rect<int32_t> fillRc(0, 0, std::max(0, static_cast<int32_t>(width - (bgRc.width * 2))), bgRc.height);
 
     // Background
-    renderer.drawImage(*mBarSmall.get(), {}, bgRc);
+    renderer.drawImage(*mBarSmall, {}, bgRc);
 
     bgRc.x += bgRc.width;
     renderer.translate(bgRc.width, 0);
-    renderer.drawImage(*mBarSmall.get(), {}, bgRc);
+    renderer.drawImage(*mBarSmall, {}, bgRc);
 
     bgRc.x += bgRc.width;
     renderer.translate(bgRc.width, 0);
-    renderer.drawImage(*mBarSmall.get(), fillRc, bgRc);
+    renderer.drawImage(*mBarSmall, fillRc, bgRc);
 
     bgRc.x += bgRc.width;
     renderer.translate(fillRc.width, 0);
-    renderer.drawImage(*mBarSmall.get(), {}, bgRc);
+    renderer.drawImage(*mBarSmall, {}, bgRc);
 
     bgRc.x += bgRc.width;
     renderer.translate(bgRc.width, 0);
-    renderer.drawImage(*mBarSmall.get(), {}, bgRc);
+    renderer.drawImage(*mBarSmall, {}, bgRc);
 
     renderer.translate(-(fillRc.width + (bgRc.width * 3)), 0);
 
@@ -208,28 +207,28 @@ void Hud::drawBarSmall(Renderer& renderer, uint32_t width, Types::Color fillColo
     Types::Rect<> healthStaminaRc(indicatorX, 0, mHealthStamina->width() / 2, mHealthStamina->height());
 
     renderer.translate(5 + mHealthStaminaWidth - healthStaminaRc.width, 5);
-    renderer.drawImage(*mHealthStamina.get(), {}, healthStaminaRc);
+    renderer.drawImage(*mHealthStamina, {}, healthStaminaRc);
     renderer.translate(-(5 + mHealthStaminaWidth - healthStaminaRc.width), -5);
 
     // Foreground
     bgRc.x = bgRc.width * 5;
-    renderer.drawImage(*mBarSmall.get(), {}, bgRc);
+    renderer.drawImage(*mBarSmall, {}, bgRc);
 
     bgRc.x += bgRc.width;
     renderer.translate(bgRc.width, 0);
-    renderer.drawImage(*mBarSmall.get(), {}, bgRc);
+    renderer.drawImage(*mBarSmall, {}, bgRc);
 
     bgRc.x += bgRc.width;
     renderer.translate(bgRc.width, 0);
-    renderer.drawImage(*mBarSmall.get(), fillRc, bgRc);
+    renderer.drawImage(*mBarSmall, fillRc, bgRc);
 
     bgRc.x += bgRc.width;
     renderer.translate(fillRc.width, 0);
-    renderer.drawImage(*mBarSmall.get(), {}, bgRc);
+    renderer.drawImage(*mBarSmall, {}, bgRc);
 
     bgRc.x += bgRc.width;
     renderer.translate(bgRc.width, 0);
-    renderer.drawImage(*mBarSmall.get(), {}, bgRc);
+    renderer.drawImage(*mBarSmall, {}, bgRc);
 
     renderer.translate(-(fillRc.width + (bgRc.width * 3)), 0);
 }

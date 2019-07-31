@@ -20,14 +20,13 @@ std::shared_ptr<FontManager> FontManager::get()
 
 FontManager::FontManager()
 {
-    std::shared_ptr<Json::Value> docPtr = AssetManager::get()->data(AssetManager::Font, "types");
-    Json::Value doc = *docPtr;
-    if (!doc.isObject()) {
+    auto doc = AssetManager::get()->data(AssetManager::Font, "types");
+    if (!doc || !doc->isObject()) {
         Logger::critical() << "Invalid JSON data for font";
         return;
     }
 
-    for (auto it = doc.begin(); it != doc.end(); it++) {
+    for (auto it = doc->begin(); it != doc->end(); it++) {
         mFonts.emplace(it.name(), it->asString());
     }
 
@@ -38,16 +37,14 @@ FontManager::FontManager()
 
 bool FontManager::files(std::vector<std::string>& out)
 {
-    std::shared_ptr<Json::Value> docPtr = AssetManager::get()->data(AssetManager::Font, "files");
-    Json::Value doc = *docPtr;
-    if (doc.empty()) {
+    auto doc = AssetManager::get()->data(AssetManager::Font, "files");
+    if (!doc || doc->empty()) {
         Logger::critical() << "Invalid JSON data for font files";
         return false;
     }
 
-    std::shared_ptr<AssetManager> am = AssetManager::get();
-    for (Json::Value& v: doc) {
-        out.emplace_back(am->fontPath(v.asString()));
+    for (Json::Value& v: *doc) {
+        out.emplace_back(AssetManager::get()->fontPath(v.asString()));
     }
 
     return true;

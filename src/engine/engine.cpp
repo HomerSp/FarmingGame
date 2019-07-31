@@ -32,11 +32,11 @@ Engine::Engine(uint32_t width, uint32_t height, std::shared_ptr<Renderer> render
     mScript = std::make_shared<script::ScriptEngine>();
     mEngineObject = std::make_shared<EngineObject>(mScript, this);
 
-    mHud = std::make_shared<engine::Hud>();
-    mScreenEffects = std::make_shared<engine::ScreenEffects>();
-    mCamera = std::make_shared<engine::Camera>(mScript, mWidth, mHeight);
-    mClock = std::make_shared<engine::Clock>(mScript);
-    mMap = std::make_shared<engine::Map>("map");
+    mHud = std::make_unique<engine::Hud>();
+    mScreenEffects = std::make_unique<engine::ScreenEffects>();
+    mCamera = std::make_unique<engine::Camera>(mScript, mWidth, mHeight);
+    mClock = std::make_unique<engine::Clock>(mScript);
+    mMap = std::make_unique<engine::Map>("map");
     mPlayer = std::make_shared<engine::Player>(mScript);
     mPlayer->setPosition("map", std::floor((mMap->pixelWidth() - mPlayer->width()) / 2), std::floor((mMap->pixelHeight() - mPlayer->height()) / 2));
 
@@ -270,7 +270,7 @@ void Engine::processAsync()
         }
 
         for(auto &i: mCharacters) {
-            if (i.second->processAsync(diff, mMap, &mCharacters, mCamera.get())) {
+            if (i.second->processAsync(diff, *mMap, &mCharacters, mCamera.get())) {
                 mNeedRepaint = true;
             }
         }
@@ -338,8 +338,8 @@ void Engine::paint()
         mMap->drawRow(renderer, dst, row, TilesetAbove::All);
     }
 
-    mScreenEffects->draw(renderer, *mClock.get(), *mCamera.get(), mLights);
-    mHud->draw(renderer, *mClock.get(), *mPlayer.get(), mProcessFrameTimer);
+    mScreenEffects->draw(renderer, *mClock, *mCamera, mLights);
+    mHud->draw(renderer, *mClock, *mPlayer, mProcessFrameTimer);
 
     mNeedRepaint = false;
 }

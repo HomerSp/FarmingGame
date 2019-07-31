@@ -32,7 +32,7 @@ public:
     void draw(Renderer& renderer, const Types::Point<>& camera);
 
     bool animate(uint64_t frameDiff, bool reset = false);
-    bool processAsync(uint64_t frameDiff, std::shared_ptr<Map>& map, std::unordered_map<std::string, std::shared_ptr<Character>> *characters = nullptr, Camera* camera = nullptr);
+    bool processAsync(uint64_t frameDiff, const Map& map, std::unordered_map<std::string, std::shared_ptr<Character>> *characters = nullptr, Camera* camera = nullptr);
     void processListeners();
 
     void velocity(uint64_t frameDiff, float_t x, float_t y);

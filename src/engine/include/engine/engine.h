@@ -84,11 +84,11 @@ private:
 
     std::shared_ptr<Renderer> mRenderer;
 
-    std::shared_ptr<engine::Hud> mHud;
-    std::shared_ptr<engine::ScreenEffects> mScreenEffects;
-    std::shared_ptr<engine::Camera> mCamera;
-    std::shared_ptr<engine::Clock> mClock;
-    std::shared_ptr<engine::Map> mMap;
+    std::unique_ptr<engine::Hud> mHud;
+    std::unique_ptr<engine::ScreenEffects> mScreenEffects;
+    std::unique_ptr<engine::Camera> mCamera;
+    std::unique_ptr<engine::Clock> mClock;
+    std::unique_ptr<engine::Map> mMap;
     std::shared_ptr<engine::Player> mPlayer;
     std::unordered_map<std::string, std::shared_ptr<engine::character::Character>> mCharacters;
 

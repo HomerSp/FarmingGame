@@ -3,6 +3,8 @@
 #include <QImage>
 #include <QPainter>
 
+#include <memory>
+
 #include <engine/image.h>
 #include <engine/renderer.h>
 
@@ -19,7 +21,7 @@ public:
         virtual uint32_t height() const;
 
     private:
-        std::shared_ptr<QImage> mImage;
+        std::unique_ptr<QImage> mImage;
     };
 
 public:
@@ -44,7 +46,7 @@ public:
 
     void setPainter(QPainter* painter);
 
-    std::shared_ptr<engine::Image> loadImage(const std::string& path);
+    std::unique_ptr<engine::Image> loadImage(const std::string& path);
 
 private:
     QPainter* mPainter;

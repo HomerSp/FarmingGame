@@ -2,6 +2,7 @@
 
 #include <unordered_map>
 
+#include <engine/item.h>
 #include <engine/screeneffects.h>
 
 namespace engine {
@@ -9,8 +10,6 @@ namespace engine {
 namespace character {
 class Character;
 }
-
-class Item;
 
 class Player : public character::Character, public ScreenEffects::LightSource {
 public:
@@ -37,10 +36,11 @@ public:
     uint16_t health();
     uint16_t maxHealth();
 
-    std::shared_ptr<Item> currentItem();
+    const Item& currentItem() const;
+    uint8_t currentItemIndex() const;
 
-    const std::unordered_map<uint8_t, std::shared_ptr<Item>>& items();
-    uint8_t currentItemIndex();
+    const Item& item(uint8_t i) const;
+    bool hasItem(uint8_t i) const;
 
     character::Character* character();
 
@@ -66,7 +66,7 @@ private:
     Stats mStats;
     uint16_t mStamina, mHealth;
 
-    std::unordered_map<uint8_t, std::shared_ptr<Item>> mInventory;
+    std::unordered_map<uint8_t, std::unique_ptr<Item>> mInventory;
     uint8_t mCurrentItem;
 };
 }

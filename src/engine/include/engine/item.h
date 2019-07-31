@@ -46,10 +46,10 @@ public:
 
     void use(Player& player);
 
-    std::shared_ptr<Image> uiImage();
+    const Image& uiImage() const;
 
 private:
-    std::shared_ptr<Image> mUiImage;
+    std::unique_ptr<Image> mUiImage;
 
     int32_t mLightRadius;
     float_t mLightStrength;

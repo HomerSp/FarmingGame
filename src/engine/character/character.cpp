@@ -32,7 +32,7 @@ Character::Character(std::shared_ptr<script::ScriptEngine> &engine, std::string 
 {
     Logger::debug() << "Character" << mID;
 
-    std::shared_ptr<Json::Value> docPtr = AssetManager::get()->data(AssetManager::Character, mID);
+    std::unique_ptr<Json::Value> docPtr = AssetManager::get()->data(AssetManager::Character, mID);
     Json::Value doc = *docPtr;
     if (!doc.isObject() || !doc.isMember("name") || !doc.isMember("charset")) {
         Logger::critical() << "Invalid JSON data for character" << mID;
@@ -116,7 +116,7 @@ bool Character::animate(uint64_t frameDiff, bool reset)
     return changed;
 }
 
-bool Character::processAsync(uint64_t frameDiff, std::shared_ptr<Map>& map, std::unordered_map<std::string, std::shared_ptr<Character>> *characters, Camera* camera)
+bool Character::processAsync(uint64_t frameDiff, const Map& map, std::unordered_map<std::string, std::shared_ptr<Character>> *characters, Camera* camera)
 {
     bool changed = false;
     float_t posX, posY;
@@ -208,13 +208,11 @@ bool Character::processAsync(uint64_t frameDiff, std::shared_ptr<Map>& map, std:
             Types::Point<float_t> dst(mVelocity.x * (frameDiff / 5.0f), mVelocity.y * (frameDiff / 5.0f));
 
             // Check collisions with the map if we have one
-            if (map != nullptr) {
-                Types::Rect<> col = mCharset->collision(mCharsetType);
+            Types::Rect<> col = mCharset->collision(mCharsetType);
 
-                Types::Point<float_t> pos(posX + col.x, posY + col.y);
-                Types::Dimension<> size(col.width, col.height);
-                map->checkCollision(pos, size, dst, mVelocity.x, mVelocity.y);
-            }
+            Types::Point<float_t> pos(posX + col.x, posY + col.y);
+            Types::Dimension<> size(col.width, col.height);
+            map.checkCollision(pos, size, dst, mVelocity.x, mVelocity.y);
 
             // Check collisions with other characters.
             if (characters != nullptr && (dst.x != 0.0f || dst.y != 0.0f)) {

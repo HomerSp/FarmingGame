@@ -17,26 +17,25 @@ Charset::Charset(const std::string& name)
     : mValid(false)
     , mImage(nullptr)
 {
-    std::shared_ptr<Json::Value> docPtr = AssetManager::get()->data(AssetManager::get()->Charset, name);
-    Json::Value& doc = *docPtr;
-    if (!doc.isObject()) {
+    std::unique_ptr<Json::Value> doc = AssetManager::get()->data(AssetManager::get()->Charset, name);
+    if (!doc || !doc->isObject()) {
         Logger::critical() << "Could not open charset JSON file" << name;
         return;
     }
 
-    if (!doc.isMember("image")) {
+    if (!doc->isMember("image")) {
         Logger::critical() << "Could not find required charset JSON data for" << name;
         return;
     }
 
-    mImage = AssetManager::get()->image(AssetManager::get()->Charset, doc["image"].asString());
+    mImage = AssetManager::get()->image(AssetManager::get()->Charset, (*doc)["image"].asString());
     if (!*mImage) {
         Logger::critical() << "Could not load charset image for" << name;
         return;
     }
 
-    if (doc.isMember("walk")) {
-        addNode(Charset::TypeWalk, doc["walk"]);
+    if (doc->isMember("walk")) {
+        addNode(Charset::TypeWalk, (*doc)["walk"]);
     }
 
     mValid = !mNodes.empty();
@@ -49,7 +48,7 @@ void Charset::draw(Renderer& renderer, const Types::Point<>& pos, Charset::Type 
         return;
     }
 
-    std::shared_ptr<CharsetNode> node = mNodes.find(type)->second;
+    const std::shared_ptr<CharsetNode> &node = mNodes.find(type)->second;
     Types::Rect<> dst(pos.x, pos.y, node->rect.width, node->rect.height);
     Types::Rect<> src(node->rect.x + (node->rect.width * frame), node->rect.y + (node->rect.height * direction), node->rect.width, node->rect.height);
     renderer.drawImage(*mImage, dst, src);

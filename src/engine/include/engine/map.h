@@ -6,6 +6,7 @@
 #include <unordered_map>
 #include <unordered_set>
 
+#include <engine/collisionmap.h>
 #include <engine/screeneffects.h>
 #include <engine/tileset.h>
 #include <engine/types.h>
@@ -41,7 +42,7 @@ public:
 
     void toggleLights(bool on);
 
-    bool updateCollisionMap(std::shared_ptr<CollisionMap>& map);
+    bool updateCollisionMap(CollisionMap& outMap);
     bool updateLightSources(std::vector<std::shared_ptr<MapLightSource>>& sources);
     bool updatePaths(std::vector<Types::Point<int32_t> > &paths);
 
@@ -70,8 +71,8 @@ public:
     void drawRow(Renderer& renderer, const Types::Rect<>& dst, int32_t row, TilesetAbove::Type above, bool clip = true);
 
     void checkCollision(const Types::Point<float_t>& pos, const Types::Dimension<>& size, Types::Point<float_t>& dst, float_t& velocityX, float_t& velocityY) const;
-    bool isNodeSolid(int32_t x, int32_t y, const Types::Dimension<>& size);
-    bool isNodePath(int32_t x, int32_t y);
+    bool isNodeSolid(int32_t x, int32_t y, const Types::Dimension<>& size) const;
+    bool isNodePath(int32_t x, int32_t y) const;
 
     void addLightSources(std::vector<std::shared_ptr<ScreenEffects::LightSource>>& sources);
 
@@ -97,7 +98,7 @@ private:
     std::string mID;
     std::unordered_map<std::string, std::shared_ptr<Tileset>> mTilesets;
     std::vector<std::shared_ptr<MapLayer>> mLayers;
-    std::shared_ptr<CollisionMap> mCollisionMap;
+    std::unique_ptr<CollisionMap> mCollisionMap;
     Types::Dimension<uint32_t> mDimensions;
     std::vector<std::shared_ptr<MapLightSource>> mLights;
     std::vector<Types::Point<int32_t >> mPaths;

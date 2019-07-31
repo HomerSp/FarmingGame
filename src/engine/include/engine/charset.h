@@ -46,7 +46,7 @@ protected:
 
 private:
     bool mValid;
-    std::shared_ptr<engine::Image> mImage;
+    std::unique_ptr<engine::Image> mImage;
     std::unordered_map<Charset::Type, std::shared_ptr<CharsetNode>> mNodes;
 };
 }

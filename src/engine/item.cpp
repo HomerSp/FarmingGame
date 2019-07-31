@@ -24,14 +24,13 @@ Item::Item(const std::string& name)
     , mLightRadius(0)
     , mLightStrength(0.0f)
 {
-    std::shared_ptr<Json::Value> docPtr = AssetManager::get()->data(AssetManager::Item, name);
-    Json::Value doc = *docPtr;
-    if (!doc.isObject() || !doc.isMember("image")) {
+    std::unique_ptr<Json::Value> doc = AssetManager::get()->data(AssetManager::Item, name);
+    if (!doc->isObject() || !doc->isMember("image")) {
         Logger::critical() << "Invalid JSON data for item" << name;
         return;
     }
 
-    Json::Value imageObj = doc["image"];
+    Json::Value imageObj = (*doc)["image"];
     if (!imageObj.isObject() || !imageObj.isMember("item")) {
         Logger::critical() << "Invalid JSON image data for item" << name;
         return;
@@ -39,8 +38,8 @@ Item::Item(const std::string& name)
 
     mUiImage = AssetManager::get()->image(AssetManager::Item, imageObj["item"].asString());
 
-    if (doc.isMember("attributes")) {
-        Json::Value attrsObj = doc["attributes"];
+    if (doc->isMember("attributes")) {
+        Json::Value attrsObj = (*doc)["attributes"];
 
         for (const auto& attrObj : attrsObj) {
             std::string key = attrObj.asString();
@@ -58,8 +57,8 @@ Item::Item(const std::string& name)
         }
     }
 
-    if (mAttributes[ItemAttribute::LightSource] && doc.isMember("light")) {
-        Json::Value lightObj = doc["light"];
+    if (mAttributes[ItemAttribute::LightSource] && doc->isMember("light")) {
+        Json::Value lightObj = (*doc)["light"];
         if (lightObj.isMember("radius")) {
             mLightRadius = lightObj["radius"].asInt();
         }
@@ -69,8 +68,8 @@ Item::Item(const std::string& name)
         }
     }
 
-    if (doc.isMember("use")) {
-        Json::Value useObj = doc["use"];
+    if (doc->isMember("use")) {
+        Json::Value useObj = (*doc)["use"];
         for (auto it = useObj.begin(); it != useObj.end(); it++) {
             ItemEffect::Type type = ItemEffect::Unknown;
             switch (Types::hash(it.name().c_str())) {
@@ -155,7 +154,7 @@ void Item::use(Player& player)
     }
 }
 
-std::shared_ptr<Image> Item::uiImage()
+const Image& Item::uiImage() const
 {
-    return mUiImage;
+    return *mUiImage;
 }

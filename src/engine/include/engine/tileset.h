@@ -8,12 +8,12 @@
 #include <unordered_map>
 #include <unordered_set>
 
+#include <engine/collisionmap.h>
+#include <engine/image.h>
 #include <engine/types.h>
 
 namespace engine {
 
-class CollisionMap;
-class Image;
 class Renderer;
 class TilesetType;
 class Tileset;
@@ -113,9 +113,9 @@ public:
         return mTileDimension;
     }
 
-    std::shared_ptr<CollisionMap> loadCollisionMap();
+    std::unique_ptr<CollisionMap> loadCollisionMap();
 
-    void updateCollisionMap(std::shared_ptr<CollisionMap>& tilesetMap, std::shared_ptr<CollisionMap>& map, std::shared_ptr<TilesetNode>& node, uint32_t x, uint32_t y);
+    void updateCollisionMap(const CollisionMap& tilesetMap, CollisionMap& outMap, const TilesetNode& node, uint32_t x, uint32_t y);
     bool updateTiles(Types::Map2D& tiles, std::map<int32_t, std::map<int32_t, std::shared_ptr<TilesetNode>>>& map, uint32_t width, uint32_t height, TilesetAbove::Type above);
 
     bool operator!() const
@@ -127,7 +127,7 @@ private:
     bool mValid;
     Types::Dimension<> mTileDimension;
     std::unordered_map<int32_t, std::shared_ptr<TilesetType>> mTypes;
-    std::shared_ptr<engine::Image> mImage;
+    std::unique_ptr<engine::Image> mImage;
     std::string mCollisionMap;
 };
 }

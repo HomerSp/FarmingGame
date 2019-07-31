@@ -33,11 +33,11 @@ private:
     Types::Point<> mBoxSize;
     uint32_t mHealthStaminaWidth;
 
-    std::shared_ptr<Image> mClockImage;
-    std::shared_ptr<Image> mHudItemEquipped, mHudItem;
-    std::shared_ptr<Image> mBarSmall;
-    std::shared_ptr<Image> mHealthStamina;
-    std::shared_ptr<Image> mSeasonsImage;
+    std::unique_ptr<Image> mClockImage;
+    std::unique_ptr<Image> mHudItemEquipped, mHudItem;
+    std::unique_ptr<Image> mBarSmall;
+    std::unique_ptr<Image> mHealthStamina;
+    std::unique_ptr<Image> mSeasonsImage;
 
     std::atomic<bool> mExpanded;
 };

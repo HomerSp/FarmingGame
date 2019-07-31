@@ -14,14 +14,13 @@ Player::Player(std::shared_ptr<script::ScriptEngine> &engine)
     , mHealth(0)
     , mCurrentItem(0)
 {
-    std::shared_ptr<Json::Value> docPtr = AssetManager::get()->data(AssetManager::Character, "player");
-    Json::Value doc = *docPtr;
-    if (!doc.isObject() || !doc.isMember("stats")) {
+    std::unique_ptr<Json::Value> doc = AssetManager::get()->data(AssetManager::Character, "player");
+    if (!doc->isObject() || !doc->isMember("stats")) {
         Logger::critical() << "Invalid JSON data for player";
         return;
     }
 
-    Json::Value statsObj = doc["stats"];
+    Json::Value statsObj = (*doc)["stats"];
     if (!statsObj.isMember("max_level") || ! statsObj.isMember("stamina") || !statsObj.isMember("health")) {
         Logger::critical() << "Missing JSON stats data for player";
         return;
@@ -40,13 +39,13 @@ Player::Player(std::shared_ptr<script::ScriptEngine> &engine)
     mHealth = mStats.currentHealth(mLevel);
 
     uint32_t i = 0;
-    mInventory[i++] = std::make_shared<Item>("tool_axe_1");
-    mInventory[i++] = std::make_shared<Item>("tool_hammer_1");
-    mInventory[i++] = std::make_shared<Item>("tool_torch_1");
-    mInventory[i++] = std::make_shared<Item>("fruit_apple");
-    mInventory[i++] = std::make_shared<Item>("fruit_rotten_apple");
-    mInventory[i++] = std::make_shared<Item>("vial_poison");
-    mInventory[i++] = std::make_shared<Item>("vial_potion");
+    mInventory[i++] = std::make_unique<Item>("tool_axe_1");
+    mInventory[i++] = std::make_unique<Item>("tool_hammer_1");
+    mInventory[i++] = std::make_unique<Item>("tool_torch_1");
+    mInventory[i++] = std::make_unique<Item>("fruit_apple");
+    mInventory[i++] = std::make_unique<Item>("fruit_rotten_apple");
+    mInventory[i++] = std::make_unique<Item>("vial_poison");
+    mInventory[i++] = std::make_unique<Item>("vial_potion");
 }
 
 Types::Point<int32_t> Player::lightPosition()
@@ -131,19 +130,24 @@ void Player::decrementItem()
 }
 
 
-std::shared_ptr<Item> Player::currentItem()
+const Item& Player::currentItem() const
 {
-    return mInventory[mCurrentItem];
+    return item(mCurrentItem);
 }
 
-const std::unordered_map<uint8_t, std::shared_ptr<Item>>& Player::items()
-{
-    return mInventory;
-}
-
-uint8_t Player::currentItemIndex()
+uint8_t Player::currentItemIndex() const
 {
     return mCurrentItem;
+}
+
+const Item& Player::item(uint8_t i) const
+{
+    return *mInventory.at(i);
+}
+
+bool Player::hasItem(uint8_t i) const
+{
+    return mInventory.find(i) != mInventory.end();
 }
 
 character::Character* Player::character()

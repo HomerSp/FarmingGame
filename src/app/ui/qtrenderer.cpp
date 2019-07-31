@@ -215,19 +215,19 @@ void QtRenderer::setPainter(QPainter* painter)
     mPainter->setFont(font);
 }
 
-std::shared_ptr<engine::Image> QtRenderer::loadImage(const std::string& path)
+std::unique_ptr<engine::Image> QtRenderer::loadImage(const std::string& path)
 {
-    return std::make_shared<QtImage>(path);
+    return std::make_unique<QtImage>(path);
 }
 
 QtRenderer::QtImage::QtImage(const std::string& path)
 {
-    mImage = std::make_shared<QImage>(QString(path.c_str()));
+    mImage = std::make_unique<QImage>(QString(path.c_str()));
 }
 
 const QImage& QtRenderer::QtImage::image() const
 {
-    return *mImage.get();
+    return *mImage;
 }
 
 uint32_t QtRenderer::QtImage::width() const

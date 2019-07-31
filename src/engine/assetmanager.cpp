@@ -25,15 +25,15 @@ std::shared_ptr<AssetManager> AssetManager::get()
     return sInstance;
 }
 
-std::shared_ptr<Json::Value> AssetManager::data(Type type, const std::string& name)
+std::unique_ptr<Json::Value> AssetManager::data(Type type, const std::string& name)
 {
-    std::shared_ptr<Json::Value> doc = std::make_shared<Json::Value>();
+    std::unique_ptr<Json::Value> doc = std::make_unique<Json::Value>();
 
     std::string path = AssetManager::dataPath(type, name);
     if (path.length() > 0) {
         std::ifstream file(path);
         try {
-            file >> *doc.get();
+            file >> *doc;
         } catch(const Json::RuntimeError &e) {
             Logger::critical() << "Could not parse file" << path << e.what();
         }
@@ -42,7 +42,7 @@ std::shared_ptr<Json::Value> AssetManager::data(Type type, const std::string& na
     return doc;
 }
 
-std::shared_ptr<engine::Image> AssetManager::image(Type type, const std::string& name)
+std::unique_ptr<engine::Image> AssetManager::image(Type type, const std::string& name)
 {
     std::string path = AssetManager::imagePath(type, name);
     if (path.length() > 0) {
@@ -52,14 +52,14 @@ std::shared_ptr<engine::Image> AssetManager::image(Type type, const std::string&
     return nullptr;
 }
 
-std::shared_ptr<engine::CollisionMap> AssetManager::collision(Type type, const std::string& name)
+std::unique_ptr<engine::CollisionMap> AssetManager::collision(Type type, const std::string& name)
 {
     std::string path = AssetManager::collisionPath(type, name);
     if (path.length() > 0) {
-        return std::make_shared<engine::CollisionMap>(path);
+        return std::make_unique<engine::CollisionMap>(path);
     }
 
-    return std::make_shared<engine::CollisionMap>();
+    return std::make_unique<engine::CollisionMap>();
 }
 
 std::string AssetManager::dataPath(Type type, const std::string& name)

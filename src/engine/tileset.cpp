@@ -425,7 +425,7 @@ Tileset::Tileset(const std::string& name)
     , mTileDimension({ 32, 32 })
     , mImage(nullptr)
 {
-    std::shared_ptr<Json::Value> docPtr = AssetManager::get()->data(AssetManager::get()->Tileset, name);
+    std::unique_ptr<Json::Value> docPtr = AssetManager::get()->data(AssetManager::get()->Tileset, name);
     Json::Value doc = *docPtr;
     if (!doc.isObject()) {
         Logger::critical() << "Could not open tileset JSON file" << name;
@@ -438,7 +438,7 @@ Tileset::Tileset(const std::string& name)
     }
 
     mImage = AssetManager::get()->image(AssetManager::get()->Tileset, doc["image"].asString());
-    if (!*mImage) {
+    if (!mImage) {
         Logger::critical() << "Could not load tileset image for" << name;
         return;
     }
@@ -601,28 +601,28 @@ void Tileset::draw(Renderer& renderer, TilesetNode& node, const Types::Point<>& 
     }
 }
 
-std::shared_ptr<CollisionMap> Tileset::loadCollisionMap()
+std::unique_ptr<CollisionMap> Tileset::loadCollisionMap()
 {
-    std::shared_ptr<CollisionMap> collisionMap = AssetManager::get()->collision(AssetManager::get()->Tileset, mCollisionMap);
-    if (!*collisionMap) {
+    std::unique_ptr<CollisionMap> collisionMap = AssetManager::get()->collision(AssetManager::get()->Tileset, mCollisionMap);
+    if (!collisionMap) {
         Logger::critical() << "Could not load tileset collision map" << mCollisionMap;
     }
 
     return collisionMap;
 }
 
-void Tileset::updateCollisionMap(std::shared_ptr<CollisionMap>& tilesetMap, std::shared_ptr<CollisionMap>& map, std::shared_ptr<TilesetNode>& node, uint32_t x, uint32_t y)
+void Tileset::updateCollisionMap(const CollisionMap& tilesetMap, CollisionMap& outMap, const TilesetNode& node, uint32_t x, uint32_t y)
 {
     Types::Dimension<> dimen(mTileDimension.width / 2, mTileDimension.height / 2);
 
     uint32_t dx = 0, dy = 0;
-    for (const auto po : node->pos) {
+    for (const auto po : node.pos) {
         for (int32_t cy = 0; cy < dimen.height; cy++) {
             for (int32_t cx = 0; cx < dimen.width; cx++) {
-                if (tilesetMap->get(po.x + cx, po.y + cy)) {
+                if (tilesetMap.get(po.x + cx, po.y + cy)) {
                     uint32_t dstx = (x * mTileDimension.width) + (dx * (mTileDimension.width / 2)) + cx;
                     uint32_t dsty = (y * mTileDimension.height) + (dy * (mTileDimension.height / 2)) + cy;
-                    map->set(dstx, dsty, true);
+                    outMap.set(dstx, dsty, true);
                 }
             }
         }

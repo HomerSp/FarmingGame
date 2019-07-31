@@ -30,7 +30,7 @@ public:
     virtual void save() = 0;
     virtual void restore() = 0;
 
-    virtual std::shared_ptr<Image> loadImage(const std::string& path) = 0;
+    virtual std::unique_ptr<Image> loadImage(const std::string& path) = 0;
 
 private:
 };

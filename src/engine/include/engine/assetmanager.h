@@ -1,13 +1,13 @@
 #pragma once
 
+#include <json/json.h>
 #include <memory>
 #include <string>
 
-#include <json/json.h>
+#include <engine/collisionmap.h>
 
 namespace engine {
 
-class CollisionMap;
 class Image;
 class Renderer;
 
@@ -26,9 +26,9 @@ public:
 
     static std::shared_ptr<AssetManager> get();
 
-    std::shared_ptr<Json::Value> data(Type type, const std::string& name);
-    std::shared_ptr<Image> image(Type type, const std::string& name);
-    std::shared_ptr<CollisionMap> collision(Type type, const std::string& name);
+    std::unique_ptr<Json::Value> data(Type type, const std::string& name);
+    std::unique_ptr<Image> image(Type type, const std::string& name);
+    std::unique_ptr<CollisionMap> collision(Type type, const std::string& name);
 
     std::string dataPath(Type type, const std::string& name);
     std::string imagePath(Type type, const std::string& name);
