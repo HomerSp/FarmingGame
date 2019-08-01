@@ -1,0 +1,17 @@
+{
+    "folders":
+    [
+        {
+            "path": "src",
+            "follow_symlinks": true
+        },
+        {
+            "path": "assets",
+            "name": "Assets"
+        }
+    ],
+    "settings":
+    {
+        "tab_size": 4
+    }
+}
