@@ -52,7 +52,7 @@ public:
     uint32_t width() const;
     uint32_t height() const;
 
-    void follow(Target* target);
+    void follow(Target* target, asIScriptFunction* fun = nullptr);
     void moveTo(int32_t dstX, int32_t dstY, asIScriptFunction* fun = nullptr);
 
     bool contains(const Types::Rect<float_t>& rc, const Types::Dimension<>& buf);

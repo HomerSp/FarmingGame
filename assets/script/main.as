@@ -11,13 +11,16 @@ void main() {
         print("Dude " + dude.x() + " " + dude.y());
 
         player.setCanControl(true);
-        camera.follow(dude);
-        print("camera finished");
+        camera.follow(dude, function() {
+            print("camera finished");
 
-        dude.moveTo(528, 0, function() {
-            camera.follow(player.character());
-            player.setCanControl(true);
-            print("move done");
+            dude.moveTo(528, 0, function() {
+                print("move done");
+                camera.follow(player.character(), function() {
+                    player.setCanControl(true);
+                    print("camera done");
+                });
+            });
         });
     });
 }

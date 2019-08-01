@@ -38,25 +38,35 @@ uint32_t Camera::height() const
     return mDimen.height;
 }
 
-void Camera::follow(Camera::Target* target)
+void Camera::follow(Camera::Target* target, asIScriptFunction* fun)
 {
+    if (target == nullptr) {
+        Logger::critical() << "Invalid follow target!";
+        return;
+    }
+
     std::lock_guard<std::mutex> lock(mMovementMutex);
     mTarget = target;
     mTargetPos.x = 0;
     mTargetPos.y = 0;
+
+    if (fun != nullptr) {
+        std::lock_guard<std::mutex> lock(mListenerMutex);
+        mMoveListeners.push_back(std::make_shared<Listeners::MoveListener>(fun, -1, -1));
+    }
 }
 
 void Camera::moveTo(int32_t dstX, int32_t dstY, asIScriptFunction* fun)
 {
-    if (fun != nullptr) {
-        std::lock_guard<std::mutex> lock(mListenerMutex);
-        mMoveListeners.push_back(std::make_shared<Listeners::MoveListener>(fun, dstX, dstY));
-    }
-
     std::lock_guard<std::mutex> lock(mMovementMutex);
     mTarget = nullptr;
     mTargetPos.x = dstX;
     mTargetPos.y = dstY;
+
+    if (fun != nullptr) {
+        std::lock_guard<std::mutex> lock(mListenerMutex);
+        mMoveListeners.push_back(std::make_shared<Listeners::MoveListener>(fun, dstX, dstY));
+    }
 }
 
 bool Camera::contains(const Types::Rect<float_t>& rc, const Types::Dimension<>& buf)
@@ -130,23 +140,25 @@ bool Camera::processAsync(uint64_t frameDiff, Map* map)
     }
 
     if (posX < 0) {
-        posX = 0;
+        posX = targetX = 0;
         targetPosX = -1;
     } else if (posX > map->pixelWidth() - mDimen.width) {
-        posX = map->pixelWidth() - mDimen.width;
+        posX = targetX = map->pixelWidth() - mDimen.width;
         targetPosX = -1;
     }
 
     if (posY < 0) {
-        posY = 0;
+        posY = targetY = 0;
         targetPosY = -1;
     } else if (posY > map->pixelHeight() - mDimen.height) {
-        posY = map->pixelHeight() - mDimen.height;
+        posY = targetY = map->pixelHeight() - mDimen.height;
         targetPosY = -1;
     }
 
-    // forced will be true if we can't actually reach the target position.
-    bool forced = mTargetPos.x >= 0 && targetPosX < 0 && mTargetPos.y >= 0 && targetPosY < 0;
+    // forced will be true if we can't actually reach the target position
+    // or if we have reached the target.
+    bool forced = (mTargetPos.x >= 0 && targetPosX < 0 && mTargetPos.y >= 0 && targetPosY < 0)
+                || (mTarget != nullptr && posX == targetX && posY == targetY);
     if (posX == targetX && posY == targetY) {
         targetPosX = -1;
         targetPosY = -1;
@@ -240,4 +252,6 @@ void Camera::registerClass(asIScriptEngine* engine)
     REGISTER_FUNC_ARGS(engine, Camera, void, moveTo, int32_t, int32_t, script::ScriptCallback&&);
     REGISTER_FUNC_ARGS(engine, Camera, void, follow, Camera::Target&&);
     REGISTER_FUNC_ARGS(engine, Camera, void, follow, const character::Character&);
+    REGISTER_FUNC_ARGS(engine, Camera, void, follow, Camera::Target&&, script::ScriptCallback&&);
+    REGISTER_FUNC_ARGS(engine, Camera, void, follow, const character::Character&, script::ScriptCallback&&);
 }
