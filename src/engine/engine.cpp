@@ -106,6 +106,7 @@ bool Engine::process()
     for(auto &i: mCharacters) {
         i.second->processListeners();
     }
+
     return mNeedRepaint;
 }
 
@@ -293,6 +294,8 @@ void Engine::processAsync()
 
 void Engine::paint()
 {
+    mDrawingTimer.start();
+
     Renderer& renderer = *mRenderer;
     renderer.fillRect(Types::Rect<>(0, 0, mWidth, mHeight), Types::Color(0, 0, 0));
 
@@ -343,7 +346,7 @@ void Engine::paint()
     }
 
     mScreenEffects->draw(renderer, *mClock, *mCamera, mLights);
-    mHud->draw(renderer, *mClock, *mPlayer, mProcessFrameTimer);
+    mHud->draw(renderer, *mClock, *mPlayer, mDrawingTimer);
 
     mNeedRepaint = false;
 }

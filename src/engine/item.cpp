@@ -109,11 +109,6 @@ float_t Item::lightStrength()
     return mLightStrength;
 }
 
-Types::Color Item::lightColor()
-{
-    return {255, 100, 0, 175};
-}
-
 void Item::use(Player& player)
 {
     for (auto &v: mEffects) {

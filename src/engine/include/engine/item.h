@@ -43,7 +43,6 @@ public:
     virtual Types::Point<int32_t> lightPosition();
     virtual int32_t lightRadius();
     virtual float_t lightStrength();
-    virtual Types::Color lightColor();
 
     void use(Player& player);
 

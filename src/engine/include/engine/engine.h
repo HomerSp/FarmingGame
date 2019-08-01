@@ -100,6 +100,6 @@ private:
     std::vector<std::unique_ptr<std::thread>> mThreads;
 
     FrameTimer mProcessFrameTimer;
-    FrameTimer mAnimationFrameTimer;
+    FrameTimer mAnimationFrameTimer, mDrawingTimer;
 };
 }

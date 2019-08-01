@@ -6,11 +6,6 @@
 
 using namespace engine;
 
-Types::Color ScreenEffects::LightSource::lightColor()
-{
-    return {0, 0, 0, 0};
-}
-
 ScreenEffects::ScreenEffects(std::shared_ptr<Context>& ctx)
     : ContextObject(ctx)
     , mRadiusMod(2.0f)
@@ -70,7 +65,6 @@ void ScreenEffects::draw(Renderer& renderer, Clock& clock, Camera& camera, const
         l.a = l.a * (1.0f - source->lightStrength());
 
         overlay.addEllipse(Types::FilledEllipse(source->lightPosition().x - camera.x(), source->lightPosition().y - camera.y(), source->lightRadius() + radiusMod, l));
-        overlay.addEllipse(Types::FilledEllipse(source->lightPosition().x - camera.x(), source->lightPosition().y - camera.y(), source->lightRadius() + radiusMod, source->lightColor()));
     }
 
     renderer.drawOverlay({0, 0}, overlay);

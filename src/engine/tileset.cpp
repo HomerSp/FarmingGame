@@ -175,6 +175,7 @@ void TilesetType::setLightStrength(float_t strength)
 std::shared_ptr<TilesetNode> TilesetType::toNode(Types::Map2D& tiles, uint32_t x, uint32_t y, uint32_t width, uint32_t height)
 {
     std::shared_ptr<TilesetNode> node = std::make_shared<TilesetNode>();
+    node->id = x + (y * width);
     node->anim = Types::Point<>((mTileType == TileTypeAuto) ? (mTileDimension.width * 2) : 0, (mTileType == TileTypeAutoHoriz) ? mTileDimension.height : 0);
     node->frames = mFrames;
     node->current = 0;
@@ -184,11 +185,15 @@ std::shared_ptr<TilesetNode> TilesetType::toNode(Types::Map2D& tiles, uint32_t x
 
     switch (mTileType) {
     case TileTypeSingle: {
+        // The id of the tile is the top-left corner of the tile block
+        uint32_t startX = x, startY = y;
+
         Types::Point<uint32_t> pos(mSize.x, mSize.y);
         for(uint32_t iy = 1; iy < mCount.rows; iy++) {
             if (y - iy >= 0) {
                 if (tiles[x][y - iy] == tiles[x][y]) {
                     pos.y += mTileDimension.height;
+                    startY = y - iy;
                 }
             }
         }
@@ -196,9 +201,12 @@ std::shared_ptr<TilesetNode> TilesetType::toNode(Types::Map2D& tiles, uint32_t x
             if (x - ix >= 0) {
                 if (tiles[x - ix][y] == tiles[x][y]) {
                     pos.x += mTileDimension.width;
+                    startX = x - ix;
                 }
             }
         }
+
+        node->id = std::min(node->id, startX + (startY * width));
 
         // Top left
         node->pos[0].x = pos.x;

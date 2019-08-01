@@ -20,6 +20,7 @@ class TilesetType;
 class Tileset;
 
 struct TilesetNode {
+    uint32_t id;
     std::array<Types::Point<>, 4> pos;
     Types::Point<> anim;
     uint8_t frames;

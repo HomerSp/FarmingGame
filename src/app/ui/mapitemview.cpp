@@ -78,7 +78,6 @@ void MapItemView::paint(QPainter* painter)
 
 void MapItemView::process()
 {
-    if (mEngine->process()) {
-        update();
-    }
+    mEngine->process();
+    update();
 }

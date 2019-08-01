@@ -63,11 +63,6 @@ float_t Player::lightStrength()
     return mInventory[mCurrentItem]->lightStrength();
 }
 
-Types::Color Player::lightColor()
-{
-    return mInventory[mCurrentItem]->lightColor();
-}
-
 Types::Point<int32_t> Player::position()
 {
     return {static_cast<int32_t>(x() + width() / 2), static_cast<int32_t>(y() + height() * 0.75f)};

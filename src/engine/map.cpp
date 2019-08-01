@@ -18,18 +18,22 @@ MapLayer::MapLayer(Types::Map2D data, std::shared_ptr<Tileset> tileset, uint32_t
     , mTileset(std::move(tileset))
     , mDimensions(width, height)
 {
+    // Add ground nodes
     if (!mTileset->updateTiles(mData, mNodes[TilesetAbove::None], mDimensions.width, mDimensions.height, TilesetAbove::None)) {
         return;
     }
 
+    // Add tree nodes and such
     if (!mTileset->updateTiles(mData, mNodes[TilesetAbove::Row], mDimensions.width, mDimensions.height, TilesetAbove::Row)) {
         return;
     }
 
+    // Add nodes that are always above characters
     if (!mTileset->updateTiles(mData, mNodes[TilesetAbove::All], mDimensions.width, mDimensions.height, TilesetAbove::All)) {
         return;
     }
 
+    // Add light nodes
     for (auto& above: mNodes) {
         for(auto &nodeY: above.second) {
             for (auto &nodeX: nodeY.second) {
@@ -131,13 +135,13 @@ bool MapLayer::updateLightSources(std::vector<std::shared_ptr<MapLightSource>>& 
         for(auto &nodeY: above.second) {
             for (auto &nodeX: nodeY.second) {
                 TilesetNode* node = nodeX.second.get();
-                if (node->type->hasAttribute(TilesetAttribute::LightSource) && std::find(added.begin(), added.end(), node->type->index()) == added.end()) {
+                if (node->type->hasAttribute(TilesetAttribute::LightSource) && std::find(added.begin(), added.end(), node->id) == added.end()) {
                     Types::Point<> base = node->type->lightBase();
                     auto dst = Types::Point<int32_t>(base.x + nodeX.first * d.width, base.y + nodeY.first * d.height);
                     std::shared_ptr<MapLightSource> s = std::make_shared<MapLightSource>(dst, node->type->lightRadius(), node->type->lightStrength());
                     sources.push_back(s);
                     
-                    added.push_back(node->type->index());
+                    added.push_back(node->id);
                 }
             }
         }
