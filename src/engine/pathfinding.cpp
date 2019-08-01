@@ -120,8 +120,10 @@ std::vector<Types::Point<int32_t>> PathFinding::find(const Map& map, Types::Rect
 
     // Since we are looking at nodes above we may not actually end up at the position requested,
     // fix this by replacing the last point with dst
-    ret.erase(ret.end() - 1);
-    ret.emplace_back(dst);
+    if (ret.size() > 1) {
+        ret.erase(ret.end() - 1);
+        ret.emplace_back(dst);
+    }
 
     return ret;
 }
