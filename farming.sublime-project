@@ -2,12 +2,22 @@
     "folders":
     [
         {
-            "path": "src",
+            "path": "assets",
+            "follow_symlinks": true,
+            "folder_exclude_patterns": ["collision", "font", "image"]
+        },
+        {
+            "path": ".",
+            "file_include_patterns": ["CMakeLists.txt"],
+            "folder_exclude_patterns": ["*"]
+        },
+        {
+            "path": "external",
             "follow_symlinks": true
         },
         {
-            "path": "assets",
-            "name": "Assets"
+            "path": "src",
+            "follow_symlinks": true
         }
     ],
     "settings":
