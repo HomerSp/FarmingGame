@@ -87,8 +87,9 @@ target_link_libraries(collision_encoder ${engine_EXTRA_LIBRARY})
 
 file(GLOB_RECURSE assets_SCRIPT RELATIVE ${assets_ROOT} "${assets_ROOT}/assets/script/*.as")
 file(GLOB_RECURSE assets_FONT RELATIVE ${assets_ROOT} "${assets_ROOT}/assets/font/*")
+file(GLOB_RECURSE assets_SHADER RELATIVE ${assets_ROOT} "${assets_ROOT}/assets/shader/*")
 
-set(assets_BINARY ${assets_SCRIPT} ${assets_FONT})
+set(assets_BINARY ${assets_SCRIPT} ${assets_FONT} ${assets_SHADER})
 set(assets_out_BINARY "")
 foreach(bin IN ITEMS ${assets_BINARY})
     add_custom_command(OUTPUT "${CMAKE_BINARY_DIR}/${bin}"

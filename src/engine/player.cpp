@@ -58,9 +58,14 @@ int32_t Player::lightRadius()
     return mInventory[mCurrentItem]->lightRadius();
 }
 
-float_t Player::lightStrength()
+uint8_t Player::lightStrength()
 {
     return mInventory[mCurrentItem]->lightStrength();
+}
+
+Types::Color Player::lightColor()   
+{   
+    return mInventory[mCurrentItem]->lightColor();  
 }
 
 Types::Point<int32_t> Player::position()

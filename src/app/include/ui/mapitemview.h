@@ -5,6 +5,7 @@
 #include <QKeyEvent>
 #include <QPainter>
 #include <QQuickPaintedItem>
+#include <QQuickWindow>
 #include <QTimer>
 
 #include <engine/character/character.h>
@@ -17,12 +18,11 @@
 
 class MapItemView : public QQuickPaintedItem {
     Q_OBJECT
+
 public:
     MapItemView(QQuickItem* parent = 0);
 
     void paint(QPainter* painter) override;
-
-signals:
 
 protected:
     void focusInEvent(QFocusEvent* event) override;
@@ -32,7 +32,9 @@ protected:
     void geometryChanged(const QRectF& newGeometry, const QRectF& oldGeometry);
 
 private slots:
+    void handleWindowChanged(QQuickWindow *win);
     void process();
+    void doPaint();
 
 private:
     std::shared_ptr<engine::Engine> mEngine;

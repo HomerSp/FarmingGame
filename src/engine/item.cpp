@@ -23,7 +23,8 @@ Item::Item(std::shared_ptr<Context>& ctx, const std::string& name)
     : ContextObject(ctx)
     , mUiImage(nullptr)
     , mLightRadius(0)
-    , mLightStrength(0.0f)
+    , mLightStrength(0)
+    , mLightColor(255, 255, 255)
 {
     std::unique_ptr<Json::Value> doc = context().assetManager().data(AssetManager::Item, name);
     if (!doc->isObject() || !doc->isMember("image")) {
@@ -65,7 +66,12 @@ Item::Item(std::shared_ptr<Context>& ctx, const std::string& name)
         }
 
         if (lightObj.isMember("strength")) {
-            mLightStrength = lightObj["strength"].asInt() / 100.0f;
+            mLightStrength = lightObj["strength"].asInt();
+        }
+
+        if (lightObj.isMember("color") && lightObj["color"].size() >= 3) {
+            Json::Value colorObj = lightObj["color"];
+            mLightColor = Types::Color(colorObj[0].asInt(), colorObj[1].asInt(), colorObj[2].asInt());
         }
     }
 
@@ -104,9 +110,14 @@ int32_t Item::lightRadius()
     return mLightRadius;
 }
 
-float_t Item::lightStrength()
+uint8_t Item::lightStrength()
 {
     return mLightStrength;
+}
+
+Types::Color Item::lightColor() 
+{   
+    return mLightColor;  
 }
 
 void Item::use(Player& player)

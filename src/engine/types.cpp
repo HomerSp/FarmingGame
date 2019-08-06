@@ -8,6 +8,14 @@ Types::Cells::Cells(uint32_t cols, uint32_t rows)
 {
 }
 
+Types::Color::Color(const Color& o, uint8_t a)
+    : r(o.r)
+    , g(o.g)
+    , b(o.b)
+    , a(a)
+{
+}
+
 Types::Color::Color(uint8_t r, uint8_t g, uint8_t b, uint8_t a)
     : r(r)
     , g(g)

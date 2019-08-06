@@ -17,6 +17,11 @@ public:
             : x(x), y(y), width(w), height(h)
         {}
 
+        T left() const { return x; }
+        T top() const { return y; }
+        T right() const { return x + width; }
+        T bottom() const { return y + height; }
+
         T x, y;
         T width, height;
     };
@@ -62,6 +67,7 @@ public:
 
     struct Color {
     public:
+        Color(const Color& o, uint8_t a);
         Color(uint8_t r, uint8_t g, uint8_t b, uint8_t a = 255);
 
         uint8_t r, g, b, a;

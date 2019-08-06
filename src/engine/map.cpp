@@ -138,7 +138,7 @@ bool MapLayer::updateLightSources(std::vector<std::shared_ptr<MapLightSource>>& 
                 if (node->type->hasAttribute(TilesetAttribute::LightSource) && std::find(added.begin(), added.end(), node->id) == added.end()) {
                     Types::Point<> base = node->type->lightBase();
                     auto dst = Types::Point<int32_t>(base.x + nodeX.first * d.width, base.y + nodeY.first * d.height);
-                    std::shared_ptr<MapLightSource> s = std::make_shared<MapLightSource>(dst, node->type->lightRadius(), node->type->lightStrength());
+                    std::shared_ptr<MapLightSource> s = std::make_shared<MapLightSource>(dst, node->type->lightRadius(), node->type->lightStrength(), node->type->lightColor());
                     sources.push_back(s);
                     
                     added.push_back(node->id);
@@ -467,10 +467,11 @@ bool Map::operator!() const
     return !mValid;
 }
 
-MapLightSource::MapLightSource(Types::Point<int32_t> pos, int32_t radius, float_t strength)
+MapLightSource::MapLightSource(Types::Point<int32_t> pos, int32_t radius, uint8_t strength, Types::Color color)
     : mPosition(pos)
     , mRadius(radius)
     , mStrength(strength)
+    , mColor(color)
 {
 }
 
@@ -484,7 +485,12 @@ int32_t MapLightSource::lightRadius()
     return mRadius;
 }
 
-float_t MapLightSource::lightStrength()
+uint8_t MapLightSource::lightStrength()
 {
     return mStrength;
+}
+
+Types::Color MapLightSource::lightColor()
+{
+    return mColor;
 }

@@ -199,7 +199,7 @@ void Clock::setTime(int32_t h, int32_t m)
 
     int32_t v = m + (h * 60);
     int32_t c = minute() + (hour() * 60);
-    mCurrent = mCurrent + (v - c);
+    mCurrentMod += (v - c);
 }
 
 void Clock::on(const std::string& type, const std::string& format, asIScriptFunction* func)

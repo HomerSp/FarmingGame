@@ -11,7 +11,8 @@
             "light": {
                 "base": [24, 126],
                 "radius": 512,
-                "strength": 100
+                "strength": 255,
+                "color": [255, 255, 170]
             },
             "above": "row",
             "attributes": [
@@ -27,7 +28,8 @@
             "light": {
                 "base": [24, 126],
                 "radius": 512,
-                "strength": 100
+                "strength": 255,
+                "color": [255, 255, 170]
             },
             "above": "row",
             "attributes": [

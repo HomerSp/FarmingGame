@@ -42,7 +42,8 @@ public:
     // Light source
     virtual Types::Point<int32_t> lightPosition();
     virtual int32_t lightRadius();
-    virtual float_t lightStrength();
+    virtual uint8_t lightStrength();
+    virtual Types::Color lightColor() override;
 
     void use(Player& player);
 
@@ -52,7 +53,8 @@ private:
     std::unique_ptr<Image> mUiImage;
 
     int32_t mLightRadius;
-    float_t mLightStrength;
+    uint8_t mLightStrength;
+    Types::Color mLightColor;
 
     std::unordered_map<ItemEffect::Type, std::shared_ptr<ItemValue>> mEffects;
     std::bitset<ItemAttribute::Last> mAttributes;

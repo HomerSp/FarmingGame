@@ -6,6 +6,11 @@
 
 using namespace engine;
 
+Types::Color ScreenEffects::LightSource::lightColor()   
+{
+    return {255, 255, 255, 0};    
+}
+
 ScreenEffects::ScreenEffects(std::shared_ptr<Context>& ctx)
     : ContextObject(ctx)
     , mRadiusMod(2.0f)
@@ -31,7 +36,7 @@ void ScreenEffects::draw(Renderer& renderer, Clock& clock, Camera& camera, const
         break;
     }
 
-    Types::Color color(0, 0, 0, baseAlpha);
+    Types::Color color(baseAlpha, baseAlpha, baseAlpha, 255);
 
     // Night
     if (h >= clock.dawn() && h < clock.dusk()) {
@@ -41,18 +46,16 @@ void ScreenEffects::draw(Renderer& renderer, Clock& clock, Camera& camera, const
         if (h >= clock.dawn() && h < clock.sunrise()) {
             float_t diff = (currentHour - clock.dawn() * 60) / ((clock.sunrise() - clock.dawn()) * 60.0f);
             float_t alpha = baseAlpha - baseAlpha * diff;
-            color.r = 50 * diff;
-            color.a = std::floor(alpha);
+            color.r = 255 - std::floor(alpha);
+            color.g = color.b = color.r - (50 * diff);
         // Sunset
         } else if (h >= clock.sunset() && h < clock.dusk()) {
             float_t diff = (currentHour - (clock.sunset() * 60)) / ((clock.dusk() - clock.sunset()) * 60.0f);
             float_t alpha = baseAlpha * diff;
-            color.r = 50 - 50 * diff;
-            color.a = std::floor(alpha);
+            color.r = 255 - std::floor(alpha);
+            color.g = color.b = color.r - (50 - 50 * diff);
         }
     }
-
-    int32_t radiusMod = std::abs(static_cast<int32_t>((mRadiusMod - 1.0f) * 8.0f));
 
     Types::Overlay overlay(renderer.width(), renderer.height(), color);
     for (auto& source: sources) {
@@ -60,14 +63,11 @@ void ScreenEffects::draw(Renderer& renderer, Clock& clock, Camera& camera, const
             continue;
         }
 
-        Types::Color l = color;
-        l.r = l.r * (1.0f - source->lightStrength());
-        l.a = l.a * (1.0f - source->lightStrength());
-
-        overlay.addEllipse(Types::FilledEllipse(source->lightPosition().x - camera.x(), source->lightPosition().y - camera.y(), source->lightRadius() + radiusMod, l));
+        Types::Color l = Types::Color(source->lightColor(), source->lightStrength());
+        overlay.addEllipse(Types::FilledEllipse(source->lightPosition().x - camera.x(), source->lightPosition().y - camera.y(), source->lightRadius(), l));
     }
 
-    renderer.drawOverlay({0, 0}, overlay);
+    renderer.drawOverlay({0, 0}, overlay, mRadiusMod);
 }
 
 bool ScreenEffects::processAsync(uint64_t frameDiff)

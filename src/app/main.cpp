@@ -3,6 +3,7 @@
 #include <QApplication>
 #include <QDateTime>
 #include <QQmlApplicationEngine>
+#include <QSurfaceFormat>
 
 #include <ui/mapitemview.h>
 

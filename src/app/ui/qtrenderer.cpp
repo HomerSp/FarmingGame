@@ -12,6 +12,10 @@
 
 QtRenderer::QtRenderer()
     : mPainter(nullptr)
+    , mFBO(nullptr)
+    , mLightTexture(nullptr)
+    , mVBO2DIndex(QOpenGLBuffer::IndexBuffer)
+    , mSize(-1, -1)
 {
 }
 
@@ -23,6 +27,26 @@ void QtRenderer::init()
             QFontDatabase::addApplicationFont(f.c_str());
         }
     }
+}
+
+void QtRenderer::setSize(uint32_t w, uint32_t h)
+{
+    mSize.width = w;
+    mSize.height = h;
+}
+
+void QtRenderer::paint(std::shared_ptr<engine::Engine>& engine, const engine::Types::Dimension<int32_t>& size, double pixelRatio)
+{
+    if (!mDevice) {
+        mDevice = std::make_unique<QOpenGLPaintDevice>();
+    }
+
+    mDevice->setSize(QSize(size.width, size.height));
+    mDevice->setDevicePixelRatio(pixelRatio);
+
+    QPainter painter(mDevice.get());
+    setPainter(&painter);
+    engine->paint();
 }
 
 int32_t QtRenderer::width()
@@ -128,42 +152,119 @@ void QtRenderer::drawText(const engine::Types::Rect<>& dst, const std::string& t
         font.setPixelSize(oldSize);
         mPainter->setFont(font);
     }
+
+    mPainter->setPen(Qt::NoPen);
 }
 
-void QtRenderer::drawOverlay(const engine::Types::Point<>& dst, const engine::Types::Overlay& overlay)
+void QtRenderer::drawOverlay(const engine::Types::Point<>& dst, const engine::Types::Overlay& overlay, float mod)
 {
-    int32_t bufferSize = 0;
+    mPainter->translate(dst.x, dst.y);
+    mPainter->beginNativePainting();
+
+    glViewport(0, 0, mPainter->viewport().width(), mPainter->viewport().height());
+    glDisable(GL_DEPTH_TEST);
+
+    mFBO->bind();
+
+    glClearColor(overlay.background.r / 255.0f, overlay.background.g / 255.0f, overlay.background.b / 255.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_DST_ALPHA);
+
+    QRect viewport = mPainter->viewport();
+
+    QMatrix4x4 pmvMatrix;
+    pmvMatrix.ortho(0, viewport.width(), viewport.height(), 0, -1, 1);
+
     for(auto& e: overlay.ellipses) {
-        if (e.radius > bufferSize) {
-            bufferSize = e.radius;
-        }
+        mPointLightShader->bind();
+
+        int vertexLocation = mPointLightShader->attributeLocation("vertex");
+        int texcoordLocation = mPointLightShader->attributeLocation("a_texcoord");
+
+        engine::Types::Rect<float> vertexRect(e.x - (e.radius / 2.0f), e.y - (e.radius / 2.0f), e.radius, e.radius);
+
+        std::array<QVector2D, 8> vertexPositions = {
+            QVector2D(vertexRect.left(), vertexRect.top()), QVector2D(0, 0),      // Top left
+            QVector2D(vertexRect.left(), vertexRect.bottom()), QVector2D(0, 1),   // Bottom left
+            QVector2D(vertexRect.right(), vertexRect.top()), QVector2D(1, 0),     // Top right
+            QVector2D(vertexRect.right(), vertexRect.bottom()), QVector2D(1, 1)   // Bottom right
+        };
+
+        mLightTexture->bind();
+
+        mVBO1.bind();
+        mVBO2DIndex.bind();
+        mVBO1.write(0, vertexPositions.data(), 8 * sizeof(QVector2D));
+
+        mPointLightShader->enableAttributeArray(vertexLocation);
+        mPointLightShader->setAttributeBuffer(vertexLocation, GL_FLOAT, 0, 2, sizeof(QVector2D) * 2);
+
+        mPointLightShader->enableAttributeArray(texcoordLocation);
+        mPointLightShader->setAttributeBuffer(texcoordLocation, GL_FLOAT, sizeof(QVector2D), 2, sizeof(QVector2D) * 2);
+        mPointLightShader->setUniformValue("matrix", pmvMatrix);
+        mPointLightShader->setUniformValue("texture", 0);
+        mPointLightShader->setUniformValue("color", QColor(e.color.r, e.color.g, e.color.b, e.color.a));
+        mPointLightShader->setUniformValue("mod", std::abs(mod - 1.0f));
+
+        glDrawElements(GL_TRIANGLE_STRIP, 6, GL_UNSIGNED_SHORT, nullptr);
+
+        mPointLightShader->disableAttributeArray(texcoordLocation);
+        mPointLightShader->disableAttributeArray(vertexLocation);
+
+        mVBO2DIndex.release();
+        mVBO1.release();
+
+        mPointLightShader->release();
     }
 
-    QImage o(overlay.width + (bufferSize * 2), overlay.height + (bufferSize * 2), QImage::Format_ARGB32);
-    o.fill(0);
+    mFBO->release();
 
-    QPainter p(&o);
-    p.translate(bufferSize, bufferSize);
-    p.setPen(Qt::NoPen);
-    p.fillRect(QRectF(0, 0, overlay.width, overlay.height), QColor(overlay.background.r, overlay.background.g, overlay.background.b, overlay.background.a));
-    p.setCompositionMode(QPainter::CompositionMode_SourceIn);
-    for(auto& e: overlay.ellipses) {
-        QRadialGradient gradient(QPointF(e.radius / 2.0f, e.radius / 2.0f), e.radius / 2.0f, QPointF(e.radius / 2.0f, e.radius / 2.0f));
-        gradient.setColorAt(0, QColor(e.color.r, e.color.g, e.color.b, e.color.a));
-        gradient.setColorAt(1, QColor(overlay.background.r, overlay.background.g, overlay.background.b, 255));
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_DST_COLOR, GL_ZERO);
+    
+    mSimpleShader->bind();
 
-        p.save();
-        p.setBrush(gradient);
-        p.translate(e.x - (e.radius / 2.0f), e.y - (e.radius / 2.0f));
-        p.drawEllipse(0, 0, e.radius, e.radius);
-        p.restore();
-    }
+    int vertexLocation = mSimpleShader->attributeLocation("vertex");
+    int texcoordLocation = mSimpleShader->attributeLocation("a_texcoord");
 
-    p.end();
+    engine::Types::Rect<float> vertexRect(0, 0, mFBO->width(), mFBO->height());
 
-    QRectF srcRect(bufferSize, bufferSize, overlay.width, overlay.height);
-    QRectF dstRect(dst.x, dst.y, overlay.width, overlay.height);
-    mPainter->drawImage(dstRect, o, srcRect);
+    // The FBO texture is upside down (y starts at bottom), so we need to reverse it here
+    std::array<QVector2D, 8> vertexPositions = {
+        QVector2D(vertexRect.left(), vertexRect.top()), QVector2D(0, 1),      // Top left
+        QVector2D(vertexRect.left(), vertexRect.bottom()), QVector2D(0, 0),   // Bottom left
+        QVector2D(vertexRect.right(), vertexRect.top()), QVector2D(1, 1),     // Top right
+        QVector2D(vertexRect.right(), vertexRect.bottom()), QVector2D(1, 0)   // Bottom right
+    };
+
+    glBindTexture(GL_TEXTURE_2D, mFBO->texture());
+
+    mVBO1.bind();
+    mVBO2DIndex.bind();
+    mVBO1.write(0, vertexPositions.data(), 8 * sizeof(QVector2D));
+
+    mSimpleShader->enableAttributeArray(vertexLocation);
+    mSimpleShader->setAttributeBuffer(vertexLocation, GL_FLOAT, 0, 2, sizeof(QVector2D) * 2);
+
+    mSimpleShader->enableAttributeArray(texcoordLocation);
+    mSimpleShader->setAttributeBuffer(texcoordLocation, GL_FLOAT, sizeof(QVector2D), 2, sizeof(QVector2D) * 2);
+    mSimpleShader->setUniformValue("matrix", pmvMatrix);
+    mSimpleShader->setUniformValue("texture", 0);
+
+    glDrawElements(GL_TRIANGLE_STRIP, 6, GL_UNSIGNED_SHORT, nullptr);
+
+    mSimpleShader->disableAttributeArray(texcoordLocation);
+    mSimpleShader->disableAttributeArray(vertexLocation);
+
+    mVBO2DIndex.release();
+    mVBO1.release();
+
+    mSimpleShader->release();
+
+    mPainter->endNativePainting();
+    mPainter->translate(-dst.x, -dst.y);
 }
 
 void QtRenderer::rotate(float_t deg)
@@ -209,6 +310,10 @@ void QtRenderer::restore()
 void QtRenderer::setPainter(QPainter* painter)
 {
     mPainter = painter;
+    if (mPainter == nullptr) {
+        return;
+    }
+
     mPainter->setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing | QPainter::SmoothPixmapTransform);
 
     QPainterPath screen;
@@ -218,6 +323,10 @@ void QtRenderer::setPainter(QPainter* painter)
     QFont font = mPainter->font();
     font.setPixelSize(24);
     mPainter->setFont(font);
+
+    mPainter->beginNativePainting();
+    sync();
+    mPainter->endNativePainting();
 }
 
 std::unique_ptr<engine::Image> QtRenderer::loadImage(const std::string& path) const
@@ -243,4 +352,50 @@ uint32_t QtRenderer::QtImage::width() const
 uint32_t QtRenderer::QtImage::height() const
 {
     return mImage->height();
+}
+
+void QtRenderer::cleanup()
+{
+    mFBO.reset();
+    mLightTexture.reset();
+    mVBO1.destroy();
+}
+
+void QtRenderer::sync()
+{
+    if (!mFBO) {
+        initializeOpenGLFunctions();
+
+        mSimpleShader = std::make_unique<QOpenGLShaderProgram>();
+        mSimpleShader->addShaderFromSourceFile(QOpenGLShader::Vertex, "assets/shader/vert_simple2d.glsl");
+        mSimpleShader->addShaderFromSourceFile(QOpenGLShader::Fragment, "assets/shader/frag_simple2d.glsl");
+        mSimpleShader->link();
+
+        mPointLightShader = std::make_unique<QOpenGLShaderProgram>();
+        mPointLightShader->addShaderFromSourceFile(QOpenGLShader::Vertex, "assets/shader/vert_simple2d.glsl");
+        mPointLightShader->addShaderFromSourceFile(QOpenGLShader::Fragment, "assets/shader/frag_pointlight.glsl");
+        mPointLightShader->link();
+
+        mLightTexture = std::make_unique<QOpenGLTexture>(QImage("assets/image/texture/light.png"));
+
+        mVBO1.create();
+        mVBO1.bind();
+        mVBO1.allocate(8 * sizeof(QVector2D));
+        mVBO1.release();
+
+        std::array<GLushort, 6> indices = {  // Note that we start from 0!
+            0, 1, 2,  // First Triangle
+            2, 3, 1   // Second Triangle 0, 1, 2
+        };
+
+        mVBO2DIndex.create();
+        mVBO2DIndex.bind();
+        mVBO2DIndex.allocate(indices.data(), 6 * sizeof(GLushort));
+        mVBO2DIndex.release();
+    }
+
+    if (!mFBO || mSize.width >= 0) {
+        mFBO = std::make_unique<QOpenGLFramebufferObject>(mPainter->viewport().width(), mPainter->viewport().height());
+        mSize.width = mSize.height = -1;
+    }
 }

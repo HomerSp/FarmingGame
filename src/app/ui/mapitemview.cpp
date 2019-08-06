@@ -1,3 +1,4 @@
+#include <QOpenGLPaintDevice>
 #include <QThread>
 #include <QTimer>
 
@@ -34,6 +35,8 @@ MapItemView::MapItemView(QQuickItem* parent)
 
     connect(&mIdleTimer, &QTimer::timeout, this, &MapItemView::process);
     mIdleTimer.start(0);
+
+    connect(this, &QQuickItem::windowChanged, this, &MapItemView::handleWindowChanged);
 }
 
 void MapItemView::focusInEvent(QFocusEvent* event)
@@ -67,17 +70,33 @@ void MapItemView::geometryChanged(const QRectF& newGeometry, const QRectF& oldGe
     QQuickItem::geometryChanged(newGeometry, oldGeometry);
 
     mEngine->setSize(newGeometry.width(), newGeometry.height());
+    mRenderer->setSize(newGeometry.width(), newGeometry.height());
     update();
 }
 
 void MapItemView::paint(QPainter* painter)
 {
     mRenderer->setPainter(painter);
-    mEngine->paint();
 }
 
 void MapItemView::process()
 {
     mEngine->process();
     update();
+}
+
+void MapItemView::doPaint()
+{
+    QSize size = window()->size() * window()->devicePixelRatio();
+    mRenderer->paint(mEngine, {size.width(), size.height()}, window()->devicePixelRatio());
+    mRenderer->setPainter(nullptr);
+}
+
+void MapItemView::handleWindowChanged(QQuickWindow *win)
+{
+    if (win != nullptr) {
+        connect(win, &QQuickWindow::afterRendering, this, &MapItemView::doPaint, Qt::DirectConnection);
+        connect(win, &QQuickWindow::sceneGraphInvalidated, mRenderer.get(), &QtRenderer::cleanup, Qt::DirectConnection);
+        win->setClearBeforeRendering(false);
+    }
 }

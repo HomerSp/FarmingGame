@@ -1,14 +1,23 @@
 #pragma once
 
 #include <QImage>
+#include <QOpenGLBuffer>
+#include <QOpenGLFunctions>
+#include <QOpenGLFramebufferObject>
+#include <QOpenGLPaintDevice>
+#include <QOpenGLShaderProgram>
+#include <QOpenGLTexture>
+#include <QOpenGLTextureBlitter>
 #include <QPainter>
 
 #include <memory>
 
+#include <engine/engine.h>
 #include <engine/image.h>
 #include <engine/renderer.h>
 
-class QtRenderer : public engine::Renderer {
+class QtRenderer : public QObject, public engine::Renderer, protected QOpenGLFunctions {
+    Q_OBJECT
 public:
     class QtImage : public engine::Image {
     public:
@@ -29,6 +38,9 @@ public:
     virtual ~QtRenderer() = default;
 
     void init();
+    void setSize(uint32_t w, uint32_t h);
+
+    void paint(std::shared_ptr<engine::Engine>& engine, const engine::Types::Dimension<int32_t>& size, double pixelRatio);
 
     int32_t width();
     int32_t height();
@@ -38,7 +50,7 @@ public:
 
     void drawImage(const engine::Image& img, engine::Types::Rect<> dst, engine::Types::Rect<> src);
     void drawText(const engine::Types::Rect<>& dst, const std::string& text, const engine::Types::Color& color, int32_t size, engine::Types::TextAlign align, std::string type);
-    void drawOverlay(const engine::Types::Point<>& dst, const engine::Types::Overlay& overlay);
+    void drawOverlay(const engine::Types::Point<>& dst, const engine::Types::Overlay& overlay, float mod);
 
     void rotate(float_t deg);
     void translate(int32_t x, int32_t y);
@@ -50,6 +62,22 @@ public:
 
     std::unique_ptr<engine::Image> loadImage(const std::string& path) const;
 
+public slots:
+    void cleanup();
+
+protected:
+    void sync();
+
 private:
+    std::unique_ptr<QOpenGLPaintDevice> mDevice;
     QPainter* mPainter;
+    
+    std::unique_ptr<QOpenGLShaderProgram> mSimpleShader;
+    std::unique_ptr<QOpenGLShaderProgram> mPointLightShader;
+
+    std::unique_ptr<QOpenGLFramebufferObject> mFBO;
+    std::unique_ptr<QOpenGLTexture> mLightTexture;
+    QOpenGLBuffer mVBO1, mVBO2DIndex;
+
+    engine::Types::Dimension<int32_t> mSize;
 };
