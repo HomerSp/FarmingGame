@@ -13,7 +13,6 @@
 QtRenderer::QtRenderer()
     : mPainter(nullptr)
     , mFBO(nullptr)
-    , mLightTexture(nullptr)
     , mVBO2DIndex(QOpenGLBuffer::IndexBuffer)
     , mSize(-1, -1)
 {
@@ -180,19 +179,17 @@ void QtRenderer::drawOverlay(const engine::Types::Point<>& dst, const engine::Ty
     for(auto& e: overlay.ellipses) {
         mPointLightShader->bind();
 
-        int vertexLocation = mPointLightShader->attributeLocation("vertex");
-        int texcoordLocation = mPointLightShader->attributeLocation("a_texcoord");
+        int vertexLocation = mPointLightShader->attributeLocation("iVertex");
+        int texcoordLocation = mPointLightShader->attributeLocation("iTexcoord");
 
         engine::Types::Rect<float> vertexRect(e.x - (e.radius / 2.0f), e.y - (e.radius / 2.0f), e.radius, e.radius);
 
         std::array<QVector2D, 8> vertexPositions = {
-            QVector2D(vertexRect.left(), vertexRect.top()), QVector2D(0, 0),      // Top left
-            QVector2D(vertexRect.left(), vertexRect.bottom()), QVector2D(0, 1),   // Bottom left
-            QVector2D(vertexRect.right(), vertexRect.top()), QVector2D(1, 0),     // Top right
+            QVector2D(vertexRect.left(), vertexRect.top()), QVector2D(-1, -1),      // Top left
+            QVector2D(vertexRect.left(), vertexRect.bottom()), QVector2D(-1, 1),   // Bottom left
+            QVector2D(vertexRect.right(), vertexRect.top()), QVector2D(1, -1),     // Top right
             QVector2D(vertexRect.right(), vertexRect.bottom()), QVector2D(1, 1)   // Bottom right
         };
-
-        mLightTexture->bind();
 
         mVBO1.bind();
         mVBO2DIndex.bind();
@@ -203,10 +200,9 @@ void QtRenderer::drawOverlay(const engine::Types::Point<>& dst, const engine::Ty
 
         mPointLightShader->enableAttributeArray(texcoordLocation);
         mPointLightShader->setAttributeBuffer(texcoordLocation, GL_FLOAT, sizeof(QVector2D), 2, sizeof(QVector2D) * 2);
-        mPointLightShader->setUniformValue("matrix", pmvMatrix);
-        mPointLightShader->setUniformValue("texture", 0);
-        mPointLightShader->setUniformValue("color", QColor(e.color.r, e.color.g, e.color.b, e.color.a));
-        mPointLightShader->setUniformValue("mod", std::abs(mod - 1.0f));
+        mPointLightShader->setUniformValue("iMatrix", pmvMatrix);
+        mPointLightShader->setUniformValue("iColor", QColor(e.color.r, e.color.g, e.color.b, e.color.a));
+        mPointLightShader->setUniformValue("iMod", std::abs(mod - 1.0f));
 
         glDrawElements(GL_TRIANGLE_STRIP, 6, GL_UNSIGNED_SHORT, nullptr);
 
@@ -226,8 +222,8 @@ void QtRenderer::drawOverlay(const engine::Types::Point<>& dst, const engine::Ty
     
     mSimpleShader->bind();
 
-    int vertexLocation = mSimpleShader->attributeLocation("vertex");
-    int texcoordLocation = mSimpleShader->attributeLocation("a_texcoord");
+    int vertexLocation = mSimpleShader->attributeLocation("iVertex");
+    int texcoordLocation = mSimpleShader->attributeLocation("iTexcoord");
 
     engine::Types::Rect<float> vertexRect(0, 0, mFBO->width(), mFBO->height());
 
@@ -250,8 +246,8 @@ void QtRenderer::drawOverlay(const engine::Types::Point<>& dst, const engine::Ty
 
     mSimpleShader->enableAttributeArray(texcoordLocation);
     mSimpleShader->setAttributeBuffer(texcoordLocation, GL_FLOAT, sizeof(QVector2D), 2, sizeof(QVector2D) * 2);
-    mSimpleShader->setUniformValue("matrix", pmvMatrix);
-    mSimpleShader->setUniformValue("texture", 0);
+    mSimpleShader->setUniformValue("iMatrix", pmvMatrix);
+    mSimpleShader->setUniformValue("iTexture", 0);
 
     glDrawElements(GL_TRIANGLE_STRIP, 6, GL_UNSIGNED_SHORT, nullptr);
 
@@ -357,7 +353,6 @@ uint32_t QtRenderer::QtImage::height() const
 void QtRenderer::cleanup()
 {
     mFBO.reset();
-    mLightTexture.reset();
     mVBO1.destroy();
 }
 
@@ -375,8 +370,6 @@ void QtRenderer::sync()
         mPointLightShader->addShaderFromSourceFile(QOpenGLShader::Vertex, "assets/shader/vert_simple2d.glsl");
         mPointLightShader->addShaderFromSourceFile(QOpenGLShader::Fragment, "assets/shader/frag_pointlight.glsl");
         mPointLightShader->link();
-
-        mLightTexture = std::make_unique<QOpenGLTexture>(QImage("assets/image/texture/light.png"));
 
         mVBO1.create();
         mVBO1.bind();

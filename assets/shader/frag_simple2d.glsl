@@ -1,9 +1,9 @@
 #version 130
 
-uniform sampler2D texture;
-varying vec2 v_texcoord;
+uniform sampler2D iTexture;
+varying vec2 vTexcoord;
 
 void main(void)
 {
-    gl_FragColor = texture2D(texture, v_texcoord);
+    gl_FragColor = texture2D(iTexture, vTexcoord);
 };

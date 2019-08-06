@@ -1,13 +1,13 @@
 #version 130
 
-attribute highp vec3 vertex;
-attribute highp vec2 a_texcoord;
-uniform highp mat4 matrix;
+attribute vec3 iVertex;
+attribute vec2 iTexcoord;
+uniform mat4 iMatrix;
 
-varying vec2 v_texcoord;
+varying vec2 vTexcoord;
 
 void main()
 {
-    gl_Position = matrix * vec4(vertex, 1.0);
-    v_texcoord = a_texcoord;
+    gl_Position = iMatrix * vec4(iVertex, 1.0);
+    vTexcoord = iTexcoord;
 }
