@@ -26,17 +26,17 @@ void ScreenEffects::draw(Renderer& renderer, Clock& clock, Camera& camera, const
         return;
     }
 
-    float_t baseAlpha = 200.0f;
+    uint8_t baseAlpha = 200;
     switch(clock.month()) {
     case 1:
-        baseAlpha += 10.0f;
+        baseAlpha += 20;
         break;
     case 3:
-        baseAlpha -= 10.0f;
+        baseAlpha -= 20;
         break;
     }
 
-    Types::Color color(baseAlpha, baseAlpha, baseAlpha, 255);
+    Types::Color color(255 - baseAlpha, 255 - baseAlpha, 255 - baseAlpha);
 
     // Night
     if (h >= clock.dawn() && h < clock.dusk()) {
@@ -46,14 +46,16 @@ void ScreenEffects::draw(Renderer& renderer, Clock& clock, Camera& camera, const
         if (h >= clock.dawn() && h < clock.sunrise()) {
             float_t diff = (currentHour - clock.dawn() * 60) / ((clock.sunrise() - clock.dawn()) * 60.0f);
             float_t alpha = baseAlpha - baseAlpha * diff;
-            color.r = 255 - std::floor(alpha);
-            color.g = color.b = color.r - (50 * diff);
+            int32_t d = 50 * diff;
+            uint8_t c = 255 - std::floor(alpha);
+            color = Types::Color(std::min(c + d, 255), c, c);
         // Sunset
         } else if (h >= clock.sunset() && h < clock.dusk()) {
             float_t diff = (currentHour - (clock.sunset() * 60)) / ((clock.dusk() - clock.sunset()) * 60.0f);
             float_t alpha = baseAlpha * diff;
-            color.r = 255 - std::floor(alpha);
-            color.g = color.b = color.r - (50 - 50 * diff);
+            int32_t d = 50 - 50 * diff;
+            uint8_t c = 255 - std::floor(alpha);
+            color = Types::Color(std::min(c + d, 255), c, c);
         }
     }
 

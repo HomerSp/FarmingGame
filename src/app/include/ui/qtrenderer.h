@@ -72,7 +72,7 @@ private:
     std::unique_ptr<QOpenGLPaintDevice> mDevice;
     QPainter* mPainter;
     
-    std::unique_ptr<QOpenGLShaderProgram> mSimpleShader;
+    std::unique_ptr<QOpenGLShaderProgram> mTextureShader;
     std::unique_ptr<QOpenGLShaderProgram> mPointLightShader;
 
     std::unique_ptr<QOpenGLFramebufferObject> mFBO;

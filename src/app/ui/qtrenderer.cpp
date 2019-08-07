@@ -169,7 +169,8 @@ void QtRenderer::drawOverlay(const engine::Types::Point<>& dst, const engine::Ty
     glClear(GL_COLOR_BUFFER_BIT);
 
     glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_DST_ALPHA);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glBlendEquationSeparate(GL_FUNC_ADD, GL_MAX);
 
     QRect viewport = mPainter->viewport();
 
@@ -201,7 +202,7 @@ void QtRenderer::drawOverlay(const engine::Types::Point<>& dst, const engine::Ty
         mPointLightShader->enableAttributeArray(texcoordLocation);
         mPointLightShader->setAttributeBuffer(texcoordLocation, GL_FLOAT, sizeof(QVector2D), 2, sizeof(QVector2D) * 2);
         mPointLightShader->setUniformValue("iMatrix", pmvMatrix);
-        mPointLightShader->setUniformValue("iColor", QColor(e.color.r, e.color.g, e.color.b, e.color.a));
+        mPointLightShader->setUniformValue("iColor", QColor(std::max(overlay.background.r, e.color.r), std::max(overlay.background.g, e.color.g), std::max(overlay.background.b, e.color.b)));
         mPointLightShader->setUniformValue("iMod", std::abs(mod - 1.0f));
 
         glDrawElements(GL_TRIANGLE_STRIP, 6, GL_UNSIGNED_SHORT, nullptr);
@@ -219,11 +220,12 @@ void QtRenderer::drawOverlay(const engine::Types::Point<>& dst, const engine::Ty
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_DST_COLOR, GL_ZERO);
+    glBlendEquation(GL_FUNC_ADD);
     
-    mSimpleShader->bind();
+    mTextureShader->bind();
 
-    int vertexLocation = mSimpleShader->attributeLocation("iVertex");
-    int texcoordLocation = mSimpleShader->attributeLocation("iTexcoord");
+    int vertexLocation = mTextureShader->attributeLocation("iVertex");
+    int texcoordLocation = mTextureShader->attributeLocation("iTexcoord");
 
     engine::Types::Rect<float> vertexRect(0, 0, mFBO->width(), mFBO->height());
 
@@ -241,23 +243,23 @@ void QtRenderer::drawOverlay(const engine::Types::Point<>& dst, const engine::Ty
     mVBO2DIndex.bind();
     mVBO1.write(0, vertexPositions.data(), 8 * sizeof(QVector2D));
 
-    mSimpleShader->enableAttributeArray(vertexLocation);
-    mSimpleShader->setAttributeBuffer(vertexLocation, GL_FLOAT, 0, 2, sizeof(QVector2D) * 2);
+    mTextureShader->enableAttributeArray(vertexLocation);
+    mTextureShader->setAttributeBuffer(vertexLocation, GL_FLOAT, 0, 2, sizeof(QVector2D) * 2);
 
-    mSimpleShader->enableAttributeArray(texcoordLocation);
-    mSimpleShader->setAttributeBuffer(texcoordLocation, GL_FLOAT, sizeof(QVector2D), 2, sizeof(QVector2D) * 2);
-    mSimpleShader->setUniformValue("iMatrix", pmvMatrix);
-    mSimpleShader->setUniformValue("iTexture", 0);
+    mTextureShader->enableAttributeArray(texcoordLocation);
+    mTextureShader->setAttributeBuffer(texcoordLocation, GL_FLOAT, sizeof(QVector2D), 2, sizeof(QVector2D) * 2);
+    mTextureShader->setUniformValue("iMatrix", pmvMatrix);
+    mTextureShader->setUniformValue("iTexture", 0);
 
     glDrawElements(GL_TRIANGLE_STRIP, 6, GL_UNSIGNED_SHORT, nullptr);
 
-    mSimpleShader->disableAttributeArray(texcoordLocation);
-    mSimpleShader->disableAttributeArray(vertexLocation);
+    mTextureShader->disableAttributeArray(texcoordLocation);
+    mTextureShader->disableAttributeArray(vertexLocation);
 
     mVBO2DIndex.release();
     mVBO1.release();
 
-    mSimpleShader->release();
+    mTextureShader->release();
 
     mPainter->endNativePainting();
     mPainter->translate(-dst.x, -dst.y);
@@ -361,10 +363,10 @@ void QtRenderer::sync()
     if (!mFBO) {
         initializeOpenGLFunctions();
 
-        mSimpleShader = std::make_unique<QOpenGLShaderProgram>();
-        mSimpleShader->addShaderFromSourceFile(QOpenGLShader::Vertex, "assets/shader/vert_simple2d.glsl");
-        mSimpleShader->addShaderFromSourceFile(QOpenGLShader::Fragment, "assets/shader/frag_simple2d.glsl");
-        mSimpleShader->link();
+        mTextureShader = std::make_unique<QOpenGLShaderProgram>();
+        mTextureShader->addShaderFromSourceFile(QOpenGLShader::Vertex, "assets/shader/vert_simple2d.glsl");
+        mTextureShader->addShaderFromSourceFile(QOpenGLShader::Fragment, "assets/shader/frag_texture2d.glsl");
+        mTextureShader->link();
 
         mPointLightShader = std::make_unique<QOpenGLShaderProgram>();
         mPointLightShader->addShaderFromSourceFile(QOpenGLShader::Vertex, "assets/shader/vert_simple2d.glsl");

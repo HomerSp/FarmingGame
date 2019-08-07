@@ -1,4 +1,6 @@
-#version 130
+#version 330 core
+
+out vec4 oColor;
 
 uniform vec4 iColor;
 uniform float iMod;
@@ -14,5 +16,5 @@ void main(void)
 
     float a = (1.0 - smoothstep(0.0, 1.0, d));
     float m = iMod * 0.03;
-    gl_FragColor = vec4(iColor.rgb, (a * iColor.a) - m);
+    oColor = vec4(iColor.rgb, a - m);
 };
