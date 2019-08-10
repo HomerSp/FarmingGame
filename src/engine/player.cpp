@@ -63,7 +63,7 @@ uint8_t Player::lightStrength()
     return mInventory[mCurrentItem]->lightStrength();
 }
 
-Types::Color Player::lightColor()   
+Types::ColorGradient Player::lightColor()   
 {   
     return mInventory[mCurrentItem]->lightColor();  
 }

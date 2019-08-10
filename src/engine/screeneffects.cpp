@@ -6,9 +6,9 @@
 
 using namespace engine;
 
-Types::Color ScreenEffects::LightSource::lightColor()   
+Types::ColorGradient ScreenEffects::LightSource::lightColor()   
 {
-    return {255, 255, 255, 0};    
+    return {{255, 255, 255}};
 }
 
 ScreenEffects::ScreenEffects(std::shared_ptr<Context>& ctx)
@@ -65,7 +65,7 @@ void ScreenEffects::draw(Renderer& renderer, Clock& clock, Camera& camera, const
             continue;
         }
 
-        Types::Color l = Types::Color(source->lightColor(), source->lightStrength());
+        Types::ColorGradient l = Types::ColorGradient(source->lightColor(), source->lightStrength());
         overlay.addEllipse(Types::FilledEllipse(source->lightPosition().x - camera.x(), source->lightPosition().y - camera.y(), source->lightRadius(), l));
     }
 

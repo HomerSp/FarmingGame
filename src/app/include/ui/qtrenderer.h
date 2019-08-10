@@ -76,7 +76,7 @@ private:
     std::unique_ptr<QOpenGLShaderProgram> mPointLightShader;
 
     std::unique_ptr<QOpenGLFramebufferObject> mFBO;
-    QOpenGLBuffer mVBO1, mVBO2DIndex;
+    QOpenGLBuffer mBufferFBO, mBufferCoords, mBufferIndices;
 
     engine::Types::Dimension<int32_t> mSize;
 };

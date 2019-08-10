@@ -73,6 +73,16 @@ public:
         uint8_t r, g, b, a;
     };
 
+    struct ColorGradient {
+    public:
+        ColorGradient(const ColorGradient& other, uint8_t alpha = 255);
+        ColorGradient(const Color& color);
+        ColorGradient(const Color& cInner, const Color& cOuter);
+
+        Color inner;
+        Color outer;
+    };
+
     template<typename T = int32_t>
     struct Quad {
     public:
@@ -102,9 +112,9 @@ public:
 
     struct FilledEllipse : public Ellipse {
     public:
-        FilledEllipse(int32_t x, int32_t y, int32_t radius, Types::Color c);
+        FilledEllipse(int32_t x, int32_t y, int32_t radius, const Types::ColorGradient& gradient);
 
-        Types::Color color;
+        Types::ColorGradient gradient;
     };
 
     struct Overlay {

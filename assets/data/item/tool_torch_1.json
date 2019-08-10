@@ -5,7 +5,10 @@
     "light": {
         "radius": 256,
         "strength": 175,
-        "color": [255, 175, 0]
+        "color": {
+            "inner": [255, 200, 0],
+            "outer": [255, 0, 0]
+        }
     },
     "use": {
         "stamina": -4

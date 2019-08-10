@@ -13,7 +13,7 @@
 QtRenderer::QtRenderer()
     : mPainter(nullptr)
     , mFBO(nullptr)
-    , mVBO2DIndex(QOpenGLBuffer::IndexBuffer)
+    , mBufferIndices(QOpenGLBuffer::IndexBuffer)
     , mSize(-1, -1)
 {
 }
@@ -186,23 +186,27 @@ void QtRenderer::drawOverlay(const engine::Types::Point<>& dst, const engine::Ty
         engine::Types::Rect<float> vertexRect(e.x - (e.radius / 2.0f), e.y - (e.radius / 2.0f), e.radius, e.radius);
 
         std::array<QVector2D, 8> vertexPositions = {
-            QVector2D(vertexRect.left(), vertexRect.top()), QVector2D(-1, -1),      // Top left
-            QVector2D(vertexRect.left(), vertexRect.bottom()), QVector2D(-1, 1),   // Bottom left
-            QVector2D(vertexRect.right(), vertexRect.top()), QVector2D(1, -1),     // Top right
-            QVector2D(vertexRect.right(), vertexRect.bottom()), QVector2D(1, 1)   // Bottom right
+            QVector2D(vertexRect.left(), vertexRect.top()), QVector2D(-1, -1),
+            QVector2D(vertexRect.left(), vertexRect.bottom()), QVector2D(-1, 1),
+            QVector2D(vertexRect.right(), vertexRect.top()), QVector2D(1, -1),
+            QVector2D(vertexRect.right(), vertexRect.bottom()), QVector2D(1, 1)
         };
 
-        mVBO1.bind();
-        mVBO2DIndex.bind();
-        mVBO1.write(0, vertexPositions.data(), 8 * sizeof(QVector2D));
+        mBufferCoords.bind();
+        mBufferIndices.bind();
+        mBufferCoords.write(0, vertexPositions.data(), 8 * sizeof(QVector2D));
 
         mPointLightShader->enableAttributeArray(vertexLocation);
         mPointLightShader->setAttributeBuffer(vertexLocation, GL_FLOAT, 0, 2, sizeof(QVector2D) * 2);
 
+        QColor inner(std::max(overlay.background.r, e.gradient.inner.r), std::max(overlay.background.g, e.gradient.inner.g), std::max(overlay.background.b, e.gradient.inner.b));
+        QColor outer(std::max(overlay.background.r, e.gradient.outer.r), std::max(overlay.background.g, e.gradient.outer.g), std::max(overlay.background.b, e.gradient.outer.b));
+
         mPointLightShader->enableAttributeArray(texcoordLocation);
         mPointLightShader->setAttributeBuffer(texcoordLocation, GL_FLOAT, sizeof(QVector2D), 2, sizeof(QVector2D) * 2);
         mPointLightShader->setUniformValue("iMatrix", pmvMatrix);
-        mPointLightShader->setUniformValue("iColor", QColor(std::max(overlay.background.r, e.color.r), std::max(overlay.background.g, e.color.g), std::max(overlay.background.b, e.color.b)));
+        mPointLightShader->setUniformValue("iInnerColor", inner);
+        mPointLightShader->setUniformValue("iOuterColor", outer);
         mPointLightShader->setUniformValue("iMod", std::abs(mod - 1.0f));
 
         glDrawElements(GL_TRIANGLE_STRIP, 6, GL_UNSIGNED_SHORT, nullptr);
@@ -210,8 +214,8 @@ void QtRenderer::drawOverlay(const engine::Types::Point<>& dst, const engine::Ty
         mPointLightShader->disableAttributeArray(texcoordLocation);
         mPointLightShader->disableAttributeArray(vertexLocation);
 
-        mVBO2DIndex.release();
-        mVBO1.release();
+        mBufferIndices.release();
+        mBufferCoords.release();
 
         mPointLightShader->release();
     }
@@ -227,21 +231,10 @@ void QtRenderer::drawOverlay(const engine::Types::Point<>& dst, const engine::Ty
     int vertexLocation = mTextureShader->attributeLocation("iVertex");
     int texcoordLocation = mTextureShader->attributeLocation("iTexcoord");
 
-    engine::Types::Rect<float> vertexRect(0, 0, mFBO->width(), mFBO->height());
-
-    // The FBO texture is upside down (y starts at bottom), so we need to reverse it here
-    std::array<QVector2D, 8> vertexPositions = {
-        QVector2D(vertexRect.left(), vertexRect.top()), QVector2D(0, 1),      // Top left
-        QVector2D(vertexRect.left(), vertexRect.bottom()), QVector2D(0, 0),   // Bottom left
-        QVector2D(vertexRect.right(), vertexRect.top()), QVector2D(1, 1),     // Top right
-        QVector2D(vertexRect.right(), vertexRect.bottom()), QVector2D(1, 0)   // Bottom right
-    };
-
     glBindTexture(GL_TEXTURE_2D, mFBO->texture());
 
-    mVBO1.bind();
-    mVBO2DIndex.bind();
-    mVBO1.write(0, vertexPositions.data(), 8 * sizeof(QVector2D));
+    mBufferFBO.bind();
+    mBufferIndices.bind();
 
     mTextureShader->enableAttributeArray(vertexLocation);
     mTextureShader->setAttributeBuffer(vertexLocation, GL_FLOAT, 0, 2, sizeof(QVector2D) * 2);
@@ -256,8 +249,8 @@ void QtRenderer::drawOverlay(const engine::Types::Point<>& dst, const engine::Ty
     mTextureShader->disableAttributeArray(texcoordLocation);
     mTextureShader->disableAttributeArray(vertexLocation);
 
-    mVBO2DIndex.release();
-    mVBO1.release();
+    mBufferIndices.release();
+    mBufferFBO.release();
 
     mTextureShader->release();
 
@@ -355,7 +348,9 @@ uint32_t QtRenderer::QtImage::height() const
 void QtRenderer::cleanup()
 {
     mFBO.reset();
-    mVBO1.destroy();
+    mBufferCoords.destroy();
+    mBufferIndices.destroy();
+    mBufferFBO.destroy();
 }
 
 void QtRenderer::sync()
@@ -373,24 +368,43 @@ void QtRenderer::sync()
         mPointLightShader->addShaderFromSourceFile(QOpenGLShader::Fragment, "assets/shader/frag_pointlight.glsl");
         mPointLightShader->link();
 
-        mVBO1.create();
-        mVBO1.bind();
-        mVBO1.allocate(8 * sizeof(QVector2D));
-        mVBO1.release();
+        mBufferCoords.create();
+        mBufferCoords.bind();
+        mBufferCoords.allocate(8 * sizeof(QVector2D));
+        mBufferCoords.release();
 
-        std::array<GLushort, 6> indices = {  // Note that we start from 0!
-            0, 1, 2,  // First Triangle
-            2, 3, 1   // Second Triangle 0, 1, 2
+        std::array<GLushort, 6> indices = {
+            0, 1, 2,  // Top-left, Bottom-left, Top-right
+            2, 3, 1   // Top-right, Bottom-right, Bottom-left
         };
 
-        mVBO2DIndex.create();
-        mVBO2DIndex.bind();
-        mVBO2DIndex.allocate(indices.data(), 6 * sizeof(GLushort));
-        mVBO2DIndex.release();
+        mBufferIndices.create();
+        mBufferIndices.bind();
+        mBufferIndices.allocate(indices.data(), 6 * sizeof(GLushort));
+        mBufferIndices.release();
+
+        mBufferFBO.create();
+        mBufferFBO.bind();
+        mBufferFBO.allocate(8 * sizeof(QVector2D));
+        mBufferFBO.release();
     }
 
     if (!mFBO || mSize.width >= 0) {
         mFBO = std::make_unique<QOpenGLFramebufferObject>(mPainter->viewport().width(), mPainter->viewport().height());
         mSize.width = mSize.height = -1;
+
+        engine::Types::Rect<float> vertexRect(0, 0, mFBO->width(), mFBO->height());
+
+        // The FBO texture is upside down (y starts at bottom), so we need to reverse it here
+        std::array<QVector2D, 8> vertexPositions = {
+            QVector2D(vertexRect.left(), vertexRect.top()), QVector2D(0, 1),      // Top left
+            QVector2D(vertexRect.left(), vertexRect.bottom()), QVector2D(0, 0),   // Bottom left
+            QVector2D(vertexRect.right(), vertexRect.top()), QVector2D(1, 1),     // Top right
+            QVector2D(vertexRect.right(), vertexRect.bottom()), QVector2D(1, 0)   // Bottom right
+        };
+
+        mBufferFBO.bind();
+        mBufferFBO.write(0, vertexPositions.data(), 8 * sizeof(QVector2D));
+        mBufferFBO.release();
     }
 }

@@ -25,7 +25,7 @@ public:
     virtual Types::Point<int32_t> lightPosition();
     virtual int32_t lightRadius();
     virtual uint8_t lightStrength();
-    virtual Types::Color lightColor() override;
+    virtual Types::ColorGradient lightColor() override;
 
 private:
     Types::Point<int32_t> mPosition;

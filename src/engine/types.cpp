@@ -24,6 +24,23 @@ Types::Color::Color(uint8_t r, uint8_t g, uint8_t b, uint8_t a)
 {
 }
 
+Types::ColorGradient::ColorGradient(const ColorGradient& other, uint8_t alpha)
+    : inner({other.inner, alpha})
+    , outer({other.outer, alpha})
+{
+}
+
+Types::ColorGradient::ColorGradient(const Color& color)
+    : ColorGradient(color, color)
+{
+}
+
+Types::ColorGradient::ColorGradient(const Color& cInner, const Color& cOuter)
+    : inner(cInner)
+    , outer(cOuter)
+{
+}
+
 Types::Pair::Pair(int32_t first, int32_t second)
     : first(first)
     , second(second)
@@ -37,9 +54,9 @@ Types::Ellipse::Ellipse(int32_t x, int32_t y, int32_t radius)
 {
 }
 
-Types::FilledEllipse::FilledEllipse(int32_t x, int32_t y, int32_t radius, Types::Color c)
+Types::FilledEllipse::FilledEllipse(int32_t x, int32_t y, int32_t radius, const Types::ColorGradient& gradient)
     : Ellipse(x, y, radius)
-    , color(c)
+    , gradient(gradient)
 {
 }
 

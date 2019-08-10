@@ -490,7 +490,7 @@ uint8_t MapLightSource::lightStrength()
     return mStrength;
 }
 
-Types::Color MapLightSource::lightColor()
+Types::ColorGradient MapLightSource::lightColor()
 {
-    return mColor;
+    return {mColor};
 }
