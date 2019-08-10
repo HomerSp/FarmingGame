@@ -11,7 +11,7 @@ file(GLOB_RECURSE assets_JSON RELATIVE ${assets_ROOT} "${assets_ROOT}/assets/dat
 foreach(json IN ITEMS ${assets_JSON})
     add_custom_command(OUTPUT "${CMAKE_BINARY_DIR}/${json}"
         COMMAND ${CMAKE_CURRENT_BINARY_DIR}/json_minify "${assets_ROOT}/${json}" "${CMAKE_BINARY_DIR}/${json}"
-        COMMENT "Generating data file ${json}..."
+        COMMENT "Generating json file ${json}..."
         DEPENDS "${assets_ROOT}/${json}"
     )
 
@@ -83,33 +83,32 @@ set(SOURCES
 add_executable(collision_encoder ${SOURCES})
 target_link_libraries(collision_encoder ${engine_EXTRA_LIBRARY})
 
-# Binary Files
-
-file(GLOB_RECURSE assets_SCRIPT RELATIVE ${assets_ROOT} "${assets_ROOT}/assets/script/*.as")
+# Copy Files
 file(GLOB_RECURSE assets_FONT RELATIVE ${assets_ROOT} "${assets_ROOT}/assets/font/*")
+file(GLOB_RECURSE assets_SCRIPT RELATIVE ${assets_ROOT} "${assets_ROOT}/assets/script/*.as")
 file(GLOB_RECURSE assets_SHADER RELATIVE ${assets_ROOT} "${assets_ROOT}/assets/shader/*")
 
-set(assets_BINARY ${assets_SCRIPT} ${assets_FONT} ${assets_SHADER})
-set(assets_out_BINARY "")
-foreach(bin IN ITEMS ${assets_BINARY})
+set(assets_COPY ${assets_FONT} ${assets_SCRIPT} ${assets_SHADER})
+set(assets_out_COPY "")
+foreach(bin IN ITEMS ${assets_COPY})
     add_custom_command(OUTPUT "${CMAKE_BINARY_DIR}/${bin}"
-        COMMAND ${CMAKE_CURRENT_BINARY_DIR}/binary_encoder "${assets_ROOT}/${bin}" "${CMAKE_BINARY_DIR}/${bin}"
-        COMMENT "Generating binary file ${bin}..."
+        COMMAND ${CMAKE_CURRENT_BINARY_DIR}/copy_encoder "${assets_ROOT}/${bin}" "${CMAKE_BINARY_DIR}/${bin}"
+        COMMENT "Copying file ${bin}..."
         DEPENDS "${assets_ROOT}/${bin}"
     )
 
-    set(assets_out_BINARY ${assets_out_BINARY} "${CMAKE_BINARY_DIR}/${bin}")
+    set(assets_out_COPY ${assets_out_COPY} "${CMAKE_BINARY_DIR}/${bin}")
 endforeach(bin)
 
 ADD_CUSTOM_TARGET(assets_binary ALL
-   DEPENDS ${assets_out_BINARY}
-   DEPENDS binary_encoder
+   DEPENDS ${assets_out_COPY}
+   DEPENDS copy_encoder
 )
 
 set(SOURCES
     utils.cpp
-    binary_encoder.cpp
+    copy_encoder.cpp
 )
 
-add_executable(binary_encoder ${SOURCES})
-target_link_libraries(binary_encoder)
+add_executable(copy_encoder ${SOURCES})
+target_link_libraries(copy_encoder)
