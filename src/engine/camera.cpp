@@ -72,8 +72,8 @@ void Camera::moveTo(int32_t dstX, int32_t dstY, asIScriptFunction* fun)
 bool Camera::contains(const Types::Rect<float_t>& rc, const Types::Dimension<>& buf)
 {
     std::lock_guard<std::mutex> lock(mMovementMutex);
-    return rc.x + rc.width >= mPos.x - buf.width && rc.x < mPos.x + mDimen.width + buf.width
-        && rc.y + rc.height >= mPos.y - buf.height && rc.y < mPos.y + mDimen.height + buf.height;
+    Types::Rect<float_t> cameraRc(mPos.x - buf.width, mPos.y - buf.height, mDimen.width + buf.width * 2, mDimen.height + buf.height * 2);
+    return rc.left() >= cameraRc.left() && rc.right() < cameraRc.right() && rc.top() >= cameraRc.top() && rc.bottom() < cameraRc.bottom();
 }
 
 bool Camera::outsideView(const Types::Point<float_t>& pos)
