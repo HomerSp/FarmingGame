@@ -79,7 +79,7 @@ protected:
 
 private:
     std::atomic<uint64_t> mCurrent;
-    float_t mCurrentMod;
+    Types::AtomicF mCurrentMod;
     uint8_t mDawn;
     uint8_t mDusk;
 

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <atomic>
 #include <bitset>
 #include <cmath>
 #include <cstdint>
@@ -162,5 +163,13 @@ public:
     {
         return !str[h] ? 5381 : (hash(str, h + 1) * 33) ^ str[h];
     }
+
+    class AtomicF : public std::atomic<float> {
+    public:
+        AtomicF(float f);
+
+        AtomicF& operator=(float d);
+        AtomicF& operator+=(float d);
+    };
 };
 }

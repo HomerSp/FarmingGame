@@ -118,3 +118,27 @@ bool Types::TextAlign::is(Type t) const
 {
     return bits[t];
 }
+
+Types::AtomicF::AtomicF(float f)
+    : std::atomic<float>(f)
+{
+}
+
+Types::AtomicF& Types::AtomicF::operator=(float d)
+{
+    store(d);
+    return *this;
+}
+
+Types::AtomicF& Types::AtomicF::operator+=(float d)
+{
+    float old = load(std::memory_order_consume);
+    float desired = old + d;
+    while (!compare_exchange_weak(old, desired,
+       std::memory_order_release, std::memory_order_consume))
+    {
+       desired = old + d;
+    }
+
+    return *this;
+}

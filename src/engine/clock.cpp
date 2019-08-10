@@ -111,7 +111,7 @@ bool Clock::daylight() const
 std::string Clock::timeFormatted() const
 {
     std::stringstream str;
-    str << std::setw(2) << std::setfill('0') << static_cast<int32_t>(static_cast<uint8_t>(std::floor(mCurrent / 60.0f)) % 24);
+    str << std::setw(2) << std::setfill('0') << static_cast<int32_t>(hour());
     if (mCurrent % 2 == 0) {
         str << " ";
     } else {
@@ -150,27 +150,28 @@ std::string Clock::weekDayFormattedShort() const
 
 bool Clock::processAsync(uint64_t frameDiff, Map* map)
 {
-    mCurrentMod += (frameDiff / 1000.0f);
+    float_t mod = mCurrentMod + (frameDiff / 1000.0f);
 
     uint64_t current = mCurrent;
-    uint64_t val = current + std::floor(mCurrentMod);
+    uint64_t val = current + std::floor(mod);
 
-    bool changed = false;
-    if (val != current) {
-        mCurrent = val;
-        mCurrentMod -= std::floor(mCurrentMod);
+    bool changed = val != current;
+    if (changed) {
+        current = val;
+        mod -= std::floor(mod);
 
         if (val % 5 == 0) {
             std::lock_guard<std::mutex> lock(mListenerMutex);
             for(auto& i: mChangeListeners) {
-                i->check(mCurrent);
+                i->check(current);
             }
         }
 
         map->toggleLights(!daylight());
-
-        changed = true;
     }
+
+    mCurrentMod = mod;
+    mCurrent = current;
 
     return changed;
 }
@@ -192,7 +193,8 @@ void Clock::processListeners()
     }
 }
 
-void Clock::fastForward(float_t v) {
+void Clock::fastForward(float_t v)
+{
     mCurrentMod += v;
 }
 
