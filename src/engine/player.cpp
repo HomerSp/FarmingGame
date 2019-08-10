@@ -58,7 +58,7 @@ int32_t Player::lightRadius()
     return mInventory[mCurrentItem]->lightRadius();
 }
 
-uint8_t Player::lightStrength()
+float_t Player::lightStrength()
 {
     return mInventory[mCurrentItem]->lightStrength();
 }

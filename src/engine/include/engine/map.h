@@ -19,19 +19,19 @@ class Tileset;
 
 class MapLightSource : public ScreenEffects::LightSource {
 public:
-    MapLightSource(Types::Point<int32_t> pos, int32_t radius, uint8_t strength, Types::Color color);
+    MapLightSource(Types::Point<int32_t> pos, int32_t radius, float_t strength, const Types::ColorGradient& color);
     virtual ~MapLightSource() = default;
 
     virtual Types::Point<int32_t> lightPosition();
     virtual int32_t lightRadius();
-    virtual uint8_t lightStrength();
+    virtual float_t lightStrength();
     virtual Types::ColorGradient lightColor() override;
 
 private:
     Types::Point<int32_t> mPosition;
     int32_t mRadius;
-    uint8_t mStrength;
-    Types::Color mColor;
+    float_t mStrength;
+    Types::ColorGradient mColor;
 };
 
 class MapLayer {

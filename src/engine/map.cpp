@@ -467,7 +467,7 @@ bool Map::operator!() const
     return !mValid;
 }
 
-MapLightSource::MapLightSource(Types::Point<int32_t> pos, int32_t radius, uint8_t strength, Types::Color color)
+MapLightSource::MapLightSource(Types::Point<int32_t> pos, int32_t radius, float_t strength, const Types::ColorGradient& color)
     : mPosition(pos)
     , mRadius(radius)
     , mStrength(strength)
@@ -485,12 +485,12 @@ int32_t MapLightSource::lightRadius()
     return mRadius;
 }
 
-uint8_t MapLightSource::lightStrength()
+float_t MapLightSource::lightStrength()
 {
     return mStrength;
 }
 
 Types::ColorGradient MapLightSource::lightColor()
 {
-    return {mColor};
+    return mColor;
 }

@@ -64,8 +64,8 @@ public:
 
     Types::Point<> lightBase() const;
     int32_t lightRadius() const;
-    uint8_t lightStrength() const;
-    Types::Color lightColor() const;
+    float_t lightStrength() const;
+    Types::ColorGradient lightColor() const;
 
     bool operator!() const;
 
@@ -77,8 +77,8 @@ protected:
     void setFrames(int8_t frames);
     void setLightBase(Types::Point<> base);
     void setLightRadius(int32_t radius);
-    void setLightStrength(uint8_t strength);
-    void setLightColor(Types::Color color);
+    void setLightStrength(float_t strength);
+    void setLightColor(const Types::ColorGradient& color);
 
 private:
     friend class Tileset;
@@ -103,8 +103,8 @@ private:
     // Light
     Types::Point<> mLightBase;
     int32_t mLightRadius;
-    uint8_t mLightStrength;
-    Types::Color mLightColor;
+    float_t mLightStrength;
+    Types::ColorGradient mLightColor;
 };
 
 class Tileset : public ContextObject {

@@ -165,7 +165,7 @@ void QtRenderer::drawOverlay(const engine::Types::Point<>& dst, const engine::Ty
 
     mFBO->bind();
 
-    glClearColor(overlay.background.r / 255.0f, overlay.background.g / 255.0f, overlay.background.b / 255.0f, 1.0f);
+    glClearColor(overlay.background.r, overlay.background.g, overlay.background.b, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
     glEnable(GL_BLEND);
@@ -199,14 +199,14 @@ void QtRenderer::drawOverlay(const engine::Types::Point<>& dst, const engine::Ty
         mPointLightShader->enableAttributeArray(vertexLocation);
         mPointLightShader->setAttributeBuffer(vertexLocation, GL_FLOAT, 0, 2, sizeof(QVector2D) * 2);
 
-        QColor inner(std::max(overlay.background.r, e.gradient.inner.r), std::max(overlay.background.g, e.gradient.inner.g), std::max(overlay.background.b, e.gradient.inner.b));
-        QColor outer(std::max(overlay.background.r, e.gradient.outer.r), std::max(overlay.background.g, e.gradient.outer.g), std::max(overlay.background.b, e.gradient.outer.b));
+        engine::Types::ColorF inner(std::max(overlay.background.r, e.gradient.inner.r), std::max(overlay.background.g, e.gradient.inner.g), std::max(overlay.background.b, e.gradient.inner.b));
+        engine::Types::ColorF outer(std::max(overlay.background.r, e.gradient.outer.r), std::max(overlay.background.g, e.gradient.outer.g), std::max(overlay.background.b, e.gradient.outer.b));
 
         mPointLightShader->enableAttributeArray(texcoordLocation);
         mPointLightShader->setAttributeBuffer(texcoordLocation, GL_FLOAT, sizeof(QVector2D), 2, sizeof(QVector2D) * 2);
         mPointLightShader->setUniformValue("iMatrix", pmvMatrix);
-        mPointLightShader->setUniformValue("iInnerColor", inner);
-        mPointLightShader->setUniformValue("iOuterColor", outer);
+        mPointLightShader->setUniformValue("iInnerColor", QVector4D(inner.r, inner.g, inner.b, 1.0f));
+        mPointLightShader->setUniformValue("iOuterColor", QVector4D(outer.r, outer.g, outer.b, 1.0f));
         mPointLightShader->setUniformValue("iMod", std::abs(mod - 1.0f));
 
         glDrawElements(GL_TRIANGLE_STRIP, 6, GL_UNSIGNED_SHORT, nullptr);

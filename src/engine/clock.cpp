@@ -23,6 +23,11 @@ uint64_t Clock::current() const
     return mCurrent;
 }
 
+float_t Clock::currentHour() const
+{
+    return (mCurrent % (24 * 60)) + mCurrentMod;
+}
+
 uint8_t Clock::year() const
 {
     return 1 + static_cast<uint8_t>(std::floor(mCurrent / 60.0f / 24.0f / 30.0f / 4.0f));

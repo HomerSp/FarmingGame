@@ -1,6 +1,7 @@
 #pragma once
 
 #include <bitset>
+#include <cmath>
 #include <cstdint>
 #include <unordered_map>
 #include <vector>
@@ -73,14 +74,25 @@ public:
         uint8_t r, g, b, a;
     };
 
+    struct ColorF {
+    public:
+        ColorF(const Color& o);
+        ColorF(const ColorF& o, float_t a);
+        ColorF(float_t r, float_t g, float_t b, float_t a = 1.0f);
+
+        float_t r, g, b, a;
+    };
+
     struct ColorGradient {
     public:
-        ColorGradient(const ColorGradient& other, uint8_t alpha = 255);
+        ColorGradient(const ColorGradient& other, float_t alpha = 1.0f);
+        ColorGradient(const ColorF& color);
+        ColorGradient(const ColorF& cInner, const ColorF& cOuter);
         ColorGradient(const Color& color);
         ColorGradient(const Color& cInner, const Color& cOuter);
 
-        Color inner;
-        Color outer;
+        ColorF inner;
+        ColorF outer;
     };
 
     template<typename T = int32_t>
@@ -119,12 +131,12 @@ public:
 
     struct Overlay {
     public:
-        Overlay(uint32_t w, uint32_t h, Types::Color bg);
+        Overlay(uint32_t w, uint32_t h, Types::ColorF bg);
 
         void addEllipse(const Types::FilledEllipse &ellipse);
 
         uint32_t width, height;
-        Types::Color background;
+        Types::ColorF background;
         std::vector<Types::FilledEllipse> ellipses;
     };
 

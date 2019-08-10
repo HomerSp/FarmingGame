@@ -8,7 +8,7 @@ using namespace engine;
 
 Types::ColorGradient ScreenEffects::LightSource::lightColor()   
 {
-    return {{255, 255, 255}};
+    return {Types::ColorF(1.0f, 1.0f, 1.0f)};
 }
 
 ScreenEffects::ScreenEffects(std::shared_ptr<Context>& ctx)
@@ -26,36 +26,36 @@ void ScreenEffects::draw(Renderer& renderer, Clock& clock, Camera& camera, const
         return;
     }
 
-    uint8_t baseAlpha = 200;
+    float_t baseAlpha = 0.75f;
     switch(clock.month()) {
     case 1:
-        baseAlpha += 20;
+        baseAlpha += 0.08f;
         break;
     case 3:
-        baseAlpha -= 20;
+        baseAlpha -= 0.08f;
         break;
     }
 
-    Types::Color color(255 - baseAlpha, 255 - baseAlpha, 255 - baseAlpha);
+    Types::ColorF color(1.0f - baseAlpha, 1.0f - baseAlpha, 1.0f - baseAlpha);
 
     // Night
     if (h >= clock.dawn() && h < clock.dusk()) {
-        uint32_t currentHour = clock.current() % (24 * 60);
+        float_t currentHour = clock.currentHour();
 
         // Sunrise
         if (h >= clock.dawn() && h < clock.sunrise()) {
             float_t diff = (currentHour - clock.dawn() * 60) / ((clock.sunrise() - clock.dawn()) * 60.0f);
             float_t alpha = baseAlpha - baseAlpha * diff;
-            int32_t d = 50 * diff;
-            uint8_t c = 255 - std::floor(alpha);
-            color = Types::Color(std::min(c + d, 255), c, c);
+            float_t d = 0.2f * diff;
+            float_t c = 1.0f - alpha;
+            color = Types::ColorF(std::min(c + d, 1.0f), c, c);
         // Sunset
         } else if (h >= clock.sunset() && h < clock.dusk()) {
             float_t diff = (currentHour - (clock.sunset() * 60)) / ((clock.dusk() - clock.sunset()) * 60.0f);
             float_t alpha = baseAlpha * diff;
-            int32_t d = 50 - 50 * diff;
-            uint8_t c = 255 - std::floor(alpha);
-            color = Types::Color(std::min(c + d, 255), c, c);
+            float_t d = 0.2f - 0.2f * diff;
+            float_t c = 1.0f - alpha;
+            color = Types::ColorF(std::min(c + d, 1.0f), c, c);
         }
     }
 

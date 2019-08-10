@@ -23,8 +23,8 @@ Item::Item(std::shared_ptr<Context>& ctx, const std::string& name)
     : ContextObject(ctx)
     , mUiImage(nullptr)
     , mLightRadius(0)
-    , mLightStrength(0)
-    , mLightColor({255, 255, 255})
+    , mLightStrength(0.0f)
+    , mLightColor(Types::ColorF(1.0f, 1.0f, 1.0f))
 {
     std::unique_ptr<Json::Value> doc = context().assetManager().data(AssetManager::Item, name);
     if (!doc->isObject() || !doc->isMember("image")) {
@@ -66,7 +66,7 @@ Item::Item(std::shared_ptr<Context>& ctx, const std::string& name)
         }
 
         if (lightObj.isMember("strength")) {
-            mLightStrength = lightObj["strength"].asInt();
+            mLightStrength = lightObj["strength"].asInt() / 255.0f;
         }
 
         if (lightObj.isMember("color")) {
@@ -119,7 +119,7 @@ int32_t Item::lightRadius()
     return mLightRadius;
 }
 
-uint8_t Item::lightStrength()
+float_t Item::lightStrength()
 {
     return mLightStrength;
 }

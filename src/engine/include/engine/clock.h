@@ -39,6 +39,8 @@ public:
     Clock(std::shared_ptr<Context> &ctx);
  
     uint64_t current() const;
+    float_t currentHour() const;
+
     uint8_t year() const;
     uint8_t month() const;
     uint8_t day() const;

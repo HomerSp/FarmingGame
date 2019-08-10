@@ -9,10 +9,7 @@ Types::Cells::Cells(uint32_t cols, uint32_t rows)
 }
 
 Types::Color::Color(const Color& o, uint8_t a)
-    : r(o.r)
-    , g(o.g)
-    , b(o.b)
-    , a(a)
+    : Color(o.r, o.g, o.b, a)
 {
 }
 
@@ -24,9 +21,39 @@ Types::Color::Color(uint8_t r, uint8_t g, uint8_t b, uint8_t a)
 {
 }
 
-Types::ColorGradient::ColorGradient(const ColorGradient& other, uint8_t alpha)
+Types::ColorF::ColorF(const Color& o)
+    : ColorF(o.r / 255.0f, o.g / 255.0f, o.b / 255.0f, o.a / 255.0f)
+{
+
+}
+
+Types::ColorF::ColorF(const ColorF& o, float_t a)
+    : ColorF(o.r, o.g, o.b, a)
+{
+}
+
+Types::ColorF::ColorF(float_t r, float_t g, float_t b, float_t a)
+    : r(r)
+    , g(g)
+    , b(b)
+    , a(a)
+{
+}
+
+Types::ColorGradient::ColorGradient(const ColorGradient& other, float_t alpha)
     : inner({other.inner, alpha})
     , outer({other.outer, alpha})
+{
+}
+
+Types::ColorGradient::ColorGradient(const ColorF& color)
+    : ColorGradient(color, color)
+{
+}
+
+Types::ColorGradient::ColorGradient(const ColorF& cInner, const ColorF& cOuter)
+    : inner(cInner)
+    , outer(cOuter)
 {
 }
 
@@ -36,8 +63,8 @@ Types::ColorGradient::ColorGradient(const Color& color)
 }
 
 Types::ColorGradient::ColorGradient(const Color& cInner, const Color& cOuter)
-    : inner(cInner)
-    , outer(cOuter)
+    : inner(Types::ColorF(cInner))
+    , outer(Types::ColorF(cOuter))
 {
 }
 
@@ -60,7 +87,7 @@ Types::FilledEllipse::FilledEllipse(int32_t x, int32_t y, int32_t radius, const 
 {
 }
 
-Types::Overlay::Overlay(uint32_t w, uint32_t h, Types::Color bg)
+Types::Overlay::Overlay(uint32_t w, uint32_t h, Types::ColorF bg)
     : width(w)
     , height(h)
     , background(bg)

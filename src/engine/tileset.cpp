@@ -24,8 +24,8 @@ TilesetType::TilesetType(uint32_t index, Types::Dimension<>& tileDimension, cons
     , mBase(0)
     , mLightBase(-1, -1)
     , mLightRadius(0)
-    , mLightStrength(0)
-    , mLightColor({255, 255, 255})
+    , mLightStrength(0.0f)
+    , mLightColor(Types::ColorF(1.0f, 1.0f, 1.0f))
 {
     switch (Types::hash(tileType.c_str())) {
     case Types::hash("automatic"):
@@ -87,12 +87,12 @@ int32_t TilesetType::lightRadius() const
     return mLightRadius;
 }
 
-uint8_t TilesetType::lightStrength() const
+float_t TilesetType::lightStrength() const
 {
     return mLightStrength;
 }
 
-Types::Color TilesetType::lightColor() const
+Types::ColorGradient TilesetType::lightColor() const
 {
     return mLightColor;
 }
@@ -172,12 +172,12 @@ void TilesetType::setLightRadius(int32_t radius)
     mLightRadius = radius;
 }
 
-void TilesetType::setLightStrength(uint8_t strength)
+void TilesetType::setLightStrength(float_t strength)
 {
     mLightStrength = strength;
 }
 
-void TilesetType::setLightColor(Types::Color color)
+void TilesetType::setLightColor(const Types::ColorGradient& color)
 {
     mLightColor = color;
 }
@@ -577,12 +577,13 @@ Tileset::Tileset(std::shared_ptr<Context>& ctx, const std::string& name)
                 }
 
                 if (lightObj.isMember("strength")) {
-                    type->setLightStrength(lightObj["strength"].asInt());
+                    type->setLightStrength(lightObj["strength"].asInt() / 255.0f);
                 }
 
                 if (lightObj.isMember("color") && lightObj["color"].size() >= 3) {
                     Json::Value colorObj = lightObj["color"];
-                    type->setLightColor(Types::Color(colorObj[0].asInt(), colorObj[1].asInt(), colorObj[2].asInt()));
+                    auto g = Types::ColorGradient(Types::Color(colorObj[0].asInt(), colorObj[1].asInt(), colorObj[2].asInt()));
+                    type->setLightColor(g);
                 }
             }
 
