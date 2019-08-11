@@ -493,7 +493,7 @@ Tileset::Tileset(std::shared_ptr<Context>& ctx, const std::string& name)
 
         if (canAdd && index < nodes.size()) {
             Json::Value nodeObj = nodes[index];
-            if (!nodeObj.isMember("tile")) {
+            if (!nodeObj.isMember("index") || !nodeObj.isMember("tile")) {
                 Logger::critical() << "Could not find required tileset node JSON data for" << name;
                 return;
             }
@@ -503,7 +503,13 @@ Tileset::Tileset(std::shared_ptr<Context>& ctx, const std::string& name)
                 return;
             }
 
-            std::shared_ptr<TilesetType> type = std::make_shared<TilesetType>(index, mTileDimension, nodeObj["tile"].asString(), x, y);
+            uint32_t nodeIndex = nodeObj["index"].asInt();
+            if (mTypes.find(nodeIndex) != mTypes.end()) {
+                Logger::critical() << "Duplicate index" << nodeIndex << "for" << name;
+                return;
+            }
+
+            std::shared_ptr<TilesetType> type = std::make_shared<TilesetType>(nodeIndex, mTileDimension, nodeObj["tile"].asString(), x, y);
             if (!*type) {
                 return;
             }
@@ -595,7 +601,8 @@ Tileset::Tileset(std::shared_ptr<Context>& ctx, const std::string& name)
                 }
             }
 
-            mTypes[index++] = type;
+            mTypes[nodeIndex] = type;
+            index++;
         }
 
         x += mTileDimension.width;
@@ -675,12 +682,13 @@ bool Tileset::updateTiles(Types::Map2D& tiles, std::map<int32_t, std::map<int32_
         for (uint32_t y = 0; y < height; y++) {
             int32_t n = tiles[x][y];
             if (n > 0) {
-                if (static_cast<uint32_t>(n - 1) >= mTypes.size()) {
-                    Logger::critical() << "Found an out of bounds node" << (n - 1) << ">" << mTypes.size();
+                auto it = mTypes.find(n);
+                if (it == mTypes.end()) {
+                    Logger::critical() << "Found an out of bounds tile node" << (n - 1);
                     return false;
                 }
 
-                auto tileType = mTypes[n - 1];
+                auto tileType = (*it).second;
                 if (tileType->above() == above || tileType->checkBase(tiles, above, x, y)) {
                     map[y][x] = tileType->toNode(tiles, x, y, width, height);
                 }
