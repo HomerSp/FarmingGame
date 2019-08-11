@@ -64,6 +64,13 @@ private:
     std::vector<TilesetNode*> mLightNodes;
 };
 
+struct MapType {
+    typedef enum {
+        Outside = 0,
+        Inside,
+    } Type;
+};
+
 class Map : public ContextObject {
 public:
     Map(std::shared_ptr<Context>& ctx, const std::string& id);
@@ -82,6 +89,7 @@ public:
     void toggleLights(bool on);
 
     const std::string& id() const;
+    MapType::Type type() const;
 
     uint32_t width() const;
     uint32_t pixelWidth() const;
@@ -99,6 +107,7 @@ protected:
 private:
     bool mValid;
     std::string mID;
+    MapType::Type mType;
     std::unordered_map<std::string, std::shared_ptr<Tileset>> mTilesets;
     std::vector<std::shared_ptr<MapLayer>> mLayers;
     std::unique_ptr<CollisionMap> mCollisionMap;

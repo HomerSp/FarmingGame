@@ -24,6 +24,13 @@ public:
         T right() const { return x + width; }
         T bottom() const { return y + height; }
 
+        bool intersects(const Rect<T>& o) const {
+            return (x <= o.x + o.width &&
+                o.x <= x + width &&
+                y <= o.y + o.height &&
+                o.y <= y + height);
+        }
+
         T x, y;
         T width, height;
     };
@@ -69,17 +76,10 @@ public:
 
     struct Color {
     public:
-        Color(const Color& o, uint8_t a);
-        Color(uint8_t r, uint8_t g, uint8_t b, uint8_t a = 255);
+        Color(const Color& o, float_t a);
+        Color(float_t r, float_t g, float_t b, float_t a = 1.0f);
 
-        uint8_t r, g, b, a;
-    };
-
-    struct ColorF {
-    public:
-        ColorF(const Color& o);
-        ColorF(const ColorF& o, float_t a);
-        ColorF(float_t r, float_t g, float_t b, float_t a = 1.0f);
+        static Color fromInt(uint8_t r, uint8_t g, uint8_t b, uint8_t a = 255);
 
         float_t r, g, b, a;
     };
@@ -87,13 +87,11 @@ public:
     struct ColorGradient {
     public:
         ColorGradient(const ColorGradient& other, float_t alpha = 1.0f);
-        ColorGradient(const ColorF& color);
-        ColorGradient(const ColorF& cInner, const ColorF& cOuter);
         ColorGradient(const Color& color);
         ColorGradient(const Color& cInner, const Color& cOuter);
 
-        ColorF inner;
-        ColorF outer;
+        Color inner;
+        Color outer;
     };
 
     template<typename T = int32_t>
@@ -132,12 +130,12 @@ public:
 
     struct Overlay {
     public:
-        Overlay(uint32_t w, uint32_t h, Types::ColorF bg);
+        Overlay(uint32_t w, uint32_t h, Types::Color bg);
 
         void addEllipse(const Types::FilledEllipse &ellipse);
 
         uint32_t width, height;
-        Types::ColorF background;
+        Types::Color background;
         std::vector<Types::FilledEllipse> ellipses;
     };
 

@@ -24,7 +24,7 @@ Item::Item(std::shared_ptr<Context>& ctx, const std::string& name)
     , mUiImage(nullptr)
     , mLightRadius(0)
     , mLightStrength(0.0f)
-    , mLightColor(Types::ColorF(1.0f, 1.0f, 1.0f))
+    , mLightColor({1.0f, 1.0f, 1.0f})
 {
     std::unique_ptr<Json::Value> doc = context().assetManager().data(AssetManager::Item, name);
     if (!doc->isObject() || !doc->isMember("image")) {
@@ -72,13 +72,13 @@ Item::Item(std::shared_ptr<Context>& ctx, const std::string& name)
         if (lightObj.isMember("color")) {
             Json::Value colorObj = lightObj["color"];
             if (colorObj.isArray() && colorObj.size() == 3) {
-                mLightColor = Types::ColorGradient(Types::Color(colorObj[0].asInt(), colorObj[1].asInt(), colorObj[2].asInt()));
+                mLightColor = Types::ColorGradient(Types::Color::fromInt(colorObj[0].asInt(), colorObj[1].asInt(), colorObj[2].asInt()));
             } else if (colorObj.isObject() && colorObj.isMember("inner") && colorObj.isMember("outer")) {
                 Json::Value innerObj = colorObj["inner"];
                 Json::Value outerObj = colorObj["outer"];
 
-                Types::Color cI = Types::Color(innerObj[0].asInt(), innerObj[1].asInt(), innerObj[2].asInt());
-                Types::Color cO = Types::Color(outerObj[0].asInt(), outerObj[1].asInt(), outerObj[2].asInt());
+                Types::Color cI = Types::Color::fromInt(innerObj[0].asInt(), innerObj[1].asInt(), innerObj[2].asInt());
+                Types::Color cO = Types::Color::fromInt(outerObj[0].asInt(), outerObj[1].asInt(), outerObj[2].asInt());
                 mLightColor = Types::ColorGradient(cI, cO);
             }
         }

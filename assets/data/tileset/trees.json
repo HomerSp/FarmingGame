@@ -1,10 +1,11 @@
 {
-    "image": "Trees",
+    "image": "trees",
     "dimen": [48, 48],
-    "collision": "Trees",
+    "collision": "trees",
     "nodes": [
         // 1 - Tree
         {
+            "index": 1,
             "tile": "single",
             "base": 2,
             "count": [3, 3],
@@ -13,6 +14,7 @@
 
         // 2 - Apple Tree
         {
+            "index": 2,
             "tile": "single",
             "base": 2,
             "count": [3, 3],
@@ -21,6 +23,7 @@
 
         // 3 - Pine tree 1
         {
+            "index": 3,
             "tile": "single",
             "base": 2,
             "count": [2, 3],
@@ -29,6 +32,7 @@
 
         // 4 - Bare Tree
         {
+            "index": 4,
             "tile": "single",
             "base": 2,
             "count": [2, 3],
@@ -37,6 +41,7 @@
 
         // 5 - Pine Tree 2
         {
+            "index": 5,
             "tile": "single",
             "base": 2,
             "count": [2, 3],
@@ -45,16 +50,19 @@
 
         // 6 - Patch 1
         {
+            "index": 6,
             "tile": "single"
         },
 
         // 7 - Patch Pumpkins
         {
+            "index": 7,
             "tile": "single"
         },
 
         // 8 - Tree Orange
         {
+            "index": 8,
             "tile": "single",
             "base": 1,
             "count": [2, 2],

@@ -45,7 +45,7 @@ void Hud::draw(Renderer& renderer, Clock& clock, Player& player, FrameTimer& fra
     // FPS Counter
     Types::Rect<> fpsRc(0, 0, 24 * 6, 24);
     renderer.translate(renderer.width() - fpsRc.width, 0);
-    renderer.fillRect(fpsRc, Types::Color(255, 255, 255));
+    renderer.fillRect(fpsRc, {1.0f, 1.0f, 1.0f});
 
     std::stringstream fpsStr;
     fpsStr << frameTimer.framesPerSecond() << "fps";
@@ -78,7 +78,7 @@ void Hud::drawClock(Renderer& renderer, Clock& clock)
 
     // Hour and minutes
     Types::Rect<> timeRc(0, 0, clockDimen.width, clockDimen.height);
-    renderer.drawText(timeRc, clock.timeFormatted(), {0, 0, 0, 175}, 18, Types::TextAlign({Types::TextAlign::CentreH, Types::TextAlign::CentreV}), "hud");
+    renderer.drawText(timeRc, clock.timeFormatted(), {0, 0, 0, 0.7f}, 18, Types::TextAlign({Types::TextAlign::CentreH, Types::TextAlign::CentreV}), "hud");
 
     renderer.translate(centreX, centreY);
 
@@ -86,7 +86,7 @@ void Hud::drawClock(Renderer& renderer, Clock& clock)
     renderer.translate(-centreX, -centreY);
 
     Types::Rect<> weekDayRc(0, 0, clockDimen.width, clockDimen.height / 2);
-    renderer.drawText(weekDayRc, clock.weekDayFormattedShort() + "\n" + clock.dayFormatted(), {0, 0, 0, 175}, 18, Types::TextAlign({Types::TextAlign::CentreH, Types::TextAlign::CentreV}), "hud");
+    renderer.drawText(weekDayRc, clock.weekDayFormattedShort() + "\n" + clock.dayFormatted(), {0, 0, 0, 0.7f}, 18, Types::TextAlign({Types::TextAlign::CentreH, Types::TextAlign::CentreV}), "hud");
 
     renderer.translate(centreX, centreY);
 
@@ -111,13 +111,13 @@ void Hud::drawHealth(Renderer& renderer, Player& player)
 
     // Stamina
     float_t p = player.stamina() / static_cast<float_t>(player.maxStamina());
-    drawBarSmall(renderer, mHealthStaminaWidth, {255, 255, 0, 200}, p, 0);
+    drawBarSmall(renderer, mHealthStaminaWidth, {1.0f, 1.0f, 0.0f, 0.8f}, p, 0);
     renderer.translate(0, 50);
 
     // Health
     renderer.translate(0, -(mBarSmall->height()));
     p = player.health() / static_cast<float_t>(player.maxHealth());
-    drawBarSmall(renderer, mHealthStaminaWidth, {255, 0, 0, 200}, p, mHealthStamina->width() / 2);
+    drawBarSmall(renderer, mHealthStaminaWidth, {1.0f, 0, 0, 0.8f}, p, mHealthStamina->width() / 2);
     renderer.translate(0, mBarSmall->height());
 
     renderer.translate(10, -(50 / 2));
@@ -153,7 +153,7 @@ void Hud::drawItems(Renderer& renderer, Player& player)
             renderer.drawImage(*mHudItem, {}, itemRc);
 
             if (i == player.currentItemIndex()) {
-                renderer.fillRect(itemRc, {255, 255, 0, 175});
+                renderer.fillRect(itemRc, {1.0f, 1.0f, 0.0f, 0.7f});
             }
 
             if (player.hasItem(i)) {

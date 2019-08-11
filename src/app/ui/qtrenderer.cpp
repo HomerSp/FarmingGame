@@ -75,7 +75,7 @@ void QtRenderer::fillEllipse(const engine::Types::Rect<>& dst, const engine::Typ
         return;
     }
 
-    mPainter->setBrush(QColor(color.r, color.g, color.b, color.a));
+    mPainter->setBrush(QColor::fromRgbF(color.r, color.g, color.b, color.a));
     mPainter->drawEllipse(QPointF(dst.x, dst.y), std::floor(dst.width / 2), std::floor(dst.height / 2));
     mPainter->setBrush(Qt::NoBrush);
 }
@@ -88,8 +88,7 @@ void QtRenderer::fillRect(const engine::Types::Rect<>& dst, const engine::Types:
     }
 
     QRectF dstRect(dst.x, dst.y, dst.width, dst.height);
-    QColor c(color.r, color.g, color.b, color.a);
-    mPainter->fillRect(dstRect, c);
+    mPainter->fillRect(dstRect, QColor::fromRgbF(color.r, color.g, color.b, color.a));
 }
 
 void QtRenderer::drawImage(const engine::Image& img, engine::Types::Rect<> dst, engine::Types::Rect<> src)
@@ -144,7 +143,7 @@ void QtRenderer::drawText(const engine::Types::Rect<>& dst, const std::string& t
         mPainter->setFont(font);
     }
 
-    mPainter->setPen({color.r, color.g, color.b, color.a});
+    mPainter->setPen(QColor::fromRgbF(color.r, color.g, color.b, color.a));
     mPainter->drawText(QRect(dst.x, dst.y, dst.width, dst.height), flags, str);
 
     if (size >= 0) {
@@ -199,14 +198,14 @@ void QtRenderer::drawOverlay(const engine::Types::Point<>& dst, const engine::Ty
         mPointLightShader->enableAttributeArray(vertexLocation);
         mPointLightShader->setAttributeBuffer(vertexLocation, GL_FLOAT, 0, 2, sizeof(QVector2D) * 2);
 
-        engine::Types::ColorF inner(std::max(overlay.background.r, e.gradient.inner.r), std::max(overlay.background.g, e.gradient.inner.g), std::max(overlay.background.b, e.gradient.inner.b));
-        engine::Types::ColorF outer(std::max(overlay.background.r, e.gradient.outer.r), std::max(overlay.background.g, e.gradient.outer.g), std::max(overlay.background.b, e.gradient.outer.b));
+        QVector4D inner(std::max(overlay.background.r, e.gradient.inner.r), std::max(overlay.background.g, e.gradient.inner.g), std::max(overlay.background.b, e.gradient.inner.b), 1.0f);
+        QVector4D outer(std::max(overlay.background.r, e.gradient.outer.r), std::max(overlay.background.g, e.gradient.outer.g), std::max(overlay.background.b, e.gradient.outer.b), 1.0f);
 
         mPointLightShader->enableAttributeArray(texcoordLocation);
         mPointLightShader->setAttributeBuffer(texcoordLocation, GL_FLOAT, sizeof(QVector2D), 2, sizeof(QVector2D) * 2);
         mPointLightShader->setUniformValue("iMatrix", pmvMatrix);
-        mPointLightShader->setUniformValue("iInnerColor", QVector4D(inner.r, inner.g, inner.b, 1.0f));
-        mPointLightShader->setUniformValue("iOuterColor", QVector4D(outer.r, outer.g, outer.b, 1.0f));
+        mPointLightShader->setUniformValue("iInnerColor", inner);
+        mPointLightShader->setUniformValue("iOuterColor", outer);
         mPointLightShader->setUniformValue("iMod", std::abs(mod - 1.0f));
 
         glDrawElements(GL_TRIANGLE_STRIP, 6, GL_UNSIGNED_SHORT, nullptr);

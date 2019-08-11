@@ -22,7 +22,7 @@ class Tileset;
 struct TilesetNode {
     uint32_t id;
     std::array<Types::Point<>, 4> pos;
-    Types::Point<> anim;
+    Types::Point<> animSize;
     uint8_t frames;
     std::atomic<float_t> current;
     uint32_t toggleWidth;
@@ -44,6 +44,7 @@ struct TilesetAttribute {
 struct TilesetAbove {
     typedef enum {
         None = 0,
+        Below,
         Row,
         All,
     } Type;

@@ -1,0 +1,42 @@
+{
+    "image": "inside",
+    "dimen": [48, 48],
+    "collision": "inside",
+    "nodes": [
+        // 1 - Wall 1
+        {
+            "index": 1,
+            "tile": "single"
+        },
+        // 2 - Wall 2
+        {
+            "index": 2,
+            "tile": "single"
+        },
+        // 3 - Wooden floor horisontal
+        {
+            "index": 3,
+            "tile": "single"
+        },
+        // 4 - Wooden floor vertical
+        {
+            "index": 4,
+            "tile": "single"
+        },
+        // 5 - Stone floor 1
+        {
+            "index": 5,
+            "tile": "single"
+        },
+        // 6 - Stone floor 2
+        {
+            "index": 6,
+            "tile": "single"
+        },
+        // 7 - Stone floor 3
+        {
+            "index": 7,
+            "tile": "single"
+        }
+    ]
+}

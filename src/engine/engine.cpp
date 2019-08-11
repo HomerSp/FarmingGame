@@ -319,6 +319,7 @@ void Engine::paint()
     Types::Dimension<> d = mMap->getTileDimension();
     int32_t startY = std::ceil(mCamera->y() / d.height);
 
+    // Select what characters we need to draw
     std::multimap<int32_t, Character*> drawCharacters;
     for (auto& i: mCharacters) {
         auto rc = i.second->rect();
@@ -327,7 +328,7 @@ void Engine::paint()
         }
     }
 
-    for (int32_t row = startY - 1; row <= startY + std::ceil(mHeight / d.height) + 1; row++) {
+    for (int32_t row = startY - 1; (row <= startY + std::ceil(mHeight / d.height) + 1) || !drawCharacters.empty(); row++) {
         auto it = drawCharacters.begin();
         while (it != drawCharacters.end()) {
             if (row * d.height >= it->first) {
@@ -346,6 +347,11 @@ void Engine::paint()
     }
 
     mScreenEffects->draw(renderer, *mClock, *mCamera, mLights);
+
+    if (translateX != 0.0f || translateY != 0.0f) {
+        renderer.translate(-translateX, -translateY);
+    }
+
     mHud->draw(renderer, *mClock, *mPlayer, mDrawingTimer);
 
     mNeedRepaint = false;

@@ -8,7 +8,7 @@ using namespace engine;
 
 Types::ColorGradient ScreenEffects::LightSource::lightColor()   
 {
-    return {Types::ColorF(1.0f, 1.0f, 1.0f)};
+    return {{1.0f, 1.0f, 1.0f}};
 }
 
 ScreenEffects::ScreenEffects(std::shared_ptr<Context>& ctx)
@@ -36,7 +36,7 @@ void ScreenEffects::draw(Renderer& renderer, Clock& clock, Camera& camera, const
         break;
     }
 
-    Types::ColorF color(1.0f - baseAlpha, 1.0f - baseAlpha, 1.0f - baseAlpha);
+    Types::Color color(1.0f - baseAlpha, 1.0f - baseAlpha, 1.0f - baseAlpha);
 
     // Night
     if (h >= clock.dawn() && h < clock.dusk()) {
@@ -48,14 +48,14 @@ void ScreenEffects::draw(Renderer& renderer, Clock& clock, Camera& camera, const
             float_t alpha = baseAlpha - baseAlpha * diff;
             float_t d = 0.2f * diff;
             float_t c = 1.0f - alpha;
-            color = Types::ColorF(std::min(c + d, 1.0f), c, c);
+            color = Types::Color(std::min(c + d, 1.0f), c, c);
         // Sunset
         } else if (h >= clock.sunset() && h < clock.dusk()) {
             float_t diff = (currentHour - (clock.sunset() * 60)) / ((clock.dusk() - clock.sunset()) * 60.0f);
             float_t alpha = baseAlpha * diff;
             float_t d = 0.2f - 0.2f * diff;
             float_t c = 1.0f - alpha;
-            color = Types::ColorF(std::min(c + d, 1.0f), c, c);
+            color = Types::Color(std::min(c + d, 1.0f), c, c);
         }
     }
 

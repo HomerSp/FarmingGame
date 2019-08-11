@@ -171,6 +171,7 @@ Map::Map(std::shared_ptr<Context>& ctx, const std::string& id)
     : ContextObject(ctx)
     , mValid(false)
     , mID(id)
+    , mType(MapType::Outside)
     , mDimensions(0, 0)
 {
     Logger::debug() << "Loading Map" << id;
@@ -188,6 +189,17 @@ Map::Map(std::shared_ptr<Context>& ctx, const std::string& id)
 
     mDimensions.width = (*doc)["width"].asInt();
     mDimensions.height = (*doc)["height"].asInt();
+
+    if (doc->isMember("type")) {
+        auto type = (*doc)["type"].asString();
+        switch (Types::hash(type.c_str())) {
+        case Types::hash("inside"):
+            mType = MapType::Inside;
+            break;
+        default:
+            break;
+        }
+    }
 
     Json::Value layers = (*doc)["layers"];
     for (auto layerObj : layers) {
@@ -431,6 +443,11 @@ bool Map::isColliding(const Types::Point<float_t>& pos, const Types::Dimension<>
 const std::string& Map::id() const
 {
     return mID;
+}
+
+MapType::Type Map::type() const
+{
+    return mType;
 }
 
 uint32_t Map::width() const

@@ -1,0 +1,34 @@
+{
+    "image": "water",
+    "dimen": [48, 48],
+    "collision": "water",
+    "nodes": [
+        // 1 - Shallow water
+        {
+            "index": 1,
+            "tile": "single",
+            "animation": {
+                "frames": 3
+            },
+            "attributes": [
+                "water"
+            ]
+        },
+        // 2 - Deep water
+        {
+            "index": 2,
+            "tile": "automatic",
+            "animation": {
+                "frames": 3
+            },
+            "attributes": [
+                "water"
+            ]
+        },
+        // 3 - Water lily
+        {
+            "index": 3,
+            "tile": "automatic"
+        }
+    ]
+}

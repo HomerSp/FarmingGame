@@ -73,7 +73,7 @@ bool Camera::contains(const Types::Rect<float_t>& rc, const Types::Dimension<>& 
 {
     std::lock_guard<std::mutex> lock(mMovementMutex);
     Types::Rect<float_t> cameraRc(mPos.x - buf.width, mPos.y - buf.height, mDimen.width + buf.width * 2, mDimen.height + buf.height * 2);
-    return rc.left() >= cameraRc.left() && rc.right() < cameraRc.right() && rc.top() >= cameraRc.top() && rc.bottom() < cameraRc.bottom();
+    return cameraRc.intersects(rc);
 }
 
 bool Camera::outsideView(const Types::Point<float_t>& pos)

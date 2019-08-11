@@ -1,0 +1,25 @@
+{
+    "image": "summer_outside",
+    "dimen": [48, 48],
+    "collision": "summer_outside",
+    "nodes": [
+        // 1 - Grass
+        {
+            "index": 1,
+            "tile": "automatic"
+        },
+        // 2 - Path with grass edges
+        {
+            "index": 2,
+            "tile": "automatic",
+            "attributes": [
+                "path"
+            ]
+        },
+        // 3 - Transparent with grass edges
+        {
+            "index": 3,
+            "tile": "automatic"
+        }
+    ]
+}

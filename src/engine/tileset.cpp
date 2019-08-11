@@ -25,7 +25,7 @@ TilesetType::TilesetType(uint32_t index, Types::Dimension<>& tileDimension, cons
     , mLightBase(-1, -1)
     , mLightRadius(0)
     , mLightStrength(0.0f)
-    , mLightColor(Types::ColorF(1.0f, 1.0f, 1.0f))
+    , mLightColor({1.0f, 1.0f, 1.0f})
 {
     switch (Types::hash(tileType.c_str())) {
     case Types::hash("automatic"):
@@ -150,13 +150,11 @@ void TilesetType::setFrames(int8_t frames)
     mFrames = frames;
     if (mFrames > 0) {
         switch (mTileType) {
-        case TileTypeAuto:
-            mSize.width *= mFrames;
-            break;
         case TileTypeAutoHoriz:
             mSize.height *= mFrames;
             break;
         default:
+            mSize.width *= mFrames;
             break;
         }
     }
@@ -187,12 +185,19 @@ std::shared_ptr<TilesetNode> TilesetType::toNode(Types::Map2D& tiles, uint32_t x
 {
     std::shared_ptr<TilesetNode> node = std::make_shared<TilesetNode>();
     node->id = x + (y * width);
-    node->anim = Types::Point<>((mTileType == TileTypeAuto) ? (mTileDimension.width * 2) : 0, (mTileType == TileTypeAutoHoriz) ? mTileDimension.height : 0);
+    node->animSize = Types::Point<>(mTileDimension.width, 0);
     node->frames = mFrames;
     node->current = 0;
     node->toggleWidth = (mAttributes[TilesetAttribute::Toggle]) ? (mSize.width / 2) : 0;
     node->toggled = false;
     node->type = this;
+
+    if (mTileType == TileTypeAuto) {
+        node->animSize.x *= 2;
+    } else if (mTileType == TileTypeAutoHoriz) {
+        node->animSize.x = 0;
+        node->animSize.y = mTileDimension.height;
+    }
 
     switch (mTileType) {
     case TileTypeSingle: {
@@ -505,6 +510,9 @@ Tileset::Tileset(std::shared_ptr<Context>& ctx, const std::string& name)
 
             if (nodeObj.isMember("above")) {
                 switch (Types::hash(nodeObj["above"].asString().c_str())) {
+                case Types::hash("below"):
+                    type->setAbove(TilesetAbove::Below);
+                    break;
                 case Types::hash("row"):
                     type->setAbove(TilesetAbove::Row);
                     break;
@@ -612,7 +620,7 @@ void Tileset::draw(Renderer& renderer, TilesetNode& node, const Types::Point<>& 
         dst.x = (pos.x * mTileDimension.width) + (dx * (mTileDimension.width / 2));
         dst.y = (pos.y * mTileDimension.height) + (dy * (mTileDimension.height / 2));
 
-        Types::Rect<> src(po.x + (node.anim.x * std::floor(node.current)), po.y + (node.anim.y * std::floor(node.current)), dst.width, dst.height);
+        Types::Rect<> src(po.x + (node.animSize.x * std::floor(node.current)), po.y + (node.animSize.y * std::floor(node.current)), dst.width, dst.height);
         if (node.toggled) {
             src.x += node.toggleWidth;
         }
