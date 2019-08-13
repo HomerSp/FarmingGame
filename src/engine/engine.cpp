@@ -42,7 +42,7 @@ Engine::Engine(uint32_t width, uint32_t height, std::shared_ptr<Renderer> render
     mClock = std::make_unique<engine::Clock>(mContext);
     mMap = std::make_unique<engine::Map>(mContext, "map");
     mPlayer = std::make_shared<engine::Player>(mContext);
-    mPlayer->setPosition("map", std::floor((mMap->pixelWidth() - mPlayer->width()) / 2), std::floor((mMap->pixelHeight() - mPlayer->height()) / 2));
+    mPlayer->setPosition("map", 9 * 48, (12 * 48) - 24);
 
     mCharacters.emplace("player", mPlayer);
 
@@ -314,7 +314,12 @@ void Engine::paint()
     }
 
     Types::Rect<> dst(mCamera->x(), mCamera->y(), mWidth, mHeight);
-    mMap->draw(renderer, dst);
+
+    // Draw water tiles
+    mMap->draw(renderer, dst, TilesetAbove::Water);
+
+    // Draw ground tiles
+    mMap->draw(renderer, dst, TilesetAbove::None);
 
     Types::Dimension<> d = mMap->getTileDimension();
     int32_t startY = std::ceil(mCamera->y() / d.height);

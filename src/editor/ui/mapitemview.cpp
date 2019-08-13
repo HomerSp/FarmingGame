@@ -24,7 +24,7 @@ void MapItemView::paint(QPainter* painter)
     mRenderer.setPainter(painter);
 
     engine::Types::Rect<> dst(0, 0, width(), height());
-    mMap->draw(mRenderer, dst, false);
+    mMap->draw(mRenderer, dst, engine::TilesetAbove::None, false);
 
     if (mSquare.x >= 0) {
         mRenderer.fillRect(mSquare, engine::Types::Color(0, 0, 0, 50));

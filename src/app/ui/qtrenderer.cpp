@@ -13,7 +13,6 @@
 QtRenderer::QtRenderer()
     : mPainter(nullptr)
     , mFBO(nullptr)
-    , mBufferIndices(QOpenGLBuffer::IndexBuffer)
     , mSize(-1, -1)
 {
 }
@@ -171,16 +170,8 @@ void QtRenderer::drawOverlay(const engine::Types::Point<>& dst, const engine::Ty
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glBlendEquationSeparate(GL_FUNC_ADD, GL_MAX);
 
-    QRect viewport = mPainter->viewport();
-
-    QMatrix4x4 pmvMatrix;
-    pmvMatrix.ortho(0, viewport.width(), viewport.height(), 0, -1, 1);
-
     for(auto& e: overlay.ellipses) {
         mPointLightShader->bind();
-
-        int vertexLocation = mPointLightShader->attributeLocation("iVertex");
-        int texcoordLocation = mPointLightShader->attributeLocation("iTexcoord");
 
         engine::Types::Rect<float> vertexRect(e.x - (e.radius / 2.0f), e.y - (e.radius / 2.0f), e.radius, e.radius);
 
@@ -192,28 +183,26 @@ void QtRenderer::drawOverlay(const engine::Types::Point<>& dst, const engine::Ty
         };
 
         mBufferCoords.bind();
-        mBufferIndices.bind();
         mBufferCoords.write(0, vertexPositions.data(), 8 * sizeof(QVector2D));
 
-        mPointLightShader->enableAttributeArray(vertexLocation);
-        mPointLightShader->setAttributeBuffer(vertexLocation, GL_FLOAT, 0, 2, sizeof(QVector2D) * 2);
+        mPointLightShader->enableAttributeArray(1);
+        mPointLightShader->setAttributeBuffer(1, GL_FLOAT, 0, 2, sizeof(QVector2D) * 2);
 
         QVector4D inner(std::max(overlay.background.r, e.gradient.inner.r), std::max(overlay.background.g, e.gradient.inner.g), std::max(overlay.background.b, e.gradient.inner.b), 1.0f);
         QVector4D outer(std::max(overlay.background.r, e.gradient.outer.r), std::max(overlay.background.g, e.gradient.outer.g), std::max(overlay.background.b, e.gradient.outer.b), 1.0f);
 
-        mPointLightShader->enableAttributeArray(texcoordLocation);
-        mPointLightShader->setAttributeBuffer(texcoordLocation, GL_FLOAT, sizeof(QVector2D), 2, sizeof(QVector2D) * 2);
-        mPointLightShader->setUniformValue("iMatrix", pmvMatrix);
+        mPointLightShader->enableAttributeArray(0);
+        mPointLightShader->setAttributeBuffer(0, GL_FLOAT, sizeof(QVector2D), 2, sizeof(QVector2D) * 2);
+        mPointLightShader->setUniformValue("iMatrix", mMatrix);
         mPointLightShader->setUniformValue("iInnerColor", inner);
         mPointLightShader->setUniformValue("iOuterColor", outer);
         mPointLightShader->setUniformValue("iMod", std::abs(mod - 1.0f));
 
-        glDrawElements(GL_TRIANGLE_STRIP, 6, GL_UNSIGNED_SHORT, nullptr);
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
-        mPointLightShader->disableAttributeArray(texcoordLocation);
-        mPointLightShader->disableAttributeArray(vertexLocation);
+        mPointLightShader->disableAttributeArray(0);
+        mPointLightShader->disableAttributeArray(1);
 
-        mBufferIndices.release();
         mBufferCoords.release();
 
         mPointLightShader->release();
@@ -227,28 +216,23 @@ void QtRenderer::drawOverlay(const engine::Types::Point<>& dst, const engine::Ty
     
     mTextureShader->bind();
 
-    int vertexLocation = mTextureShader->attributeLocation("iVertex");
-    int texcoordLocation = mTextureShader->attributeLocation("iTexcoord");
-
     glBindTexture(GL_TEXTURE_2D, mFBO->texture());
 
     mBufferFBO.bind();
-    mBufferIndices.bind();
 
-    mTextureShader->enableAttributeArray(vertexLocation);
-    mTextureShader->setAttributeBuffer(vertexLocation, GL_FLOAT, 0, 2, sizeof(QVector2D) * 2);
+    mTextureShader->enableAttributeArray(1);
+    mTextureShader->setAttributeBuffer(1, GL_FLOAT, 0, 2, sizeof(QVector2D) * 2);
 
-    mTextureShader->enableAttributeArray(texcoordLocation);
-    mTextureShader->setAttributeBuffer(texcoordLocation, GL_FLOAT, sizeof(QVector2D), 2, sizeof(QVector2D) * 2);
-    mTextureShader->setUniformValue("iMatrix", pmvMatrix);
+    mTextureShader->enableAttributeArray(0);
+    mTextureShader->setAttributeBuffer(0, GL_FLOAT, sizeof(QVector2D), 2, sizeof(QVector2D) * 2);
+    mTextureShader->setUniformValue("iMatrix", mMatrix);
     mTextureShader->setUniformValue("iTexture", 0);
 
-    glDrawElements(GL_TRIANGLE_STRIP, 6, GL_UNSIGNED_SHORT, nullptr);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
-    mTextureShader->disableAttributeArray(texcoordLocation);
-    mTextureShader->disableAttributeArray(vertexLocation);
+    mTextureShader->disableAttributeArray(0);
+    mTextureShader->disableAttributeArray(1);
 
-    mBufferIndices.release();
     mBufferFBO.release();
 
     mTextureShader->release();
@@ -348,7 +332,6 @@ void QtRenderer::cleanup()
 {
     mFBO.reset();
     mBufferCoords.destroy();
-    mBufferIndices.destroy();
     mBufferFBO.destroy();
 }
 
@@ -367,20 +350,15 @@ void QtRenderer::sync()
         mPointLightShader->addShaderFromSourceFile(QOpenGLShader::Fragment, "assets/shader/frag_pointlight.glsl");
         mPointLightShader->link();
 
+        mColorShader = std::make_unique<QOpenGLShaderProgram>();
+        mColorShader->addShaderFromSourceFile(QOpenGLShader::Vertex, "assets/shader/vert_simple2d.glsl");
+        mColorShader->addShaderFromSourceFile(QOpenGLShader::Fragment, "assets/shader/frag_color2d.glsl");
+        mColorShader->link();
+
         mBufferCoords.create();
         mBufferCoords.bind();
         mBufferCoords.allocate(8 * sizeof(QVector2D));
         mBufferCoords.release();
-
-        std::array<GLushort, 6> indices = {
-            0, 1, 2,  // Top-left, Bottom-left, Top-right
-            2, 3, 1   // Top-right, Bottom-right, Bottom-left
-        };
-
-        mBufferIndices.create();
-        mBufferIndices.bind();
-        mBufferIndices.allocate(indices.data(), 6 * sizeof(GLushort));
-        mBufferIndices.release();
 
         mBufferFBO.create();
         mBufferFBO.bind();
@@ -405,5 +383,8 @@ void QtRenderer::sync()
         mBufferFBO.bind();
         mBufferFBO.write(0, vertexPositions.data(), 8 * sizeof(QVector2D));
         mBufferFBO.release();
+
+        QRect viewport = mPainter->viewport();
+        mMatrix.ortho(0, viewport.width(), viewport.height(), 0, -1, 1);
     }
 }

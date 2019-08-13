@@ -1,7 +1,7 @@
 #version 330 core
 
-attribute vec3 iVertex;
-attribute vec2 iTexcoord;
+layout(location = 0) in vec2 iCoords;
+layout(location = 1) in vec3 iVertex;
 uniform mat4 iMatrix;
 
 varying vec2 vTexcoord;
@@ -9,5 +9,5 @@ varying vec2 vTexcoord;
 void main()
 {
     gl_Position = iMatrix * vec4(iVertex, 1.0);
-    vTexcoord = iTexcoord;
+    vTexcoord = iCoords;
 }

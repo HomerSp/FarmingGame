@@ -40,7 +40,7 @@ public:
 
     bool animate(uint64_t frameDiff);
 
-    void draw(Renderer& renderer, const Types::Rect<>& dst, bool clip);
+    void draw(Renderer& renderer, const Types::Rect<>& dst, TilesetAbove::Type above, bool clip);
     void drawRow(Renderer& renderer, const Types::Rect<>& dst, int32_t row, TilesetAbove::Type above, bool clip);
 
     void toggleLights(bool on);
@@ -77,7 +77,7 @@ public:
 
     bool animate(uint64_t frameDiff);
 
-    void draw(Renderer& renderer, const Types::Rect<>& dst, bool clip = true);
+    void draw(Renderer& renderer, const Types::Rect<>& dst, TilesetAbove::Type above, bool clip = true);
     void drawRow(Renderer& renderer, const Types::Rect<>& dst, int32_t row, TilesetAbove::Type above, bool clip = true);
 
     void checkCollision(const Types::Point<float_t>& pos, const Types::Dimension<>& size, Types::Point<float_t>& dst, float_t& velocityX, float_t& velocityY) const;

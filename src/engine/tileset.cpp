@@ -125,6 +125,11 @@ void TilesetType::setAbove(TilesetAbove::Type above)
 
 void TilesetType::setAttributes(const std::bitset<TilesetAttribute::Last>& attrs)
 {
+    // Water tiles need to be drawn separately
+    if (attrs[TilesetAttribute::Water]) {
+        mTileAbove = TilesetAbove::Water;
+    }
+
     mAttributes = attrs;
     if (mAttributes[TilesetAttribute::Toggle]) {
         mSize.width *= 2;

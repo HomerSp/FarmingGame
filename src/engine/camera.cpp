@@ -16,6 +16,12 @@ Camera::Camera(std::shared_ptr<Context> &ctx, uint32_t width, uint32_t height)
 {
 }
 
+Types::Point<float_t> Camera::position()
+{
+    std::lock_guard<std::mutex> lock(mMovementMutex);
+    return mPos;
+}
+
 int32_t Camera::x()
 {
     std::lock_guard<std::mutex> lock(mMovementMutex);

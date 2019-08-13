@@ -47,6 +47,7 @@ struct TilesetAbove {
         Below,
         Row,
         All,
+        Water,
     } Type;
 };
 

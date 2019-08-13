@@ -46,6 +46,8 @@ public:
 
     Camera(std::shared_ptr<Context> &ctx, uint32_t width, uint32_t height);
 
+    Types::Point<float_t> position();
+
     int32_t x();
     int32_t y();
 

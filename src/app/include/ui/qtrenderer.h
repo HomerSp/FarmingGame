@@ -2,7 +2,7 @@
 
 #include <QImage>
 #include <QOpenGLBuffer>
-#include <QOpenGLFunctions>
+#include <QOpenGLExtraFunctions>
 #include <QOpenGLFramebufferObject>
 #include <QOpenGLPaintDevice>
 #include <QOpenGLShaderProgram>
@@ -16,7 +16,7 @@
 #include <engine/image.h>
 #include <engine/renderer.h>
 
-class QtRenderer : public QObject, public engine::Renderer, protected QOpenGLFunctions {
+class QtRenderer : public QObject, public engine::Renderer, protected QOpenGLExtraFunctions {
     Q_OBJECT
 public:
     class QtImage : public engine::Image {
@@ -74,9 +74,11 @@ private:
     
     std::unique_ptr<QOpenGLShaderProgram> mTextureShader;
     std::unique_ptr<QOpenGLShaderProgram> mPointLightShader;
+    std::unique_ptr<QOpenGLShaderProgram> mColorShader;
 
+    QMatrix4x4 mMatrix;
     std::unique_ptr<QOpenGLFramebufferObject> mFBO;
-    QOpenGLBuffer mBufferFBO, mBufferCoords, mBufferIndices;
+    QOpenGLBuffer mBufferFBO, mBufferCoords;
 
     engine::Types::Dimension<int32_t> mSize;
 };

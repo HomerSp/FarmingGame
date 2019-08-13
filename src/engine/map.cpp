@@ -18,6 +18,11 @@ MapLayer::MapLayer(Types::Map2D data, std::shared_ptr<Tileset> tileset, uint32_t
     , mTileset(std::move(tileset))
     , mDimensions(width, height)
 {
+    // Add water nodes
+    if (!mTileset->updateTiles(mData, mNodes[TilesetAbove::Water], mDimensions.width, mDimensions.height, TilesetAbove::Water)) {
+        return;
+    }
+
     // Add ground nodes
     if (!mTileset->updateTiles(mData, mNodes[TilesetAbove::None], mDimensions.width, mDimensions.height, TilesetAbove::None)) {
         return;
@@ -70,11 +75,11 @@ bool MapLayer::animate(uint64_t frameDiff)
     return changed;
 }
 
-void MapLayer::draw(Renderer& renderer, const Types::Rect<>& dst, bool clip)
+void MapLayer::draw(Renderer& renderer, const Types::Rect<>& dst, TilesetAbove::Type above, bool clip)
 {
-    for (auto &nodeY: mNodes[TilesetAbove::None]) {
+    for (auto &nodeY: mNodes[above]) {
         if (nodeY.first >= dst.y - 1 && nodeY.first <= dst.y + dst.height + 1) {
-            drawRow(renderer, dst, nodeY.first, TilesetAbove::None, clip);
+            drawRow(renderer, dst, nodeY.first, above, clip);
         }
     }
 }
@@ -278,7 +283,7 @@ bool Map::animate(uint64_t frameDiff)
     return changed;
 }
 
-void Map::draw(Renderer& renderer, const Types::Rect<>& dst, bool clip)
+void Map::draw(Renderer& renderer, const Types::Rect<>& dst, TilesetAbove::Type above, bool clip)
 {
     Types::Dimension<> tileDimens = getTileDimension();
     Types::Rect<> target;
@@ -289,7 +294,7 @@ void Map::draw(Renderer& renderer, const Types::Rect<>& dst, bool clip)
 
     renderer.translate(-(dst.x % tileDimens.width), -(dst.y % tileDimens.height));
     for (const auto& layer : mLayers) {
-        layer->draw(renderer, target, clip);
+        layer->draw(renderer, target, above, clip);
     }
     renderer.translate((dst.x % tileDimens.width), (dst.y % tileDimens.height));
 }

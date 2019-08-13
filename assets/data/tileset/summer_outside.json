@@ -19,7 +19,10 @@
         // 3 - Transparent with grass edges
         {
             "index": 3,
-            "tile": "automatic"
+            "tile": "automatic",
+            "animation": {
+                "frames": 3
+            }
         }
     ]
 }
