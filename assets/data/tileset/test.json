@@ -1,0 +1,33 @@
+{
+    "image": "test",
+    "dimen": [48, 48],
+    "collision": "test",
+    "nodes": [
+        // Test automatic
+        {
+            "index": 1,
+            "tile": "automatic"
+        },
+        // Test automatic animation
+        {
+            "index": 2,
+            "tile": "automatic",
+            "animation": {
+                "frames": 3
+            }
+        },
+        // Test automatic horizontal
+        {
+            "index": 3,
+            "tile": "automatic_horizontal"
+        },
+        // Test automatic horizontal animation
+        {
+            "index": 4,
+            "tile": "automatic_horizontal",
+            "animation": {
+                "frames": 3
+            }
+        }
+    ]
+}

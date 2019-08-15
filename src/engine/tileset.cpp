@@ -204,8 +204,8 @@ std::shared_ptr<TilesetNode> TilesetType::toNode(Types::Map2D& tiles, uint32_t x
         node->animSize.y = mTileDimension.height;
     }
 
-    uint32_t tX = (mTileDimension.width / 2);
-    uint32_t tY = (mTileDimension.height / 2);
+    uint32_t chunkWidth = (mTileDimension.width / 2);
+    uint32_t chunkHeight = (mTileDimension.height / 2);
 
     switch (mTileType) {
     case TileTypeSingle: {
@@ -237,16 +237,16 @@ std::shared_ptr<TilesetNode> TilesetType::toNode(Types::Map2D& tiles, uint32_t x
         node->pos[0].y = pos.y;
 
         // Top right
-        node->pos[1].x = pos.x + tX;
+        node->pos[1].x = pos.x + chunkWidth;
         node->pos[1].y = pos.y;
 
         // Bottom left
         node->pos[2].x = pos.x;
-        node->pos[2].y = pos.y + tY;
+        node->pos[2].y = pos.y + chunkHeight;
 
         // Bottom right
-        node->pos[3].x = pos.x + tX;
-        node->pos[3].y = pos.y + tY;
+        node->pos[3].x = pos.x + chunkWidth;
+        node->pos[3].y = pos.y + chunkHeight;
         break;
     }
     case TileTypeAuto: {
@@ -258,212 +258,163 @@ std::shared_ptr<TilesetNode> TilesetType::toNode(Types::Map2D& tiles, uint32_t x
         12 13 14 15
         16 17 18 19
         20 21 22 23
+        XX - Unused
+        02, 03, 06, 07 - Inner corners
+        08, 11, 20, 23 - Outer corners
         */
 
         // Top left
-        uint32_t pX = 0, pY = 0;
-
+        uint8_t tlX = 0, tlY = 0;
         if (x > 0 && y > 0) {
             if (tiles[x - 1][y - 1] != tiles[x][y] && tiles[x - 1][y] == tiles[x][y] && tiles[x][y - 1] == tiles[x][y]) {
-                pX = 2;
+                tlX = 2;
             } else if (tiles[x - 1][y] != tiles[x][y] && tiles[x][y - 1] != tiles[x][y]) {
-                pY = 2;
-            } else if (tiles[x - 1][y] != tiles[x][y]) {
-                pY = 4;
-            } else if (tiles[x][y - 1] != tiles[x][y]) {
-                pX = 2;
-                pY = 2;
-            } else {
-                pX = 2;
-                pY = 4;
+                tlY = 2;
             }
-        } else if (x > 0) {
-            if (tiles[x - 1][y] != tiles[x][y]) {
-                pY = 4;
-            } else {
-                pX = 2;
-                pY = 4;
-            }
-        } else if (y > 0) {
-            if (tiles[x][y - 1] != tiles[x][y]) {
-                pX = 2;
-                pY = 2;
-            } else {
-                pX = 2;
-                pY = 4;
-            }
-        } else {
-            pX = 2;
-            pY = 4;
         }
-
-        node->pos[0].x = mSize.x + tX * pX;
-        node->pos[0].y = mSize.y + tY * pY;
-
-        pY = 0;
+        if (tlX == 0 && tlY == 0) {
+            if (x > 0 && tiles[x - 1][y] != tiles[x][y]) {
+                tlY = 4;
+            } else if (y > 0 && tiles[x][y - 1] != tiles[x][y]) {
+                tlX = 2;
+                tlY = 2;
+            } else {
+                tlX = 2;
+                tlY = 4;
+            }
+        }
 
         // Top right
+        uint8_t trX = 0, trY = 0;
         if (x < width - 1 && y > 0) {
             if (tiles[x + 1][y - 1] != tiles[x][y] && tiles[x + 1][y] == tiles[x][y] && tiles[x][y - 1] == tiles[x][y]) {
-                pX = 3;
+                trX = 3;
             } else if (tiles[x + 1][y] != tiles[x][y] && tiles[x][y - 1] != tiles[x][y]) {
-                pX = 3;
-                pY = 2;
-            } else if (tiles[x + 1][y] != tiles[x][y]) {
-                pX = 3;
-                pY = 4;
-            } else if (tiles[x][y - 1] != tiles[x][y]) {
-                pX = 1;
-                pY = 2;
-            } else {
-                pX = 1;
-                pY = 4;
+                trX = 3;
+                trY = 2;
             }
-        } else if (x < width - 1) {
-            if (tiles[x + 1][y] != tiles[x][y]) {
-                pX = 3;
-                pY = 4;
-            } else {
-                pX = 1;
-                pY = 4;
-            }
-        } else if (y > 0) {
-            if (tiles[x][y - 1] != tiles[x][y]) {
-                pX = 2;
-                pY = 2;
-            } else {
-                pX = 1;
-                pY = 4;
-            }
-        } else {
-            pX = 1;
-            pY = 4;
         }
 
-        node->pos[1].x = mSize.x + tX * pX;
-        node->pos[1].y = mSize.y + tY * pY;
-
-        pX = 0;
+        if (trX == 0 && trY == 0) {
+            if (x < width - 1 && tiles[x + 1][y] != tiles[x][y]) {
+                trX = 3;
+                trY = 4;
+            } else if (y > 0 && tiles[x][y - 1] != tiles[x][y]) {
+                trX = 1;
+                trY = 2;
+            } else {
+                trX = 1;
+                trY = 4;
+            }
+        }
 
         // Bottom left
+        uint8_t blX = 0, blY = 0;
         if (x > 0 && y < height - 1) {
             if (tiles[x - 1][y + 1] != tiles[x][y] && tiles[x - 1][y] == tiles[x][y] && tiles[x][y + 1] == tiles[x][y]) {
-                pX = 2;
-                pY = 1;
+                blX = 2;
+                blY = 1;
             } else if (tiles[x - 1][y] != tiles[x][y] && tiles[x][y + 1] != tiles[x][y]) {
-                pY = 5;
-            } else if (tiles[x - 1][y] != tiles[x][y]) {
-                pY = 3;
-            } else if (tiles[x][y + 1] != tiles[x][y]) {
-                pX = 2;
-                pY = 5;
-            } else {
-                pX = 2;
-                pY = 3;
+                blY = 5;
             }
-        } else if (x > 0) {
-            if (tiles[x - 1][y] != tiles[x][y]) {
-                pY = 3;
-            } else {
-                pX = 2;
-                pY = 3;
-            }
-        } else if (y < height - 1) {
-            if (tiles[x][y + 1] != tiles[x][y]) {
-                pX = 2;
-                pY = 5;
-            } else {
-                pX = 2;
-                pY = 3;
-            }
-        } else {
-            pX = 2;
-            pY = 3;
         }
 
-        node->pos[2].x = mSize.x + tX * pX;
-        node->pos[2].y = mSize.y + tY * pY;
+        if (blX == 0 && blY == 0) {
+            if (x > 0 && tiles[x - 1][y] != tiles[x][y]) {
+                blY = 3;
+            } else if (y < height - 1 && tiles[x][y + 1] != tiles[x][y]) {
+                blX = 2;
+                blY = 5;
+            } else {
+                blX = 2;
+                blY = 3;
+            }
+        }
 
         // Bottom right
+        uint8_t brX = 0, brY = 0;
         if (x < width - 1 && y < height - 1) {
             if (tiles[x + 1][y + 1] != tiles[x][y] && tiles[x + 1][y] == tiles[x][y] && tiles[x][y + 1] == tiles[x][y]) {
-                pX = 3;
-                pY = 1;
+                brX = 3;
+                brY = 1;
             } else if (tiles[x + 1][y] != tiles[x][y] && tiles[x][y + 1] != tiles[x][y]) {
-                pX = 3;
-                pY = 5;
-            } else if (tiles[x + 1][y] != tiles[x][y]) {
-                pX = 3;
-                pY = 3;
-            } else if (tiles[x][y + 1] != tiles[x][y]) {
-                pX = 1;
-                pY = 5;
-            } else {
-                pX = 1;
-                pY = 3;
+                brX = 3;
+                brY = 5;
             }
-        } else if (x < width - 1) {
-            if (tiles[x + 1][y] != tiles[x][y]) {
-                pX = 3;
-                pY = 3;
-            } else {
-                pX = 1;
-                pY = 3;
-            }
-        } else if (y < height - 1) {
-            if (tiles[x][y + 1] != tiles[x][y]) {
-                pX = 1;
-                pY = 5;
-            } else {
-                pX = 1;
-                pY = 3;
-            }
-        } else {
-            pX = 1;
-            pY = 3;
         }
 
-        node->pos[3].x = mSize.x + tX * pX;
-        node->pos[3].y = mSize.y + tY * pY;
+        if (brX == 0 && brY == 0) {
+            if (x < width - 1 && tiles[x + 1][y] != tiles[x][y]) {
+                brX = 3;
+                brY = 3;
+            } else if (y < height - 1 && tiles[x][y + 1] != tiles[x][y]) {
+                brX = 1;
+                brY = 5;
+            } else {
+                brX = 1;
+                brY = 3;
+            }
+        }
+
+        node->pos[0].x = mSize.x + chunkWidth * tlX;
+        node->pos[0].y = mSize.y + chunkHeight * tlY;
+
+        node->pos[1].x = mSize.x + chunkWidth * trX;
+        node->pos[1].y = mSize.y + chunkHeight * trY;
+
+        node->pos[2].x = mSize.x + chunkWidth * blX;
+        node->pos[2].y = mSize.y + chunkHeight * blY;
+
+        node->pos[3].x = mSize.x + chunkWidth * brX;
+        node->pos[3].y = mSize.y + chunkHeight * brY;
 
         break;
     }
     case TileTypeAutoHoriz: {
         // Top left
-        if (x > 0 && tiles[x - 1][y] != tiles[x][y]) {
-            node->pos[0].x = mSize.x;
-            node->pos[0].y = mSize.y;
-        } else {
-            node->pos[0].x = mSize.x + (mTileDimension.width / 2);
-            node->pos[0].y = mSize.y;
+        uint8_t tlX = 0, tlY = 0;
+        if (!(x > 0 && tiles[x - 1][y] != tiles[x][y])) {
+            tlX = 2; 
         }
 
         // Top right
+        uint8_t trX = 0, trY = 0;
         if (x < width - 1 && tiles[x + 1][y] != tiles[x][y]) {
-            node->pos[1].x = mSize.x + (mTileDimension.width + (mTileDimension.width / 2));
-            node->pos[1].y = mSize.y;
+            trX = 3;
         } else {
-            node->pos[1].x = mSize.x + mTileDimension.width;
-            node->pos[1].y = mSize.y;
+            trX = 1;
         }
 
         // Bottom left
+        uint8_t blX = 0, blY = 0;
         if (x > 0 && tiles[x - 1][y] != tiles[x][y]) {
-            node->pos[2].x = mSize.x;
-            node->pos[2].y = mSize.y + (mTileDimension.height / 2);
+            blY = 1;
         } else {
-            node->pos[2].x = mSize.x + (mTileDimension.width / 2);
-            node->pos[2].y = mSize.y + (mTileDimension.height / 2);
+            blX = 2;
+            blY = 1;
         }
 
         // Bottom right
+        uint8_t brX = 0, brY = 0;
         if (x < width - 1 && tiles[x + 1][y] != tiles[x][y]) {
-            node->pos[3].x = mSize.x + (mTileDimension.width + (mTileDimension.width / 2));
-            node->pos[3].y = mSize.y + (mTileDimension.height / 2);
+            brX = 3;
+            brY = 1;
         } else {
-            node->pos[3].x = mSize.x + mTileDimension.width;
-            node->pos[3].y = mSize.y + (mTileDimension.height / 2);
+            brX = 1;
+            brY = 1;
         }
+
+        node->pos[0].x = mSize.x + tlX * chunkWidth;
+        node->pos[0].y = mSize.y + tlY * chunkHeight;
+
+        node->pos[1].x = mSize.x + trX * chunkWidth;
+        node->pos[1].y = mSize.y + trY * chunkHeight;
+
+        node->pos[2].x = mSize.x + blX * chunkWidth;
+        node->pos[2].y = mSize.y + blY * chunkHeight;
+
+        node->pos[3].x = mSize.x + brX * chunkWidth;
+        node->pos[3].y = mSize.y + brY * chunkHeight;
 
         break;
     }
