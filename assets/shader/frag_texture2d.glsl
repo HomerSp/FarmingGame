@@ -1,11 +1,13 @@
 #version 330 core
 
-out vec4 oColor;
-
 uniform sampler2D iTexture;
-varying vec2 vTexcoord;
+uniform vec2 iResolution;
+
+out vec4 oColor;
+in vec2 vCoords;
 
 void main(void)
 {
-    oColor = texture2D(iTexture, vTexcoord);
+    vec2 c = vec2(vCoords.x / iResolution.x, vCoords.y / iResolution.y);
+    oColor = texture2D(iTexture, c);
 };

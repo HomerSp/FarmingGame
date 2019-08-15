@@ -17,16 +17,6 @@ QtRenderer::QtRenderer()
 {
 }
 
-void QtRenderer::init()
-{
-    std::vector<std::string> fonts;
-    if (context().fontManager().files(fonts)) {
-        for (const std::string& f: fonts) {
-            QFontDatabase::addApplicationFont(f.c_str());
-        }
-    }
-}
-
 void QtRenderer::setSize(uint32_t w, uint32_t h)
 {
     mSize.width = w;
@@ -227,6 +217,7 @@ void QtRenderer::drawOverlay(const engine::Types::Point<>& dst, const engine::Ty
     mTextureShader->setAttributeBuffer(0, GL_FLOAT, sizeof(QVector2D), 2, sizeof(QVector2D) * 2);
     mTextureShader->setUniformValue("iMatrix", mMatrix);
     mTextureShader->setUniformValue("iTexture", 0);
+    mTextureShader->setUniformValue("iResolution", QVector2D(mFBO->width(), mFBO->height()));
 
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
@@ -308,26 +299,6 @@ std::unique_ptr<engine::Image> QtRenderer::loadImage(const std::string& path) co
     return std::make_unique<QtImage>(path);
 }
 
-QtRenderer::QtImage::QtImage(const std::string& path)
-{
-    mImage = std::make_unique<QImage>(QString(path.c_str()));
-}
-
-const QImage& QtRenderer::QtImage::image() const
-{
-    return *mImage;
-}
-
-uint32_t QtRenderer::QtImage::width() const
-{
-    return mImage->width();
-}
-
-uint32_t QtRenderer::QtImage::height() const
-{
-    return mImage->height();
-}
-
 void QtRenderer::cleanup()
 {
     mFBO.reset();
@@ -374,10 +345,10 @@ void QtRenderer::sync()
 
         // The FBO texture is upside down (y starts at bottom), so we need to reverse it here
         std::array<QVector2D, 8> vertexPositions = {
-            QVector2D(vertexRect.left(), vertexRect.top()), QVector2D(0, 1),      // Top left
+            QVector2D(vertexRect.left(), vertexRect.top()), QVector2D(0, mFBO->height()),      // Top left
             QVector2D(vertexRect.left(), vertexRect.bottom()), QVector2D(0, 0),   // Bottom left
-            QVector2D(vertexRect.right(), vertexRect.top()), QVector2D(1, 1),     // Top right
-            QVector2D(vertexRect.right(), vertexRect.bottom()), QVector2D(1, 0)   // Bottom right
+            QVector2D(vertexRect.right(), vertexRect.top()), QVector2D(mFBO->width(), mFBO->height()),     // Top right
+            QVector2D(vertexRect.right(), vertexRect.bottom()), QVector2D(mFBO->width(), 0)   // Bottom right
         };
 
         mBufferFBO.bind();
@@ -387,4 +358,34 @@ void QtRenderer::sync()
         QRect viewport = mPainter->viewport();
         mMatrix.ortho(0, viewport.width(), viewport.height(), 0, -1, 1);
     }
+}
+
+void QtRenderer::initContext()
+{
+    std::vector<std::string> fonts;
+    if (context().fontManager().files(fonts)) {
+        for (const std::string& f: fonts) {
+            QFontDatabase::addApplicationFont(f.c_str());
+        }
+    }
+}
+
+QtRenderer::QtImage::QtImage(const std::string& path)
+{
+    mImage = std::make_unique<QImage>(QString(path.c_str()));
+}
+
+const QImage& QtRenderer::QtImage::image() const
+{
+    return *mImage;
+}
+
+uint32_t QtRenderer::QtImage::width() const
+{
+    return mImage->width();
+}
+
+uint32_t QtRenderer::QtImage::height() const
+{
+    return mImage->height();
 }

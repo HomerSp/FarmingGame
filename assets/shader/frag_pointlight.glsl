@@ -1,16 +1,15 @@
 #version 330 core
 
-out vec4 oColor;
-
 uniform vec4 iInnerColor;
 uniform vec4 iOuterColor;
 uniform float iMod;
 
-varying vec2 vTexcoord;
+out vec4 oColor;
+in vec2 vCoords;
 
 void main(void)
 {
-    float d = dot(vTexcoord, vTexcoord);
+    float d = dot(vCoords, vCoords);
     if (d > 1.0) {
         discard;
     }

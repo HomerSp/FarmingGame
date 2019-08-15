@@ -10,4 +10,5 @@ Context& Renderer::context()
 void Renderer::setContext(std::shared_ptr<Context>& ctx)
 {
     mContext = ctx;
+    initContext();
 }

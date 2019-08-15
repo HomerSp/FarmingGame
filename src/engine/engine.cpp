@@ -32,7 +32,6 @@ Engine::Engine(uint32_t width, uint32_t height, std::shared_ptr<Renderer> render
     mContext = std::make_shared<Context>(*this, mScriptEngine, *mRenderer);
 
     mRenderer->setContext(mContext);
-    mRenderer->init();
 
     mEngineObject = std::make_shared<EngineObject>(mContext);
 

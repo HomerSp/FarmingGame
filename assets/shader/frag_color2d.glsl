@@ -1,10 +1,9 @@
 #version 330 core
 
-out vec4 oColor;
-
 uniform vec4 iColor;
 
-varying vec2 vTexcoord;
+out vec4 oColor;
+in vec2 vCoords;
 
 void main(void)
 {

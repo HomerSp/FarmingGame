@@ -37,7 +37,6 @@ public:
     QtRenderer();
     virtual ~QtRenderer() = default;
 
-    void init();
     void setSize(uint32_t w, uint32_t h);
 
     void paint(std::shared_ptr<engine::Engine>& engine, const engine::Types::Dimension<int32_t>& size, double pixelRatio);
@@ -66,6 +65,7 @@ public slots:
     void cleanup();
 
 protected:
+    void initContext();
     void sync();
 
 private:

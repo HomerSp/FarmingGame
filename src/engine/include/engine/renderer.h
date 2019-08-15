@@ -16,7 +16,6 @@ class Renderer {
 public:
     Renderer() = default;
 
-    virtual void init() = 0;
     virtual void setSize(uint32_t w, uint32_t h) = 0;
 
     virtual int32_t width() = 0;
@@ -42,6 +41,7 @@ public:
 protected:
     friend class Engine;
 
+    virtual void initContext() = 0;
     void setContext(std::shared_ptr<Context>& ctx);
 
 private:

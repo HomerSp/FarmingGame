@@ -21,8 +21,6 @@ MapItemView::MapItemView(QQuickItem* parent)
 
 void MapItemView::paint(QPainter* painter)
 {
-    mRenderer.setPainter(painter);
-
     engine::Types::Rect<> dst(0, 0, width(), height());
     mMap->draw(mRenderer, dst, engine::TilesetAbove::None, false);
 
