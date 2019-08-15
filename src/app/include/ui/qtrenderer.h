@@ -37,9 +37,9 @@ public:
     QtRenderer();
     virtual ~QtRenderer() = default;
 
-    void setSize(uint32_t w, uint32_t h);
+    void setSize(uint32_t w, uint32_t h, double devicePixelRatio);
 
-    void paint(std::shared_ptr<engine::Engine>& engine, const engine::Types::Dimension<int32_t>& size, double pixelRatio);
+    void paint(std::shared_ptr<engine::Engine>& engine);
 
     int32_t width();
     int32_t height();
@@ -57,8 +57,6 @@ public:
     void save();
     void restore();
 
-    void setPainter(QPainter* painter);
-
     std::unique_ptr<engine::Image> loadImage(const std::string& path) const;
 
 public slots:
@@ -70,7 +68,7 @@ protected:
 
 private:
     std::unique_ptr<QOpenGLPaintDevice> mDevice;
-    QPainter* mPainter;
+    std::unique_ptr<QPainter> mPainter;
     
     std::unique_ptr<QOpenGLShaderProgram> mTextureShader;
     std::unique_ptr<QOpenGLShaderProgram> mPointLightShader;

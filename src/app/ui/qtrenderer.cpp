@@ -15,26 +15,79 @@ QtRenderer::QtRenderer()
     , mFBO(nullptr)
     , mSize(-1, -1)
 {
+    initializeOpenGLFunctions();
+
+    mDevice = std::make_unique<QOpenGLPaintDevice>();
+
+    mTextureShader = std::make_unique<QOpenGLShaderProgram>();
+    mTextureShader->addShaderFromSourceFile(QOpenGLShader::Vertex, "assets/shader/vert_simple2d.glsl");
+    mTextureShader->addShaderFromSourceFile(QOpenGLShader::Fragment, "assets/shader/frag_texture2d.glsl");
+    mTextureShader->link();
+
+    mPointLightShader = std::make_unique<QOpenGLShaderProgram>();
+    mPointLightShader->addShaderFromSourceFile(QOpenGLShader::Vertex, "assets/shader/vert_simple2d.glsl");
+    mPointLightShader->addShaderFromSourceFile(QOpenGLShader::Fragment, "assets/shader/frag_pointlight.glsl");
+    mPointLightShader->link();
+
+    mColorShader = std::make_unique<QOpenGLShaderProgram>();
+    mColorShader->addShaderFromSourceFile(QOpenGLShader::Vertex, "assets/shader/vert_simple2d.glsl");
+    mColorShader->addShaderFromSourceFile(QOpenGLShader::Fragment, "assets/shader/frag_color2d.glsl");
+    mColorShader->link();
+
+    mBufferCoords.create();
+    mBufferCoords.bind();
+    mBufferCoords.allocate(8 * sizeof(QVector2D));
+    mBufferCoords.release();
+
+    mBufferFBO.create();
+    mBufferFBO.bind();
+    mBufferFBO.allocate(8 * sizeof(QVector2D));
+    mBufferFBO.release();
 }
 
-void QtRenderer::setSize(uint32_t w, uint32_t h)
+void QtRenderer::setSize(uint32_t w, uint32_t h, double devicePixelRatio)
 {
+    mDevice->setSize(QSize(w * devicePixelRatio, h * devicePixelRatio));
+    mDevice->setDevicePixelRatio(devicePixelRatio);
+
+    mFBO = std::make_unique<QOpenGLFramebufferObject>(w, h);
+
+    engine::Types::Rect<float> vertexRect(0, 0, mFBO->width(), mFBO->height());
+
+    // The FBO texture is upside down (y starts at bottom), so we need to reverse it here
+    std::array<QVector2D, 8> vertexPositions = {
+        QVector2D(vertexRect.left(), vertexRect.top()), QVector2D(0, mFBO->height()),      // Top left
+        QVector2D(vertexRect.left(), vertexRect.bottom()), QVector2D(0, 0),   // Bottom left
+        QVector2D(vertexRect.right(), vertexRect.top()), QVector2D(mFBO->width(), mFBO->height()),     // Top right
+        QVector2D(vertexRect.right(), vertexRect.bottom()), QVector2D(mFBO->width(), 0)   // Bottom right
+    };
+
+    mBufferFBO.bind();
+    mBufferFBO.write(0, vertexPositions.data(), 8 * sizeof(QVector2D));
+    mBufferFBO.release();
+
+    mMatrix = QMatrix4x4();
+    mMatrix.ortho(0, w, h, 0, -1, 1);
+
     mSize.width = w;
     mSize.height = h;
 }
 
-void QtRenderer::paint(std::shared_ptr<engine::Engine>& engine, const engine::Types::Dimension<int32_t>& size, double pixelRatio)
+void QtRenderer::paint(std::shared_ptr<engine::Engine>& engine)
 {
-    if (!mDevice) {
-        mDevice = std::make_unique<QOpenGLPaintDevice>();
-    }
+    mPainter = std::make_unique<QPainter>(mDevice.get());
+    mPainter->setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing | QPainter::SmoothPixmapTransform);
 
-    mDevice->setSize(QSize(size.width, size.height));
-    mDevice->setDevicePixelRatio(pixelRatio);
+    QPainterPath screen;
+    screen.addRect(0, 0, width(), height());
+    mPainter->setClipPath(screen);
 
-    QPainter painter(mDevice.get());
-    setPainter(&painter);
+    QFont font = mPainter->font();
+    font.setPixelSize(24);
+    mPainter->setFont(font);
+
     engine->paint();
+    mPainter.reset();
 }
 
 int32_t QtRenderer::width()
@@ -272,28 +325,6 @@ void QtRenderer::restore()
     mPainter->restore();
 }
 
-void QtRenderer::setPainter(QPainter* painter)
-{
-    mPainter = painter;
-    if (mPainter == nullptr) {
-        return;
-    }
-
-    mPainter->setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing | QPainter::SmoothPixmapTransform);
-
-    QPainterPath screen;
-    screen.addRect(0, 0, width(), height());
-    mPainter->setClipPath(screen);
-
-    QFont font = mPainter->font();
-    font.setPixelSize(24);
-    mPainter->setFont(font);
-
-    mPainter->beginNativePainting();
-    sync();
-    mPainter->endNativePainting();
-}
-
 std::unique_ptr<engine::Image> QtRenderer::loadImage(const std::string& path) const
 {
     return std::make_unique<QtImage>(path);
@@ -308,55 +339,8 @@ void QtRenderer::cleanup()
 
 void QtRenderer::sync()
 {
-    if (!mFBO) {
-        initializeOpenGLFunctions();
-
-        mTextureShader = std::make_unique<QOpenGLShaderProgram>();
-        mTextureShader->addShaderFromSourceFile(QOpenGLShader::Vertex, "assets/shader/vert_simple2d.glsl");
-        mTextureShader->addShaderFromSourceFile(QOpenGLShader::Fragment, "assets/shader/frag_texture2d.glsl");
-        mTextureShader->link();
-
-        mPointLightShader = std::make_unique<QOpenGLShaderProgram>();
-        mPointLightShader->addShaderFromSourceFile(QOpenGLShader::Vertex, "assets/shader/vert_simple2d.glsl");
-        mPointLightShader->addShaderFromSourceFile(QOpenGLShader::Fragment, "assets/shader/frag_pointlight.glsl");
-        mPointLightShader->link();
-
-        mColorShader = std::make_unique<QOpenGLShaderProgram>();
-        mColorShader->addShaderFromSourceFile(QOpenGLShader::Vertex, "assets/shader/vert_simple2d.glsl");
-        mColorShader->addShaderFromSourceFile(QOpenGLShader::Fragment, "assets/shader/frag_color2d.glsl");
-        mColorShader->link();
-
-        mBufferCoords.create();
-        mBufferCoords.bind();
-        mBufferCoords.allocate(8 * sizeof(QVector2D));
-        mBufferCoords.release();
-
-        mBufferFBO.create();
-        mBufferFBO.bind();
-        mBufferFBO.allocate(8 * sizeof(QVector2D));
-        mBufferFBO.release();
-    }
-
     if (!mFBO || mSize.width >= 0) {
-        mFBO = std::make_unique<QOpenGLFramebufferObject>(mPainter->viewport().width(), mPainter->viewport().height());
         mSize.width = mSize.height = -1;
-
-        engine::Types::Rect<float> vertexRect(0, 0, mFBO->width(), mFBO->height());
-
-        // The FBO texture is upside down (y starts at bottom), so we need to reverse it here
-        std::array<QVector2D, 8> vertexPositions = {
-            QVector2D(vertexRect.left(), vertexRect.top()), QVector2D(0, mFBO->height()),      // Top left
-            QVector2D(vertexRect.left(), vertexRect.bottom()), QVector2D(0, 0),   // Bottom left
-            QVector2D(vertexRect.right(), vertexRect.top()), QVector2D(mFBO->width(), mFBO->height()),     // Top right
-            QVector2D(vertexRect.right(), vertexRect.bottom()), QVector2D(mFBO->width(), 0)   // Bottom right
-        };
-
-        mBufferFBO.bind();
-        mBufferFBO.write(0, vertexPositions.data(), 8 * sizeof(QVector2D));
-        mBufferFBO.release();
-
-        QRect viewport = mPainter->viewport();
-        mMatrix.ortho(0, viewport.width(), viewport.height(), 0, -1, 1);
     }
 }
 

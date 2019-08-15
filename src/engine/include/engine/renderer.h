@@ -16,7 +16,9 @@ class Renderer {
 public:
     Renderer() = default;
 
-    virtual void setSize(uint32_t w, uint32_t h) = 0;
+    virtual void setSize(uint32_t w, uint32_t h, double devicePixelRatio) = 0;
+
+    virtual void paint(std::shared_ptr<engine::Engine>& engine) = 0;
 
     virtual int32_t width() = 0;
     virtual int32_t height() = 0;

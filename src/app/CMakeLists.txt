@@ -9,7 +9,6 @@ find_package(Qt5 COMPONENTS Widgets Qml Quick REQUIRED)
 
 include_directories(${Qt5Widgets_INCLUDE_DIRS} ${QtQml_INCLUDE_DIRS})
 add_definitions(${Qt5Widgets_DEFINITIONS} ${QtQml_DEFINITIONS} ${${Qt5Quick_DEFINITIONS}})
-qt5_add_resources(QT_RESOURCES qml.qrc)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt5Widgets_EXECUTABLE_COMPILE_FLAGS} -Wno-error=unused-but-set-variable")
 set(CMAKE_AUTOMOC ON)
@@ -22,13 +21,13 @@ include_directories(
 
 set(HEADERS
     include/ui/qtrenderer.h
-    include/ui/mapitemview.h
+    include/ui/qtwindow.h
 )
 
 set(SOURCES
     main.cpp
     ui/qtrenderer.cpp
-    ui/mapitemview.cpp
+    ui/qtwindow.cpp
 )
 
 source_group("Header Files" FILES ${HEADERS})
