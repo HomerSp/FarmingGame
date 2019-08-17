@@ -74,7 +74,7 @@ private:
     std::unique_ptr<QOpenGLShaderProgram> mPointLightShader;
     std::unique_ptr<QOpenGLShaderProgram> mColorShader;
 
-    QMatrix4x4 mMatrix;
+    QMatrix4x4 mWorldMatrix, mProjectionMatrix;
     std::unique_ptr<QOpenGLFramebufferObject> mFBO;
     QOpenGLBuffer mBufferFBO, mBufferCoords;
 

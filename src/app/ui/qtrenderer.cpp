@@ -25,8 +25,8 @@ QtRenderer::QtRenderer()
     mTextureShader->link();
 
     mPointLightShader = std::make_unique<QOpenGLShaderProgram>();
-    mPointLightShader->addShaderFromSourceFile(QOpenGLShader::Vertex, "assets/shader/vert_simple2d.glsl");
-    mPointLightShader->addShaderFromSourceFile(QOpenGLShader::Fragment, "assets/shader/frag_pointlight.glsl");
+    mPointLightShader->addShaderFromSourceFile(QOpenGLShader::Vertex, "assets/shader/pointlight.vs");
+    mPointLightShader->addShaderFromSourceFile(QOpenGLShader::Fragment, "assets/shader/pointlight.fs");
     mPointLightShader->link();
 
     mColorShader = std::make_unique<QOpenGLShaderProgram>();
@@ -66,8 +66,8 @@ void QtRenderer::setSize(uint32_t w, uint32_t h, double devicePixelRatio)
     mBufferFBO.write(0, vertexPositions.data(), 8 * sizeof(QVector2D));
     mBufferFBO.release();
 
-    mMatrix = QMatrix4x4();
-    mMatrix.ortho(0, w, h, 0, -1, 1);
+    mWorldMatrix = QMatrix4x4();
+    mWorldMatrix.ortho(0, w, h, 0, -1, 1);
 
     mSize.width = w;
     mSize.height = h;
@@ -85,6 +85,8 @@ void QtRenderer::paint(std::shared_ptr<engine::Engine>& engine)
     QFont font = mPainter->font();
     font.setPixelSize(24);
     mPainter->setFont(font);
+
+    mProjectionMatrix.setToIdentity();
 
     engine->paint();
     mPainter.reset();
@@ -213,43 +215,88 @@ void QtRenderer::drawOverlay(const engine::Types::Point<>& dst, const engine::Ty
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glBlendEquationSeparate(GL_FUNC_ADD, GL_MAX);
 
+    QOpenGLBuffer lightBuffer;
+    lightBuffer.create();
+    lightBuffer.bind();
+    lightBuffer.allocate(sizeof(QVector4D) * 6 * overlay.ellipses.size());
+
+    uint32_t i = 0;
     for(auto& e: overlay.ellipses) {
-        mPointLightShader->bind();
-
-        engine::Types::Rect<float> vertexRect(e.x - (e.radius / 2.0f), e.y - (e.radius / 2.0f), e.radius, e.radius);
-
-        std::array<QVector2D, 8> vertexPositions = {
-            QVector2D(vertexRect.left(), vertexRect.top()), QVector2D(-1, -1),
-            QVector2D(vertexRect.left(), vertexRect.bottom()), QVector2D(-1, 1),
-            QVector2D(vertexRect.right(), vertexRect.top()), QVector2D(1, -1),
-            QVector2D(vertexRect.right(), vertexRect.bottom()), QVector2D(1, 1)
-        };
-
-        mBufferCoords.bind();
-        mBufferCoords.write(0, vertexPositions.data(), 8 * sizeof(QVector2D));
-
-        mPointLightShader->enableAttributeArray(1);
-        mPointLightShader->setAttributeBuffer(1, GL_FLOAT, 0, 2, sizeof(QVector2D) * 2);
+        uint32_t offset = i * sizeof(QVector4D) * 6;
 
         QVector4D inner(std::max(overlay.background.r, e.gradient.inner.r), std::max(overlay.background.g, e.gradient.inner.g), std::max(overlay.background.b, e.gradient.inner.b), 1.0f);
+        lightBuffer.write(offset, &inner, sizeof(QVector4D));
+        offset += sizeof(QVector4D);
+
         QVector4D outer(std::max(overlay.background.r, e.gradient.outer.r), std::max(overlay.background.g, e.gradient.outer.g), std::max(overlay.background.b, e.gradient.outer.b), 1.0f);
+        lightBuffer.write(offset, &outer, sizeof(QVector4D));
+        offset += sizeof(QVector4D);
 
-        mPointLightShader->enableAttributeArray(0);
-        mPointLightShader->setAttributeBuffer(0, GL_FLOAT, sizeof(QVector2D), 2, sizeof(QVector2D) * 2);
-        mPointLightShader->setUniformValue("iMatrix", mMatrix);
-        mPointLightShader->setUniformValue("iInnerColor", inner);
-        mPointLightShader->setUniformValue("iOuterColor", outer);
-        mPointLightShader->setUniformValue("iMod", std::abs(mod - 1.0f));
+        QMatrix4x4 matrix;
+        matrix.translate(e.x - (e.radius / 2.0f), e.y - (e.radius / 2.0f));
+        matrix.scale(e.radius, e.radius);
 
-        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+        lightBuffer.write(offset, matrix.constData(), sizeof(QVector4D) * 4);
 
-        mPointLightShader->disableAttributeArray(0);
-        mPointLightShader->disableAttributeArray(1);
-
-        mBufferCoords.release();
-
-        mPointLightShader->release();
+        i++;
     }
+
+    lightBuffer.release();
+
+    mPointLightShader->bind();
+
+    std::array<QVector2D, 8> vertexPositions = {
+        QVector2D(0, 0), QVector2D(-1, -1),
+        QVector2D(0, 1), QVector2D(-1, 1),
+        QVector2D(1, 0), QVector2D(1, -1),
+        QVector2D(1, 1), QVector2D(1, 1)
+    };
+
+    mBufferCoords.bind();
+    mBufferCoords.write(0, vertexPositions.data(), 8 * sizeof(QVector2D));
+
+    mPointLightShader->enableAttributeArray(0);
+    mPointLightShader->setAttributeBuffer(0, GL_FLOAT, sizeof(QVector2D), 2, sizeof(QVector2D) * 2);
+
+    mPointLightShader->enableAttributeArray(1);
+    mPointLightShader->setAttributeBuffer(1, GL_FLOAT, 0, 2, sizeof(QVector2D) * 2);
+    mBufferCoords.release();
+
+    lightBuffer.bind();
+    mPointLightShader->enableAttributeArray(2);
+    mPointLightShader->setAttributeBuffer(2, GL_FLOAT, 0, 4, sizeof(QVector4D) * 6);
+    glVertexAttribDivisor(2, 1);
+
+    mPointLightShader->enableAttributeArray(3);
+    mPointLightShader->setAttributeBuffer(3, GL_FLOAT, sizeof(QVector4D), 4, sizeof(QVector4D) * 6);
+    glVertexAttribDivisor(3, 1);
+
+    for (uint32_t i = 0; i < 4; i++) {
+        mPointLightShader->enableAttributeArray(4 + i);
+        mPointLightShader->setAttributeBuffer(4 + i, GL_FLOAT, (i + 2) * sizeof(QVector4D), 4, sizeof(QVector4D) * 6);
+        glVertexAttribDivisor(4 + i, 1);
+    }
+
+    lightBuffer.release();
+
+    mPointLightShader->setUniformValue("iWorldMatrix", mWorldMatrix);
+    mPointLightShader->setUniformValue("iProjectionMatrix", mProjectionMatrix);
+    mPointLightShader->setUniformValue("iMod", std::abs(mod - 1.0f));
+
+    glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, overlay.ellipses.size());
+
+    mPointLightShader->disableAttributeArray(0);
+    mPointLightShader->disableAttributeArray(1);
+    mPointLightShader->disableAttributeArray(2);
+    glVertexAttribDivisor(2, 0);
+    mPointLightShader->disableAttributeArray(3);
+    glVertexAttribDivisor(3, 0);
+    for (uint32_t i = 0; i < 4; i++) {
+        mPointLightShader->disableAttributeArray(4 + i);
+        glVertexAttribDivisor(4 + i, 0);
+    }
+
+    mPointLightShader->release();
 
     mFBO->release();
 
@@ -263,21 +310,42 @@ void QtRenderer::drawOverlay(const engine::Types::Point<>& dst, const engine::Ty
 
     mBufferFBO.bind();
 
+    mTextureShader->enableAttributeArray(0);
+    mTextureShader->setAttributeBuffer(0, GL_FLOAT, sizeof(QVector2D), 2, sizeof(QVector2D) * 2);
+
     mTextureShader->enableAttributeArray(1);
     mTextureShader->setAttributeBuffer(1, GL_FLOAT, 0, 2, sizeof(QVector2D) * 2);
 
-    mTextureShader->enableAttributeArray(0);
-    mTextureShader->setAttributeBuffer(0, GL_FLOAT, sizeof(QVector2D), 2, sizeof(QVector2D) * 2);
-    mTextureShader->setUniformValue("iMatrix", mMatrix);
+    mBufferFBO.release();
+
+    QMatrix4x4 matrix;
+
+    QOpenGLBuffer matBuffer;
+    matBuffer.create();
+    matBuffer.bind();
+    matBuffer.allocate(matrix.constData(), sizeof(QVector4D) * 4);
+
+    for (uint32_t i = 0; i < 4; i++) {
+        mTextureShader->enableAttributeArray(2 + i);
+        mTextureShader->setAttributeBuffer(2 + i, GL_FLOAT, i * sizeof(QVector4D), 4, sizeof(QVector4D) * 4);
+        glVertexAttribDivisor(2 + i, 1);
+    }
+
+    matBuffer.release();
+
+    mTextureShader->setUniformValue("iWorldMatrix", mWorldMatrix);
+    mTextureShader->setUniformValue("iProjectionMatrix", mProjectionMatrix);
     mTextureShader->setUniformValue("iTexture", 0);
     mTextureShader->setUniformValue("iResolution", QVector2D(mFBO->width(), mFBO->height()));
 
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, 1);
 
     mTextureShader->disableAttributeArray(0);
     mTextureShader->disableAttributeArray(1);
-
-    mBufferFBO.release();
+    for (uint32_t i = 0; i < 4; i++) {
+        mTextureShader->disableAttributeArray(2 + i);
+        glVertexAttribDivisor(2 + i, 0);
+    }
 
     mTextureShader->release();
 
@@ -303,6 +371,7 @@ void QtRenderer::translate(int32_t x, int32_t y)
     }
 
     mPainter->translate(x, y);
+    mProjectionMatrix.translate(x, y);
 }
 
 void QtRenderer::save()
