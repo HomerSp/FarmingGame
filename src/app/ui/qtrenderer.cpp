@@ -43,6 +43,23 @@ QtRenderer::QtRenderer()
     mBufferFBO.bind();
     mBufferFBO.allocate(8 * sizeof(QVector2D));
     mBufferFBO.release();
+
+    std::array<QVector2D, 8> vertexPositions = {
+        QVector2D(0, 0), QVector2D(-1, -1),
+        QVector2D(0, 1), QVector2D(-1, 1),
+        QVector2D(1, 0), QVector2D(1, -1),
+        QVector2D(1, 1), QVector2D(1, 1)
+    };
+
+    mBufferVBO.create();
+    mBufferVBO.bind();
+    mBufferVBO.allocate(vertexPositions.data(), 8 * sizeof(QVector2D));
+    mBufferVBO.release();
+
+    mBufferMatrix.create();
+    mBufferMatrix.bind();
+    mBufferMatrix.allocate(sizeof(QVector4D) * 4);
+    mBufferMatrix.release();
 }
 
 void QtRenderer::setSize(uint32_t w, uint32_t h, double devicePixelRatio)
@@ -56,10 +73,10 @@ void QtRenderer::setSize(uint32_t w, uint32_t h, double devicePixelRatio)
 
     // The FBO texture is upside down (y starts at bottom), so we need to reverse it here
     std::array<QVector2D, 8> vertexPositions = {
-        QVector2D(vertexRect.left(), vertexRect.top()), QVector2D(0, mFBO->height()),      // Top left
-        QVector2D(vertexRect.left(), vertexRect.bottom()), QVector2D(0, 0),   // Bottom left
-        QVector2D(vertexRect.right(), vertexRect.top()), QVector2D(mFBO->width(), mFBO->height()),     // Top right
-        QVector2D(vertexRect.right(), vertexRect.bottom()), QVector2D(mFBO->width(), 0)   // Bottom right
+        QVector2D(0, 0), QVector2D(0, mFBO->height()),      // Top left
+        QVector2D(0, 1), QVector2D(0, 0),   // Bottom left
+        QVector2D(1, 0), QVector2D(mFBO->width(), mFBO->height()),     // Top right
+        QVector2D(1, 1), QVector2D(mFBO->width(), 0)   // Bottom right
     };
 
     mBufferFBO.bind();
@@ -200,7 +217,6 @@ void QtRenderer::drawText(const engine::Types::Rect<>& dst, const std::string& t
 
 void QtRenderer::drawOverlay(const engine::Types::Point<>& dst, const engine::Types::Overlay& overlay, float mod)
 {
-    mPainter->translate(dst.x, dst.y);
     mPainter->beginNativePainting();
 
     glViewport(0, 0, mPainter->viewport().width(), mPainter->viewport().height());
@@ -245,22 +261,13 @@ void QtRenderer::drawOverlay(const engine::Types::Point<>& dst, const engine::Ty
 
     mPointLightShader->bind();
 
-    std::array<QVector2D, 8> vertexPositions = {
-        QVector2D(0, 0), QVector2D(-1, -1),
-        QVector2D(0, 1), QVector2D(-1, 1),
-        QVector2D(1, 0), QVector2D(1, -1),
-        QVector2D(1, 1), QVector2D(1, 1)
-    };
-
-    mBufferCoords.bind();
-    mBufferCoords.write(0, vertexPositions.data(), 8 * sizeof(QVector2D));
-
+    mBufferVBO.bind();
     mPointLightShader->enableAttributeArray(0);
     mPointLightShader->setAttributeBuffer(0, GL_FLOAT, sizeof(QVector2D), 2, sizeof(QVector2D) * 2);
 
     mPointLightShader->enableAttributeArray(1);
     mPointLightShader->setAttributeBuffer(1, GL_FLOAT, 0, 2, sizeof(QVector2D) * 2);
-    mBufferCoords.release();
+    mBufferVBO.release();
 
     lightBuffer.bind();
     mPointLightShader->enableAttributeArray(2);
@@ -309,21 +316,19 @@ void QtRenderer::drawOverlay(const engine::Types::Point<>& dst, const engine::Ty
     glBindTexture(GL_TEXTURE_2D, mFBO->texture());
 
     mBufferFBO.bind();
-
     mTextureShader->enableAttributeArray(0);
     mTextureShader->setAttributeBuffer(0, GL_FLOAT, sizeof(QVector2D), 2, sizeof(QVector2D) * 2);
 
     mTextureShader->enableAttributeArray(1);
     mTextureShader->setAttributeBuffer(1, GL_FLOAT, 0, 2, sizeof(QVector2D) * 2);
-
     mBufferFBO.release();
 
     QMatrix4x4 matrix;
+    matrix.translate(dst.x, dst.y);
+    matrix.scale(mFBO->width(), mFBO->height());
 
-    QOpenGLBuffer matBuffer;
-    matBuffer.create();
-    matBuffer.bind();
-    matBuffer.allocate(matrix.constData(), sizeof(QVector4D) * 4);
+    mBufferMatrix.bind();
+    mBufferMatrix.write(0, matrix.constData(), sizeof(QVector4D) * 4);
 
     for (uint32_t i = 0; i < 4; i++) {
         mTextureShader->enableAttributeArray(2 + i);
@@ -331,7 +336,7 @@ void QtRenderer::drawOverlay(const engine::Types::Point<>& dst, const engine::Ty
         glVertexAttribDivisor(2 + i, 1);
     }
 
-    matBuffer.release();
+    mBufferMatrix.release();
 
     mTextureShader->setUniformValue("iWorldMatrix", mWorldMatrix);
     mTextureShader->setUniformValue("iProjectionMatrix", mProjectionMatrix);
@@ -350,7 +355,6 @@ void QtRenderer::drawOverlay(const engine::Types::Point<>& dst, const engine::Ty
     mTextureShader->release();
 
     mPainter->endNativePainting();
-    mPainter->translate(-dst.x, -dst.y);
 }
 
 void QtRenderer::rotate(float_t deg)

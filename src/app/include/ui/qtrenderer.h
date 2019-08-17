@@ -76,7 +76,7 @@ private:
 
     QMatrix4x4 mWorldMatrix, mProjectionMatrix;
     std::unique_ptr<QOpenGLFramebufferObject> mFBO;
-    QOpenGLBuffer mBufferFBO, mBufferCoords;
+    QOpenGLBuffer mBufferVBO, mBufferFBO, mBufferCoords, mBufferMatrix;
 
     engine::Types::Dimension<int32_t> mSize;
 };
