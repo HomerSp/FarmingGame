@@ -20,8 +20,8 @@ QtRenderer::QtRenderer()
     mDevice = std::make_unique<QOpenGLPaintDevice>();
 
     mTextureShader = std::make_unique<QOpenGLShaderProgram>();
-    mTextureShader->addShaderFromSourceFile(QOpenGLShader::Vertex, "assets/shader/vert_simple2d.glsl");
-    mTextureShader->addShaderFromSourceFile(QOpenGLShader::Fragment, "assets/shader/frag_texture2d.glsl");
+    mTextureShader->addShaderFromSourceFile(QOpenGLShader::Vertex, "assets/shader/simple2d.vs");
+    mTextureShader->addShaderFromSourceFile(QOpenGLShader::Fragment, "assets/shader/texture2d.fs");
     mTextureShader->link();
 
     mPointLightShader = std::make_unique<QOpenGLShaderProgram>();
@@ -30,8 +30,8 @@ QtRenderer::QtRenderer()
     mPointLightShader->link();
 
     mColorShader = std::make_unique<QOpenGLShaderProgram>();
-    mColorShader->addShaderFromSourceFile(QOpenGLShader::Vertex, "assets/shader/vert_simple2d.glsl");
-    mColorShader->addShaderFromSourceFile(QOpenGLShader::Fragment, "assets/shader/frag_color2d.glsl");
+    mColorShader->addShaderFromSourceFile(QOpenGLShader::Vertex, "assets/shader/simple2d.vs");
+    mColorShader->addShaderFromSourceFile(QOpenGLShader::Fragment, "assets/shader/color2d.fs");
     mColorShader->link();
 
     mBufferCoords.create();
@@ -116,7 +116,7 @@ int32_t QtRenderer::width()
         return 0;
     }
 
-    return mPainter->viewport().width();
+    return mFBO->width();
 }
 
 int32_t QtRenderer::height()
@@ -126,7 +126,7 @@ int32_t QtRenderer::height()
         return 0;
     }
 
-    return mPainter->viewport().height();
+    return mFBO->height();
 }
 
 void QtRenderer::fillEllipse(const engine::Types::Rect<>& dst, const engine::Types::Color& color)
@@ -219,10 +219,10 @@ void QtRenderer::drawOverlay(const engine::Types::Point<>& dst, const engine::Ty
 {
     mPainter->beginNativePainting();
 
-    glViewport(0, 0, mPainter->viewport().width(), mPainter->viewport().height());
-    glDisable(GL_DEPTH_TEST);
-
     mFBO->bind();
+
+    glViewport(0, 0, mFBO->width(), mFBO->height());
+    glDisable(GL_DEPTH_TEST);
 
     glClearColor(overlay.background.r, overlay.background.g, overlay.background.b, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
