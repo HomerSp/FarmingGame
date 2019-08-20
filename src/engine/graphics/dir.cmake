@@ -1,0 +1,25 @@
+set(HEADERS
+    ${HEADERS}
+    include/engine/graphics/buffer.h
+    include/engine/graphics/bufferwriter.h
+    include/engine/graphics/color.h
+    include/engine/graphics/colorgradient.h
+    include/engine/graphics/image.h
+    include/engine/graphics/matrix.h
+    include/engine/graphics/renderer.h
+    include/engine/graphics/vector.h
+    include/engine/graphics/vertex.h
+)
+
+set(SOURCES
+    ${SOURCES}
+    graphics/buffer.cpp
+    graphics/bufferwriter.cpp
+    graphics/color.cpp
+    graphics/colorgradient.cpp
+    graphics/image.cpp
+    graphics/matrix.cpp
+    graphics/renderer.cpp
+    graphics/vector.cpp
+    graphics/vertex.cpp
+) 

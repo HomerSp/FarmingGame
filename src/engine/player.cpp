@@ -63,7 +63,7 @@ float_t Player::lightStrength()
     return mInventory[mCurrentItem]->lightStrength();
 }
 
-Types::ColorGradient Player::lightColor()   
+graphics::ColorGradient Player::lightColor()   
 {   
     return mInventory[mCurrentItem]->lightColor();  
 }

@@ -20,12 +20,18 @@ include_directories(
 )
 
 set(HEADERS
+    include/ui/qtbuffer.h
+    include/ui/qtimage.h
+    include/ui/qtmatrix.h
     include/ui/qtrenderer.h
     include/ui/qtwindow.h
 )
 
 set(SOURCES
     main.cpp
+    ui/qtbuffer.cpp
+    ui/qtimage.cpp
+    ui/qtmatrix.cpp
     ui/qtrenderer.cpp
     ui/qtwindow.cpp
 )

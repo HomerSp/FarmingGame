@@ -1,12 +1,12 @@
 #include <engine/camera.h>
 #include <engine/clock.h>
+#include <engine/graphics/renderer.h>
 #include <engine/logger.h>
-#include <engine/renderer.h>
 #include <engine/screeneffects.h>
 
 using namespace engine;
 
-Types::ColorGradient ScreenEffects::LightSource::lightColor()   
+graphics::ColorGradient ScreenEffects::LightSource::lightColor()   
 {
     return {{1.0f, 1.0f, 1.0f}};
 }
@@ -17,7 +17,7 @@ ScreenEffects::ScreenEffects(std::shared_ptr<Context>& ctx)
 {
 }
 
-void ScreenEffects::draw(Renderer& renderer, Clock& clock, Camera& camera, const std::vector<std::shared_ptr<LightSource>> &sources)
+void ScreenEffects::draw(graphics::Renderer& renderer, Clock& clock, Camera& camera, const std::vector<std::shared_ptr<LightSource>> &sources)
 {
     uint32_t h = clock.hour();
 
@@ -36,7 +36,7 @@ void ScreenEffects::draw(Renderer& renderer, Clock& clock, Camera& camera, const
         break;
     }
 
-    Types::Color color(1.0f - baseAlpha, 1.0f - baseAlpha, 1.0f - baseAlpha);
+    graphics::Color color(1.0f - baseAlpha, 1.0f - baseAlpha, 1.0f - baseAlpha);
 
     // Night
     if (h >= clock.dawn() && h < clock.dusk()) {
@@ -48,14 +48,14 @@ void ScreenEffects::draw(Renderer& renderer, Clock& clock, Camera& camera, const
             float_t alpha = baseAlpha - baseAlpha * diff;
             float_t d = 0.2f * diff;
             float_t c = 1.0f - alpha;
-            color = Types::Color(std::min(c + d, 1.0f), c, c);
+            color = graphics::Color(std::min(c + d, 1.0f), c, c);
         // Sunset
         } else if (h >= clock.sunset() && h < clock.dusk()) {
             float_t diff = (currentHour - (clock.sunset() * 60)) / ((clock.dusk() - clock.sunset()) * 60.0f);
             float_t alpha = baseAlpha * diff;
             float_t d = 0.2f - 0.2f * diff;
             float_t c = 1.0f - alpha;
-            color = Types::Color(std::min(c + d, 1.0f), c, c);
+            color = graphics::Color(std::min(c + d, 1.0f), c, c);
         }
     }
 
@@ -65,7 +65,7 @@ void ScreenEffects::draw(Renderer& renderer, Clock& clock, Camera& camera, const
             continue;
         }
 
-        Types::ColorGradient l = Types::ColorGradient(source->lightColor(), source->lightStrength());
+        graphics::ColorGradient l = graphics::ColorGradient(source->lightColor(), source->lightStrength());
         overlay.addEllipse(Types::FilledEllipse(source->lightPosition().x - camera.x(), source->lightPosition().y - camera.y(), source->lightRadius(), l));
     }
 

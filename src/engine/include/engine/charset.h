@@ -6,8 +6,8 @@
 #include <json/json.h>
 
 #include <engine/context.h>
-#include <engine/image.h>
-#include <engine/renderer.h>
+#include <engine/graphics/image.h>
+#include <engine/graphics/renderer.h>
 #include <engine/types.h>
 
 namespace engine {
@@ -28,7 +28,7 @@ public:
 
     Charset(std::shared_ptr<Context>& ctx, const std::string& name);
 
-    void draw(Renderer& renderer, const Types::Point<>& pos, Charset::Type type, int32_t direction = 0, int32_t frame = 0);
+    void draw(graphics::Renderer& renderer, const Types::Point<>& pos, Charset::Type type, int32_t direction = 0, int32_t frame = 0);
 
     int32_t width(Charset::Type type);
     int32_t height(Charset::Type type);
@@ -47,7 +47,7 @@ protected:
 
 private:
     bool mValid;
-    std::unique_ptr<engine::Image> mImage;
+    std::unique_ptr<graphics::Image> mImage;
     std::unordered_map<Charset::Type, std::shared_ptr<CharsetNode>> mNodes;
 };
 }

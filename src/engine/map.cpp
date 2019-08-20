@@ -6,9 +6,9 @@
 
 #include <engine/assetmanager.h>
 #include <engine/collisionmap.h>
+#include <engine/graphics/renderer.h>
 #include <engine/logger.h>
 #include <engine/map.h>
-#include <engine/renderer.h>
 
 using namespace engine;
 
@@ -75,7 +75,7 @@ bool MapLayer::animate(uint64_t frameDiff)
     return changed;
 }
 
-void MapLayer::draw(Renderer& renderer, const Types::Rect<>& dst, TilesetAbove::Type above, bool clip)
+void MapLayer::draw(graphics::Renderer& renderer, const Types::Rect<>& dst, TilesetAbove::Type above, bool clip)
 {
     for (auto &nodeY: mNodes[above]) {
         if (nodeY.first >= dst.y - 1 && nodeY.first <= dst.y + dst.height + 1) {
@@ -84,7 +84,7 @@ void MapLayer::draw(Renderer& renderer, const Types::Rect<>& dst, TilesetAbove::
     }
 }
 
-void MapLayer::drawRow(Renderer& renderer, const Types::Rect<>& dst, int32_t row, TilesetAbove::Type above, bool clip)
+void MapLayer::drawRow(graphics::Renderer& renderer, const Types::Rect<>& dst, int32_t row, TilesetAbove::Type above, bool clip)
 {
     auto* nodes = &mNodes[above];
 
@@ -283,7 +283,7 @@ bool Map::animate(uint64_t frameDiff)
     return changed;
 }
 
-void Map::draw(Renderer& renderer, const Types::Rect<>& dst, TilesetAbove::Type above, bool clip)
+void Map::draw(graphics::Renderer& renderer, const Types::Rect<>& dst, TilesetAbove::Type above, bool clip)
 {
     Types::Dimension<> tileDimens = getTileDimension();
     Types::Rect<> target;
@@ -299,7 +299,7 @@ void Map::draw(Renderer& renderer, const Types::Rect<>& dst, TilesetAbove::Type 
     renderer.translate((dst.x % tileDimens.width), (dst.y % tileDimens.height));
 }
 
-void Map::drawRow(Renderer& renderer, const Types::Rect<>& dst, int32_t row, TilesetAbove::Type above, bool clip)
+void Map::drawRow(graphics::Renderer& renderer, const Types::Rect<>& dst, int32_t row, TilesetAbove::Type above, bool clip)
 {
     Types::Dimension<> tileDimens = getTileDimension();
     Types::Rect<> target;
@@ -489,7 +489,7 @@ bool Map::operator!() const
     return !mValid;
 }
 
-MapLightSource::MapLightSource(Types::Point<int32_t> pos, int32_t radius, float_t strength, const Types::ColorGradient& color)
+MapLightSource::MapLightSource(Types::Point<int32_t> pos, int32_t radius, float_t strength, const graphics::ColorGradient& color)
     : mPosition(pos)
     , mRadius(radius)
     , mStrength(strength)
@@ -512,7 +512,7 @@ float_t MapLightSource::lightStrength()
     return mStrength;
 }
 
-Types::ColorGradient MapLightSource::lightColor()
+graphics::ColorGradient MapLightSource::lightColor()
 {
     return mColor;
 }

@@ -10,12 +10,13 @@
 #include <engine/assetmanager.h>
 #include <engine/context.h>
 #include <engine/engine.h>
+#include <engine/graphics/renderer.h>
 #include <engine/logger.h>
 
 using namespace engine;
 using namespace engine::character;
 
-Engine::Engine(uint32_t width, uint32_t height, std::shared_ptr<Renderer> renderer)
+Engine::Engine(uint32_t width, uint32_t height, std::shared_ptr<graphics::Renderer> renderer)
     : mRunning(true)
     , mNeedRepaint(false)
     , mHasFocus(true)
@@ -41,6 +42,8 @@ Engine::Engine(uint32_t width, uint32_t height, std::shared_ptr<Renderer> render
     mClock = std::make_unique<engine::Clock>(mContext);
     mMap = std::make_unique<engine::Map>(mContext, "map");
     mPlayer = std::make_shared<engine::Player>(mContext);
+    mWeather = std::make_unique<engine::Weather>();
+
     mPlayer->setPosition("map", 9 * 48, (12 * 48) - 24);
 
     mCharacters.emplace("player", mPlayer);
@@ -283,6 +286,8 @@ void Engine::processAsync()
             mNeedRepaint = true;
         }
 
+        mWeather->processAsync(diff, *mCamera, *mClock);
+
         if (!mEnableThreading) {
             break;
         }
@@ -295,8 +300,8 @@ void Engine::paint()
 {
     mDrawingTimer.start();
 
-    Renderer& renderer = *mRenderer;
-    renderer.fillRect(Types::Rect<>(0, 0, mWidth, mHeight), Types::Color(0, 0, 0));
+    auto& renderer = *mRenderer;
+    renderer.fillRect(Types::Rect<>(0, 0, mWidth, mHeight), graphics::Color(0, 0, 0));
 
     // Centre small maps.
     float_t translateX = 0.0f, translateY = 0.0f;
@@ -316,6 +321,8 @@ void Engine::paint()
 
     // Draw water tiles
     mMap->draw(renderer, dst, TilesetAbove::Water);
+
+    mWeather->drawWater(renderer, *mCamera);
 
     // Draw ground tiles
     mMap->draw(renderer, dst, TilesetAbove::None);
@@ -349,6 +356,8 @@ void Engine::paint()
     for (int32_t row = startY - 1; row <= startY + std::ceil(mHeight / d.height); row++) {
         mMap->drawRow(renderer, dst, row, TilesetAbove::All);
     }
+
+    mWeather->drawWeather(renderer, *mCamera);
 
     mScreenEffects->draw(renderer, *mClock, *mCamera, mLights);
 
@@ -386,6 +395,7 @@ void Engine::setSize(uint32_t width, uint32_t height)
     mWidth = width;
     mHeight = height;
     mCamera->setViewport({mWidth, mHeight});
+    mWeather->setSize({mWidth, mHeight});
 }
 
 bool Engine::registerScript()

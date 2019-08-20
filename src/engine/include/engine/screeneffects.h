@@ -9,7 +9,10 @@ namespace engine {
 
 class Camera;
 class Clock;
+
+namespace graphics {
 class Renderer;
+}
 
 class ScreenEffects : public ContextObject {
 public:
@@ -18,13 +21,13 @@ public:
         virtual Types::Point<int32_t> lightPosition() = 0;
         virtual int32_t lightRadius() = 0;
         virtual float_t lightStrength() = 0;
-        virtual Types::ColorGradient lightColor();
+        virtual graphics::ColorGradient lightColor();
     };
 
 public:
     ScreenEffects(std::shared_ptr<Context>& ctx);
 
-    void draw(Renderer& renderer, Clock& clock, Camera& camera, const std::vector<std::shared_ptr<LightSource>> &sources);
+    void draw(graphics::Renderer& renderer, Clock& clock, Camera& camera, const std::vector<std::shared_ptr<LightSource>> &sources);
 
     bool processAsync(uint64_t frameDiff);
 

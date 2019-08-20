@@ -10,14 +10,17 @@
 
 #include <engine/collisionmap.h>
 #include <engine/context.h>
-#include <engine/image.h>
+#include <engine/graphics/image.h>
 #include <engine/types.h>
 
 namespace engine {
 
-class Renderer;
 class TilesetType;
 class Tileset;
+
+namespace graphics {
+class Renderer;
+}
 
 struct TilesetNode {
     uint32_t id;
@@ -67,7 +70,7 @@ public:
     Types::Point<> lightBase() const;
     int32_t lightRadius() const;
     float_t lightStrength() const;
-    Types::ColorGradient lightColor() const;
+    graphics::ColorGradient lightColor() const;
 
     bool operator!() const;
 
@@ -80,7 +83,7 @@ protected:
     void setLightBase(Types::Point<> base);
     void setLightRadius(int32_t radius);
     void setLightStrength(float_t strength);
-    void setLightColor(const Types::ColorGradient& color);
+    void setLightColor(const graphics::ColorGradient& color);
 
 private:
     friend class Tileset;
@@ -106,14 +109,14 @@ private:
     Types::Point<> mLightBase;
     int32_t mLightRadius;
     float_t mLightStrength;
-    Types::ColorGradient mLightColor;
+    graphics::ColorGradient mLightColor;
 };
 
 class Tileset : public ContextObject {
 public:
     Tileset(std::shared_ptr<Context>& ctx, const std::string& name);
 
-    void draw(Renderer& renderer, TilesetNode& node, const Types::Point<>& pos);
+    void draw(graphics::Renderer& renderer, TilesetNode& node, const Types::Point<>& pos);
 
     Types::Dimension<> getTileDimension() const
     {
@@ -134,7 +137,7 @@ private:
     bool mValid;
     Types::Dimension<> mTileDimension;
     std::unordered_map<int32_t, std::shared_ptr<TilesetType>> mTypes;
-    std::unique_ptr<engine::Image> mImage;
+    std::unique_ptr<graphics::Image> mImage;
     std::string mCollisionMap;
 };
 }

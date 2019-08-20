@@ -5,8 +5,11 @@
 
 namespace engine {
 
-class Image;
 class Player;
+
+namespace graphics {
+class Image;
+}
 
 struct ItemValue {
 public:
@@ -43,18 +46,18 @@ public:
     virtual Types::Point<int32_t> lightPosition();
     virtual int32_t lightRadius();
     virtual float_t lightStrength();
-    virtual Types::ColorGradient lightColor() override;
+    virtual graphics::ColorGradient lightColor() override;
 
     void use(Player& player);
 
-    const Image& uiImage() const;
+    const graphics::Image& uiImage() const;
 
 private:
-    std::unique_ptr<Image> mUiImage;
+    std::unique_ptr<graphics::Image> mUiImage;
 
     int32_t mLightRadius;
     uint8_t mLightStrength;
-    Types::ColorGradient mLightColor;
+    graphics::ColorGradient mLightColor;
 
     std::unordered_map<ItemEffect::Type, std::shared_ptr<ItemValue>> mEffects;
     std::bitset<ItemAttribute::Last> mAttributes;

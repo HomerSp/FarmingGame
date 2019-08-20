@@ -2,11 +2,11 @@
 #include <engine/character/character.h>
 #include <engine/clock.h>
 #include <engine/frametimer.h>
+#include <engine/graphics/image.h>
+#include <engine/graphics/renderer.h>
 #include <engine/hud.h>
-#include <engine/image.h>
 #include <engine/item.h>
 #include <engine/player.h>
-#include <engine/renderer.h>
 
 using namespace engine;
 
@@ -24,7 +24,7 @@ Hud::Hud(std::shared_ptr<Context>& ctx)
     mSeasonsImage = context().assetManager().image(AssetManager::Ui, "seasons");
 }
 
-void Hud::draw(Renderer& renderer, Clock& clock, Player& player, FrameTimer& frameTimer)
+void Hud::draw(graphics::Renderer& renderer, Clock& clock, Player& player, FrameTimer& frameTimer)
 {
     renderer.save();
 
@@ -63,7 +63,7 @@ bool Hud::isExpanded() const {
     return mExpanded;
 }
 
-void Hud::drawClock(Renderer& renderer, Clock& clock)
+void Hud::drawClock(graphics::Renderer& renderer, Clock& clock)
 {
     Types::Dimension<> clockDimen(mClockImage->width() / 2, mClockImage->height());
 
@@ -105,7 +105,7 @@ void Hud::drawClock(Renderer& renderer, Clock& clock)
     renderer.translate(centreX, centreY);
 }
 
-void Hud::drawHealth(Renderer& renderer, Player& player)
+void Hud::drawHealth(graphics::Renderer& renderer, Player& player)
 {
     renderer.translate(-10, -(50 / 2));
 
@@ -123,7 +123,7 @@ void Hud::drawHealth(Renderer& renderer, Player& player)
     renderer.translate(10, -(50 / 2));
 }
 
-void Hud::drawItems(Renderer& renderer, Player& player)
+void Hud::drawItems(graphics::Renderer& renderer, Player& player)
 {
     Types::Rect<> leftItemRc(0, 0, mHudItemEquipped->width() / 2, mHudItemEquipped->height());
     renderer.translate(-(leftItemRc.width / 2), -(leftItemRc.height / 2));
@@ -131,7 +131,7 @@ void Hud::drawItems(Renderer& renderer, Player& player)
 
     renderer.translate(leftItemRc.height / 2, leftItemRc.height / 2);
 
-    const Image& itemImage = player.currentItem().uiImage();
+    const auto& itemImage = player.currentItem().uiImage();
 
     renderer.translate(-(mBoxSize.x / 2), -(mBoxSize.y / 2));
     renderer.drawImage(itemImage, {0, 0, mBoxSize.x, mBoxSize.y});
@@ -174,7 +174,7 @@ void Hud::drawItems(Renderer& renderer, Player& player)
     }
 }
 
-void Hud::drawBarSmall(Renderer& renderer, uint32_t width, Types::Color fillColor, float_t fillPercent, uint32_t indicatorX)
+void Hud::drawBarSmall(graphics::Renderer& renderer, uint32_t width, graphics::Color fillColor, float_t fillPercent, uint32_t indicatorX)
 {
     Types::Rect<int32_t> bgRc(0, 0, (mBarSmall->width() / 2) / 5, mBarSmall->height());
     Types::Rect<int32_t> fillRc(0, 0, std::max(0, static_cast<int32_t>(width - (bgRc.width * 2))), bgRc.height);

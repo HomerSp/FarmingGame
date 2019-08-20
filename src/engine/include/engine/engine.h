@@ -14,18 +14,24 @@
 #include <engine/hud.h>
 #include <engine/keys.h>
 #include <engine/map.h>
+#include <engine/particles.h>
 #include <engine/player.h>
 #include <engine/screeneffects.h>
 #include <engine/script/scriptengine.h>
 #include <engine/script/scriptobject.h>
+#include <engine/weather.h>
 
 namespace engine {
 
 class Context;
 
+namespace graphics {
+class Renderer;
+}
+
 class Engine {
 public:
-    Engine(uint32_t width, uint32_t height, std::shared_ptr<Renderer> renderer);
+    Engine(uint32_t width, uint32_t height, std::shared_ptr<graphics::Renderer> renderer);
     ~Engine();
 
     int32_t bufferWidth() const;
@@ -84,7 +90,7 @@ private:
     std::mutex mDownKeysMutex;
     engine::KeyList mKeys;
 
-    std::shared_ptr<Renderer> mRenderer;
+    std::shared_ptr<graphics::Renderer> mRenderer;
 
     std::unique_ptr<engine::Hud> mHud;
     std::unique_ptr<engine::ScreenEffects> mScreenEffects;
@@ -93,6 +99,7 @@ private:
     std::unique_ptr<engine::Map> mMap;
     std::shared_ptr<engine::Player> mPlayer;
     std::unordered_map<std::string, std::shared_ptr<engine::character::Character>> mCharacters;
+    std::unique_ptr<engine::Weather> mWeather;
 
     std::vector<std::shared_ptr<engine::ScreenEffects::LightSource>> mLights;
 

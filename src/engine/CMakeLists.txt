@@ -22,19 +22,20 @@ set(HEADERS
 	include/engine/frametimer.h
 	include/engine/fontmanager.h
 	include/engine/hud.h
-	include/engine/image.h
 	include/engine/item.h
 	include/engine/keys.h
 	include/engine/listeners.h
 	include/engine/logger.h
 	include/engine/map.h
+	include/engine/particles.h
 	include/engine/pathfinding.h
 	include/engine/player.h
-	include/engine/renderer.h
+	include/engine/random.h
 	include/engine/screeneffects.h
 	include/engine/tileset.h
 	include/engine/time.h
 	include/engine/types.h
+	include/engine/weather.h
 )
 
 set(SOURCES
@@ -48,19 +49,20 @@ set(SOURCES
 	frametimer.cpp
 	fontmanager.cpp
 	hud.cpp
-	image.cpp
 	item.cpp
 	keys.cpp
 	listeners.cpp
 	logger.cpp
 	map.cpp
+	particles.cpp
 	pathfinding.cpp
 	player.cpp
-	renderer.cpp
+	random.cpp
 	screeneffects.cpp
 	tileset.cpp
 	time.cpp
 	types.cpp
+	weather.cpp
 )
 
 file(GLOB dirs */dir.cmake)

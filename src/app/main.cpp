@@ -9,8 +9,6 @@
 
 int main(int argc, char** argv)
 {
-    qsrand(QDateTime::currentMSecsSinceEpoch() / 1000);
-
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
     QCoreApplication::setApplicationName("Farming");
     QCoreApplication::setOrganizationName("aqba");

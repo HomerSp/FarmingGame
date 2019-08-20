@@ -11,8 +11,12 @@
 #include <engine/types.h>
 
 namespace engine {
+
 class Map;
+
+namespace graphics {
 class Renderer;
+}
 
 namespace character {
 
@@ -29,7 +33,7 @@ public:
 
     Character(std::shared_ptr<Context> &ctx, std::string id);
 
-    void draw(Renderer& renderer, const Types::Point<>& camera);
+    void draw(graphics::Renderer& renderer, const Types::Point<>& camera);
 
     bool animate(uint64_t frameDiff, bool reset = false);
     bool processAsync(uint64_t frameDiff, const Map& map, std::unordered_map<std::string, std::shared_ptr<Character>> *characters = nullptr, Camera* camera = nullptr);
@@ -78,7 +82,7 @@ private:
     std::string mName;
     std::shared_ptr<Charset> mCharset;
     Charset::Type mCharsetType;
-    std::shared_ptr<engine::Image> mPortrait;
+    std::shared_ptr<graphics::Image> mPortrait;
 
     float_t mFrame;
 

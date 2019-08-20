@@ -6,8 +6,13 @@
 
 #include <engine/context.h>
 #include <engine/fontmanager.h>
+#include <engine/graphics/bufferwriter.h>
+#include <engine/graphics/vector.h>
+#include <engine/graphics/vertex.h>
 #include <engine/logger.h>
 
+#include <ui/qtimage.h>
+#include <ui/qtmatrix.h>
 #include <ui/qtrenderer.h>
 
 QtRenderer::QtRenderer()
@@ -20,7 +25,7 @@ QtRenderer::QtRenderer()
     mDevice = std::make_unique<QOpenGLPaintDevice>();
 
     mTextureShader = std::make_unique<QOpenGLShaderProgram>();
-    mTextureShader->addShaderFromSourceFile(QOpenGLShader::Vertex, "assets/shader/simple2d.vs");
+    mTextureShader->addShaderFromSourceFile(QOpenGLShader::Vertex, "assets/shader/texture2d.vs");
     mTextureShader->addShaderFromSourceFile(QOpenGLShader::Fragment, "assets/shader/texture2d.fs");
     mTextureShader->link();
 
@@ -30,36 +35,31 @@ QtRenderer::QtRenderer()
     mPointLightShader->link();
 
     mColorShader = std::make_unique<QOpenGLShaderProgram>();
-    mColorShader->addShaderFromSourceFile(QOpenGLShader::Vertex, "assets/shader/simple2d.vs");
+    mColorShader->addShaderFromSourceFile(QOpenGLShader::Vertex, "assets/shader/color2d.vs");
     mColorShader->addShaderFromSourceFile(QOpenGLShader::Fragment, "assets/shader/color2d.fs");
     mColorShader->link();
 
-    mBufferCoords.create();
-    mBufferCoords.bind();
-    mBufferCoords.allocate(8 * sizeof(QVector2D));
-    mBufferCoords.release();
+    mParticleShader = std::make_unique<QOpenGLShaderProgram>();
+    mParticleShader->addShaderFromSourceFile(QOpenGLShader::Vertex, "assets/shader/particle.vs");
+    mParticleShader->addShaderFromSourceFile(QOpenGLShader::Fragment, "assets/shader/particle.fs");
+    mParticleShader->link();
 
-    mBufferFBO.create();
-    mBufferFBO.bind();
-    mBufferFBO.allocate(8 * sizeof(QVector2D));
-    mBufferFBO.release();
+    mWorldMatrix = std::make_unique<QtMatrix>();
+    mProjectionMatrix = std::make_unique<QtMatrix>();
+    mFBOMatrix = std::make_unique<QtMatrix>();
 
-    std::array<QVector2D, 8> vertexPositions = {
-        QVector2D(0, 0), QVector2D(-1, -1),
-        QVector2D(0, 1), QVector2D(-1, 1),
-        QVector2D(1, 0), QVector2D(1, -1),
-        QVector2D(1, 1), QVector2D(1, 1)
-    };
+    mBufferVBO = std::make_unique<QtBuffer>(engine::graphics::Vertex2D::Size * 2);
+    mBufferFBO = std::make_unique<QtBuffer>(engine::graphics::Vertex2D::Size * 2);
+    mBufferMatrix = std::make_unique<QtBuffer>(engine::graphics::Matrix::Size);
+    mBufferParticles = std::make_unique<QtBuffer>((engine::graphics::Matrix::Size + engine::graphics::Color::Size) * engine::Particles::MAX);
+    mLightsBuffer = std::make_unique<QtBuffer>((engine::graphics::ColorGradient::Size + engine::graphics::Matrix::Size) * engine::Types::Overlay::LIGHTS_MAX);
 
-    mBufferVBO.create();
-    mBufferVBO.bind();
-    mBufferVBO.allocate(vertexPositions.data(), 8 * sizeof(QVector2D));
-    mBufferVBO.release();
-
-    mBufferMatrix.create();
-    mBufferMatrix.bind();
-    mBufferMatrix.allocate(sizeof(QVector4D) * 4);
-    mBufferMatrix.release();
+    engine::graphics::BufferWriter vboWriter(*mBufferVBO);
+    // Vertex
+    vboWriter += engine::graphics::Vertex2D().tl(0, 0).bl(0, 1).tr(1, 0).br(1, 1);
+    // Texture
+    vboWriter += engine::graphics::Vertex2D().tl(-1, -1).bl(-1, 1).tr(1, -1).br(1, 1);
+    vboWriter.release();
 }
 
 void QtRenderer::setSize(uint32_t w, uint32_t h, double devicePixelRatio)
@@ -72,22 +72,18 @@ void QtRenderer::setSize(uint32_t w, uint32_t h, double devicePixelRatio)
     engine::Types::Rect<float> vertexRect(0, 0, mFBO->width(), mFBO->height());
 
     // The FBO texture is upside down (y starts at bottom), so we need to reverse it here
-    std::array<QVector2D, 8> vertexPositions = {
-        QVector2D(0, 0), QVector2D(0, mFBO->height()),      // Top left
-        QVector2D(0, 1), QVector2D(0, 0),   // Bottom left
-        QVector2D(1, 0), QVector2D(mFBO->width(), mFBO->height()),     // Top right
-        QVector2D(1, 1), QVector2D(mFBO->width(), 0)   // Bottom right
-    };
+    engine::graphics::BufferWriter fboWriter(*mBufferFBO);
+    // Vertex
+    fboWriter += engine::graphics::Vertex2D().tl(0, 0).bl(0, 1).tr(1, 0).br(1, 1);
+    // Texture
+    fboWriter += engine::graphics::Vertex2D().tl(0, 1).bl(0, 0).tr(1, 1).br(1, 0);
+    fboWriter.release();
 
-    mBufferFBO.bind();
-    mBufferFBO.write(0, vertexPositions.data(), 8 * sizeof(QVector2D));
-    mBufferFBO.release();
+    mWorldMatrix->reset();
+    mWorldMatrix->ortho(0, w, h, 0, -1, 1);
 
-    mWorldMatrix = QMatrix4x4();
-    mWorldMatrix.ortho(0, w, h, 0, -1, 1);
-
-    mSize.width = w;
-    mSize.height = h;
+    mFBOMatrix->reset();
+    mFBOMatrix->scale(mFBO->width(), mFBO->height());
 }
 
 void QtRenderer::paint(std::shared_ptr<engine::Engine>& engine)
@@ -103,7 +99,7 @@ void QtRenderer::paint(std::shared_ptr<engine::Engine>& engine)
     font.setPixelSize(24);
     mPainter->setFont(font);
 
-    mProjectionMatrix.setToIdentity();
+    mProjectionMatrix->reset();
 
     engine->paint();
     mPainter.reset();
@@ -129,19 +125,19 @@ int32_t QtRenderer::height()
     return mFBO->height();
 }
 
-void QtRenderer::fillEllipse(const engine::Types::Rect<>& dst, const engine::Types::Color& color)
+void QtRenderer::fillEllipse(const engine::Types::Rect<>& dst, const engine::graphics::Color& color)
 {
     if (mPainter == nullptr) {
         engine::Logger::critical() << "No painter set!!!";
         return;
     }
 
-    mPainter->setBrush(QColor::fromRgbF(color.r, color.g, color.b, color.a));
+    mPainter->setBrush(QColor::fromRgbF(color.r(), color.g(), color.b(), color.a()));
     mPainter->drawEllipse(QPointF(dst.x, dst.y), std::floor(dst.width / 2), std::floor(dst.height / 2));
     mPainter->setBrush(Qt::NoBrush);
 }
 
-void QtRenderer::fillRect(const engine::Types::Rect<>& dst, const engine::Types::Color& color)
+void QtRenderer::fillRect(const engine::Types::Rect<>& dst, const engine::graphics::Color& color)
 {
     if (mPainter == nullptr) {
         engine::Logger::critical() << "No painter set!!!";
@@ -149,10 +145,10 @@ void QtRenderer::fillRect(const engine::Types::Rect<>& dst, const engine::Types:
     }
 
     QRectF dstRect(dst.x, dst.y, dst.width, dst.height);
-    mPainter->fillRect(dstRect, QColor::fromRgbF(color.r, color.g, color.b, color.a));
+    mPainter->fillRect(dstRect, QColor::fromRgbF(color.r(), color.g(), color.b(), color.a()));
 }
 
-void QtRenderer::drawImage(const engine::Image& img, engine::Types::Rect<> dst, engine::Types::Rect<> src)
+void QtRenderer::drawImage(const engine::graphics::Image& img, engine::Types::Rect<> dst, engine::Types::Rect<> src)
 {
     if (mPainter == nullptr) {
         engine::Logger::critical() << "No painter set!!!";
@@ -170,7 +166,7 @@ void QtRenderer::drawImage(const engine::Image& img, engine::Types::Rect<> dst, 
     mPainter->drawImage(dstRect, native.image(), srcRect);
 }
 
-void QtRenderer::drawText(const engine::Types::Rect<>& dst, const std::string& text, const engine::Types::Color& color, int32_t size, engine::Types::TextAlign align, std::string type)
+void QtRenderer::drawText(const engine::Types::Rect<>& dst, const std::string& text, const engine::graphics::Color& color, int32_t size, engine::Types::TextAlign align, std::string type)
 {
     if (mPainter == nullptr) {
         engine::Logger::critical() << "No painter set!!!";
@@ -204,7 +200,7 @@ void QtRenderer::drawText(const engine::Types::Rect<>& dst, const std::string& t
         mPainter->setFont(font);
     }
 
-    mPainter->setPen(QColor::fromRgbF(color.r, color.g, color.b, color.a));
+    mPainter->setPen(QColor::fromRgbF(color.r(), color.g(), color.b(), color.a()));
     mPainter->drawText(QRect(dst.x, dst.y, dst.width, dst.height), flags, str);
 
     if (size >= 0) {
@@ -224,70 +220,57 @@ void QtRenderer::drawOverlay(const engine::Types::Point<>& dst, const engine::Ty
     glViewport(0, 0, mFBO->width(), mFBO->height());
     glDisable(GL_DEPTH_TEST);
 
-    glClearColor(overlay.background.r, overlay.background.g, overlay.background.b, 1.0f);
+    glClearColor(overlay.background.r(), overlay.background.g(), overlay.background.b(), 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glBlendEquationSeparate(GL_FUNC_ADD, GL_MAX);
 
-    QOpenGLBuffer lightBuffer;
-    lightBuffer.create();
-    lightBuffer.bind();
-    lightBuffer.allocate(sizeof(QVector4D) * 6 * overlay.ellipses.size());
-
-    uint32_t i = 0;
+    engine::graphics::BufferWriter lightsWriter(*mLightsBuffer);
     for(auto& e: overlay.ellipses) {
-        uint32_t offset = i * sizeof(QVector4D) * 6;
+        lightsWriter += engine::graphics::Color::max(e.gradient.inner(), overlay.background);
+        lightsWriter += engine::graphics::Color::max(e.gradient.outer(), overlay.background);
 
-        QVector4D inner(std::max(overlay.background.r, e.gradient.inner.r), std::max(overlay.background.g, e.gradient.inner.g), std::max(overlay.background.b, e.gradient.inner.b), 1.0f);
-        lightBuffer.write(offset, &inner, sizeof(QVector4D));
-        offset += sizeof(QVector4D);
-
-        QVector4D outer(std::max(overlay.background.r, e.gradient.outer.r), std::max(overlay.background.g, e.gradient.outer.g), std::max(overlay.background.b, e.gradient.outer.b), 1.0f);
-        lightBuffer.write(offset, &outer, sizeof(QVector4D));
-        offset += sizeof(QVector4D);
-
-        QMatrix4x4 matrix;
+        QtMatrix matrix;
         matrix.translate(e.x - (e.radius / 2.0f), e.y - (e.radius / 2.0f));
         matrix.scale(e.radius, e.radius);
-
-        lightBuffer.write(offset, matrix.constData(), sizeof(QVector4D) * 4);
-
-        i++;
+        lightsWriter += matrix;
     }
 
-    lightBuffer.release();
+    lightsWriter.release();
 
+    mProjectionMatrix->translate(dst.x, dst.y);
     mPointLightShader->bind();
 
-    mBufferVBO.bind();
+    mBufferVBO->bind();
     mPointLightShader->enableAttributeArray(0);
-    mPointLightShader->setAttributeBuffer(0, GL_FLOAT, sizeof(QVector2D), 2, sizeof(QVector2D) * 2);
+    mPointLightShader->setAttributeBuffer(0, GL_FLOAT, engine::graphics::Vertex2D::Size, 2, engine::graphics::Vector2D::Size);
 
     mPointLightShader->enableAttributeArray(1);
-    mPointLightShader->setAttributeBuffer(1, GL_FLOAT, 0, 2, sizeof(QVector2D) * 2);
-    mBufferVBO.release();
+    mPointLightShader->setAttributeBuffer(1, GL_FLOAT, 0, 2, engine::graphics::Vector2D::Size);
+    mBufferVBO->release();
 
-    lightBuffer.bind();
+    mLightsBuffer->bind();
     mPointLightShader->enableAttributeArray(2);
-    mPointLightShader->setAttributeBuffer(2, GL_FLOAT, 0, 4, sizeof(QVector4D) * 6);
+    mPointLightShader->setAttributeBuffer(2, GL_FLOAT, 0, 4, engine::graphics::ColorGradient::Size + engine::graphics::Matrix::Size);
     glVertexAttribDivisor(2, 1);
 
     mPointLightShader->enableAttributeArray(3);
-    mPointLightShader->setAttributeBuffer(3, GL_FLOAT, sizeof(QVector4D), 4, sizeof(QVector4D) * 6);
+    mPointLightShader->setAttributeBuffer(3, GL_FLOAT, engine::graphics::Color::Size, 4, engine::graphics::ColorGradient::Size + engine::graphics::Matrix::Size);
     glVertexAttribDivisor(3, 1);
 
     for (uint32_t i = 0; i < 4; i++) {
+        uint32_t offset = engine::graphics::ColorGradient::Size + (engine::graphics::Vector4D::Size * i);
         mPointLightShader->enableAttributeArray(4 + i);
-        mPointLightShader->setAttributeBuffer(4 + i, GL_FLOAT, (i + 2) * sizeof(QVector4D), 4, sizeof(QVector4D) * 6);
+        mPointLightShader->setAttributeBuffer(4 + i, GL_FLOAT, offset, 4, engine::graphics::ColorGradient::Size + engine::graphics::Matrix::Size);
         glVertexAttribDivisor(4 + i, 1);
     }
 
-    lightBuffer.release();
+    mLightsBuffer->release();
 
-    mPointLightShader->setUniformValue("iWorldMatrix", mWorldMatrix);
-    mPointLightShader->setUniformValue("iProjectionMatrix", mProjectionMatrix);
+    mPointLightShader->setUniformValue("iWorldMatrix", *mWorldMatrix);
+    mPointLightShader->setUniformValue("iProjectionMatrix", *mProjectionMatrix);
     mPointLightShader->setUniformValue("iMod", std::abs(mod - 1.0f));
 
     glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, overlay.ellipses.size());
@@ -307,6 +290,10 @@ void QtRenderer::drawOverlay(const engine::Types::Point<>& dst, const engine::Ty
 
     mFBO->release();
 
+    engine::graphics::BufferWriter matrixWriter(*mBufferMatrix);
+    matrixWriter += *mFBOMatrix;
+    matrixWriter.release();
+
     glEnable(GL_BLEND);
     glBlendFunc(GL_DST_COLOR, GL_ZERO);
     glBlendEquation(GL_FUNC_ADD);
@@ -315,31 +302,29 @@ void QtRenderer::drawOverlay(const engine::Types::Point<>& dst, const engine::Ty
 
     glBindTexture(GL_TEXTURE_2D, mFBO->texture());
 
-    mBufferFBO.bind();
+    mBufferFBO->bind();
     mTextureShader->enableAttributeArray(0);
-    mTextureShader->setAttributeBuffer(0, GL_FLOAT, sizeof(QVector2D), 2, sizeof(QVector2D) * 2);
+    mTextureShader->setAttributeBuffer(0, GL_FLOAT, engine::graphics::Vertex2D::Size, 2, engine::graphics::Vector2D::Size);
 
     mTextureShader->enableAttributeArray(1);
-    mTextureShader->setAttributeBuffer(1, GL_FLOAT, 0, 2, sizeof(QVector2D) * 2);
-    mBufferFBO.release();
+    mTextureShader->setAttributeBuffer(1, GL_FLOAT, 0, 2, engine::graphics::Vector2D::Size);
+    mBufferFBO->release();
 
-    QMatrix4x4 matrix;
-    matrix.translate(dst.x, dst.y);
-    matrix.scale(mFBO->width(), mFBO->height());
-
-    mBufferMatrix.bind();
-    mBufferMatrix.write(0, matrix.constData(), sizeof(QVector4D) * 4);
-
+    mBufferMatrix->bind();
     for (uint32_t i = 0; i < 4; i++) {
         mTextureShader->enableAttributeArray(2 + i);
-        mTextureShader->setAttributeBuffer(2 + i, GL_FLOAT, i * sizeof(QVector4D), 4, sizeof(QVector4D) * 4);
+        mTextureShader->setAttributeBuffer(2 + i, GL_FLOAT, i * engine::graphics::Vector4D::Size, 4, engine::graphics::Matrix::Size);
         glVertexAttribDivisor(2 + i, 1);
+
+        mTextureShader->enableAttributeArray(6 + i);
+        mTextureShader->setAttributeBuffer(6 + i, GL_FLOAT, i * engine::graphics::Vector4D::Size, 4, engine::graphics::Matrix::Size);
+        glVertexAttribDivisor(6 + i, 1);
     }
 
-    mBufferMatrix.release();
+    mBufferMatrix->release();
 
-    mTextureShader->setUniformValue("iWorldMatrix", mWorldMatrix);
-    mTextureShader->setUniformValue("iProjectionMatrix", mProjectionMatrix);
+    mTextureShader->setUniformValue("iWorldMatrix", *mWorldMatrix);
+    mTextureShader->setUniformValue("iProjectionMatrix", *mProjectionMatrix);
     mTextureShader->setUniformValue("iTexture", 0);
     mTextureShader->setUniformValue("iResolution", QVector2D(mFBO->width(), mFBO->height()));
 
@@ -350,10 +335,76 @@ void QtRenderer::drawOverlay(const engine::Types::Point<>& dst, const engine::Ty
     for (uint32_t i = 0; i < 4; i++) {
         mTextureShader->disableAttributeArray(2 + i);
         glVertexAttribDivisor(2 + i, 0);
+
+        mTextureShader->disableAttributeArray(6 + i);
+        glVertexAttribDivisor(6 + i, 0);
     }
 
     mTextureShader->release();
+    mProjectionMatrix->translate(-dst.x, -dst.y);
 
+    mPainter->endNativePainting();
+}
+
+void QtRenderer::drawParticles(const engine::Types::Point<>& dst, const engine::Particles& particles)
+{
+    mPainter->beginNativePainting();
+    mProjectionMatrix->translate(dst.x, dst.y);
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    
+    engine::graphics::BufferWriter particlesWriter(*mBufferParticles);
+    for (uint32_t i = 0; i < std::min(particles.size(), engine::Particles::MAX); i++) {
+        auto& p = particles[i];
+
+        engine::graphics::Color color(p.color.r(), p.color.g(), p.color.b(), p.alpha());
+        particlesWriter += color;
+
+        QtMatrix mat;
+        mat.translate(p.rect.x, p.rect.y);
+        mat.scale(p.rect.width, p.rect.height);
+        particlesWriter += mat;
+    }
+
+    particlesWriter.release();
+
+    mParticleShader->bind();
+
+    mBufferFBO->bind();
+    mParticleShader->enableAttributeArray(0);
+    mParticleShader->setAttributeBuffer(0, GL_FLOAT, 0, 2, engine::graphics::Vector2D::Size);
+    mBufferFBO->release();
+
+    mBufferParticles->bind();
+    mParticleShader->enableAttributeArray(1);
+    mParticleShader->setAttributeBuffer(1, GL_FLOAT, 0, 4, engine::graphics::Color::Size + engine::graphics::Matrix::Size);
+    glVertexAttribDivisor(1, 1);
+
+    for (uint32_t i = 0; i < 4; i++) {
+        mParticleShader->enableAttributeArray(2 + i);
+        mParticleShader->setAttributeBuffer(2 + i, GL_FLOAT, engine::graphics::Color::Size + i * engine::graphics::Vector4D::Size, 4, engine::graphics::Color::Size + engine::graphics::Matrix::Size);
+        glVertexAttribDivisor(2 + i, 1);
+    }
+
+    mBufferParticles->release();
+
+    mParticleShader->setUniformValue("iWorldMatrix", *mWorldMatrix);
+    mParticleShader->setUniformValue("iProjectionMatrix", *mProjectionMatrix);
+
+    glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, particles.size());
+
+    mParticleShader->disableAttributeArray(0);
+    mParticleShader->disableAttributeArray(1);
+    glVertexAttribDivisor(1, 0);
+    for (uint32_t i = 0; i < 4; i++) {
+        mParticleShader->disableAttributeArray(2 + i);
+        glVertexAttribDivisor(2 + i, 0);
+    }
+
+    mParticleShader->release();
+
+    mProjectionMatrix->translate(-dst.x, -dst.y);
     mPainter->endNativePainting();
 }
 
@@ -375,7 +426,7 @@ void QtRenderer::translate(int32_t x, int32_t y)
     }
 
     mPainter->translate(x, y);
-    mProjectionMatrix.translate(x, y);
+    //mProjectionMatrix->translate(x, y);
 }
 
 void QtRenderer::save()
@@ -398,7 +449,7 @@ void QtRenderer::restore()
     mPainter->restore();
 }
 
-std::unique_ptr<engine::Image> QtRenderer::loadImage(const std::string& path) const
+std::unique_ptr<engine::graphics::Image> QtRenderer::loadImage(const std::string& path) const
 {
     return std::make_unique<QtImage>(path);
 }
@@ -406,8 +457,6 @@ std::unique_ptr<engine::Image> QtRenderer::loadImage(const std::string& path) co
 void QtRenderer::cleanup()
 {
     mFBO.reset();
-    mBufferCoords.destroy();
-    mBufferFBO.destroy();
 }
 
 void QtRenderer::sync()
@@ -425,24 +474,4 @@ void QtRenderer::initContext()
             QFontDatabase::addApplicationFont(f.c_str());
         }
     }
-}
-
-QtRenderer::QtImage::QtImage(const std::string& path)
-{
-    mImage = std::make_unique<QImage>(QString(path.c_str()));
-}
-
-const QImage& QtRenderer::QtImage::image() const
-{
-    return *mImage;
-}
-
-uint32_t QtRenderer::QtImage::width() const
-{
-    return mImage->width();
-}
-
-uint32_t QtRenderer::QtImage::height() const
-{
-    return mImage->height();
 }

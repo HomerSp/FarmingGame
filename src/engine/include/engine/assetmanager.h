@@ -8,8 +8,10 @@
 
 namespace engine {
 
+namespace graphics {
 class Image;
 class Renderer;
+}
 
 class AssetManager {
 public:
@@ -24,10 +26,10 @@ public:
         Schedule,
     };
 
-    AssetManager(const Renderer& renderer);
+    AssetManager(const graphics::Renderer& renderer);
 
     std::unique_ptr<Json::Value> data(Type type, const std::string& name) const;
-    std::unique_ptr<Image> image(Type type, const std::string& name) const;
+    std::unique_ptr<graphics::Image> image(Type type, const std::string& name) const;
     std::unique_ptr<CollisionMap> collision(Type type, const std::string& name) const;
 
     std::string dataPath(Type type, const std::string& name) const;
@@ -37,6 +39,6 @@ public:
 
 private:
     std::string mBase;
-    const Renderer& mRenderer;
+    const graphics::Renderer& mRenderer;
 };
 }

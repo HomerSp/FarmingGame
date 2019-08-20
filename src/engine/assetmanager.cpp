@@ -2,13 +2,13 @@
 
 #include <engine/assetmanager.h>
 #include <engine/collisionmap.h>
-#include <engine/image.h>
+#include <engine/graphics/image.h>
+#include <engine/graphics/renderer.h>
 #include <engine/logger.h>
-#include <engine/renderer.h>
 
 using namespace engine;
 
-AssetManager::AssetManager(const Renderer& renderer)
+AssetManager::AssetManager(const graphics::Renderer& renderer)
     : mBase("assets")
     , mRenderer(renderer)
 {
@@ -31,7 +31,7 @@ std::unique_ptr<Json::Value> AssetManager::data(Type type, const std::string& na
     return doc;
 }
 
-std::unique_ptr<engine::Image> AssetManager::image(Type type, const std::string& name) const
+std::unique_ptr<graphics::Image> AssetManager::image(Type type, const std::string& name) const
 {
     std::string path = AssetManager::imagePath(type, name);
     if (path.length() > 0) {
@@ -41,14 +41,14 @@ std::unique_ptr<engine::Image> AssetManager::image(Type type, const std::string&
     return nullptr;
 }
 
-std::unique_ptr<engine::CollisionMap> AssetManager::collision(Type type, const std::string& name) const
+std::unique_ptr<CollisionMap> AssetManager::collision(Type type, const std::string& name) const
 {
     std::string path = AssetManager::collisionPath(type, name);
     if (path.length() > 0) {
-        return std::make_unique<engine::CollisionMap>(path);
+        return std::make_unique<CollisionMap>(path);
     }
 
-    return std::make_unique<engine::CollisionMap>();
+    return std::make_unique<CollisionMap>();
 }
 
 std::string AssetManager::dataPath(Type type, const std::string& name) const

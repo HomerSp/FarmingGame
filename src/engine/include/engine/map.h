@@ -14,24 +14,27 @@
 
 namespace engine {
 
-class Renderer;
 class Tileset;
+
+namespace graphics {
+class Renderer;
+}
 
 class MapLightSource : public ScreenEffects::LightSource {
 public:
-    MapLightSource(Types::Point<int32_t> pos, int32_t radius, float_t strength, const Types::ColorGradient& color);
+    MapLightSource(Types::Point<int32_t> pos, int32_t radius, float_t strength, const graphics::ColorGradient& color);
     virtual ~MapLightSource() = default;
 
     virtual Types::Point<int32_t> lightPosition();
     virtual int32_t lightRadius();
     virtual float_t lightStrength();
-    virtual Types::ColorGradient lightColor() override;
+    virtual graphics::ColorGradient lightColor() override;
 
 private:
     Types::Point<int32_t> mPosition;
     int32_t mRadius;
     float_t mStrength;
-    Types::ColorGradient mColor;
+    graphics::ColorGradient mColor;
 };
 
 class MapLayer {
@@ -40,8 +43,8 @@ public:
 
     bool animate(uint64_t frameDiff);
 
-    void draw(Renderer& renderer, const Types::Rect<>& dst, TilesetAbove::Type above, bool clip);
-    void drawRow(Renderer& renderer, const Types::Rect<>& dst, int32_t row, TilesetAbove::Type above, bool clip);
+    void draw(graphics::Renderer& renderer, const Types::Rect<>& dst, TilesetAbove::Type above, bool clip);
+    void drawRow(graphics::Renderer& renderer, const Types::Rect<>& dst, int32_t row, TilesetAbove::Type above, bool clip);
 
     void toggleLights(bool on);
 
@@ -77,8 +80,8 @@ public:
 
     bool animate(uint64_t frameDiff);
 
-    void draw(Renderer& renderer, const Types::Rect<>& dst, TilesetAbove::Type above, bool clip = true);
-    void drawRow(Renderer& renderer, const Types::Rect<>& dst, int32_t row, TilesetAbove::Type above, bool clip = true);
+    void draw(graphics::Renderer& renderer, const Types::Rect<>& dst, TilesetAbove::Type above, bool clip = true);
+    void drawRow(graphics::Renderer& renderer, const Types::Rect<>& dst, int32_t row, TilesetAbove::Type above, bool clip = true);
 
     void checkCollision(const Types::Point<float_t>& pos, const Types::Dimension<>& size, Types::Point<float_t>& dst, float_t& velocityX, float_t& velocityY) const;
     bool isNodeSolid(int32_t x, int32_t y, const Types::Dimension<>& size) const;

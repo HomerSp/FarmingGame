@@ -5,9 +5,9 @@
 
 #include <engine/assetmanager.h>
 #include <engine/collisionmap.h>
-#include <engine/image.h>
+#include <engine/graphics/image.h>
+#include <engine/graphics/renderer.h>
 #include <engine/logger.h>
-#include <engine/renderer.h>
 #include <engine/tileset.h>
 
 using namespace engine;
@@ -92,7 +92,7 @@ float_t TilesetType::lightStrength() const
     return mLightStrength;
 }
 
-Types::ColorGradient TilesetType::lightColor() const
+graphics::ColorGradient TilesetType::lightColor() const
 {
     return mLightColor;
 }
@@ -180,7 +180,7 @@ void TilesetType::setLightStrength(float_t strength)
     mLightStrength = strength;
 }
 
-void TilesetType::setLightColor(const Types::ColorGradient& color)
+void TilesetType::setLightColor(const graphics::ColorGradient& color)
 {
     mLightColor = color;
 }
@@ -575,7 +575,7 @@ Tileset::Tileset(std::shared_ptr<Context>& ctx, const std::string& name)
 
                 if (lightObj.isMember("color") && lightObj["color"].size() >= 3) {
                     Json::Value colorObj = lightObj["color"];
-                    auto g = Types::ColorGradient(Types::Color(colorObj[0].asInt(), colorObj[1].asInt(), colorObj[2].asInt()));
+                    auto g = graphics::ColorGradient(graphics::Color::fromInt(colorObj[0].asInt(), colorObj[1].asInt(), colorObj[2].asInt()));
                     type->setLightColor(g);
                 }
             }
@@ -598,7 +598,7 @@ Tileset::Tileset(std::shared_ptr<Context>& ctx, const std::string& name)
     mValid = true;
 }
 
-void Tileset::draw(Renderer& renderer, TilesetNode& node, const Types::Point<>& pos)
+void Tileset::draw(graphics::Renderer& renderer, TilesetNode& node, const Types::Point<>& pos)
 {
     Types::Rect<> dst(0, 0, mTileDimension.width / 2, mTileDimension.height / 2);
     int32_t dx = 0, dy = 0;

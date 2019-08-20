@@ -5,7 +5,7 @@
 
 #include <engine/assetmanager.h>
 #include <engine/character/character.h>
-#include <engine/image.h>
+#include <engine/graphics/image.h>
 #include <engine/item.h>
 #include <engine/logger.h>
 #include <engine/player.h>
@@ -72,14 +72,14 @@ Item::Item(std::shared_ptr<Context>& ctx, const std::string& name)
         if (lightObj.isMember("color")) {
             Json::Value colorObj = lightObj["color"];
             if (colorObj.isArray() && colorObj.size() == 3) {
-                mLightColor = Types::ColorGradient(Types::Color::fromInt(colorObj[0].asInt(), colorObj[1].asInt(), colorObj[2].asInt()));
+                mLightColor = graphics::ColorGradient(graphics::Color::fromInt(colorObj[0].asInt(), colorObj[1].asInt(), colorObj[2].asInt()));
             } else if (colorObj.isObject() && colorObj.isMember("inner") && colorObj.isMember("outer")) {
                 Json::Value innerObj = colorObj["inner"];
                 Json::Value outerObj = colorObj["outer"];
 
-                Types::Color cI = Types::Color::fromInt(innerObj[0].asInt(), innerObj[1].asInt(), innerObj[2].asInt());
-                Types::Color cO = Types::Color::fromInt(outerObj[0].asInt(), outerObj[1].asInt(), outerObj[2].asInt());
-                mLightColor = Types::ColorGradient(cI, cO);
+                graphics::Color cI = graphics::Color::fromInt(innerObj[0].asInt(), innerObj[1].asInt(), innerObj[2].asInt());
+                graphics::Color cO = graphics::Color::fromInt(outerObj[0].asInt(), outerObj[1].asInt(), outerObj[2].asInt());
+                mLightColor = graphics::ColorGradient(cI, cO);
             }
         }
     }
@@ -124,7 +124,7 @@ float_t Item::lightStrength()
     return mLightStrength;
 }
 
-Types::ColorGradient Item::lightColor() 
+graphics::ColorGradient Item::lightColor() 
 {   
     return mLightColor;
 }
@@ -170,7 +170,7 @@ void Item::use(Player& player)
     }
 }
 
-const Image& Item::uiImage() const
+const graphics::Image& Item::uiImage() const
 {
     return *mUiImage;
 }

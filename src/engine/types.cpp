@@ -4,44 +4,11 @@
 
 using namespace engine;
 
+constexpr uint32_t Types::Overlay::LIGHTS_MAX;
+
 Types::Cells::Cells(uint32_t cols, uint32_t rows)
     : cols(cols)
     , rows(rows)
-{
-}
-
-Types::Color::Color(const Color& o, float_t a)
-    : Color(o.r, o.g, o.b, a)
-{
-}
-
-Types::Color::Color(float_t r, float_t g, float_t b, float_t a)
-    : r(r)
-    , g(g)
-    , b(b)
-    , a(a)
-{
-}
-
-Types::Color Types::Color::fromInt(uint8_t r, uint8_t g, uint8_t b, uint8_t a)
-{
-    return {r / 255.0f, g / 255.0f, b / 255.0f, a / 255.0f};
-}
-
-Types::ColorGradient::ColorGradient(const ColorGradient& other, float_t alpha)
-    : inner({other.inner, alpha})
-    , outer({other.outer, alpha})
-{
-}
-
-Types::ColorGradient::ColorGradient(const Color& color)
-    : ColorGradient(color, color)
-{
-}
-
-Types::ColorGradient::ColorGradient(const Color& cInner, const Color& cOuter)
-    : inner(cInner)
-    , outer(cOuter)
 {
 }
 
@@ -58,13 +25,13 @@ Types::Ellipse::Ellipse(int32_t x, int32_t y, int32_t radius)
 {
 }
 
-Types::FilledEllipse::FilledEllipse(int32_t x, int32_t y, int32_t radius, const Types::ColorGradient& gradient)
+Types::FilledEllipse::FilledEllipse(int32_t x, int32_t y, int32_t radius, const graphics::ColorGradient& gradient)
     : Ellipse(x, y, radius)
     , gradient(gradient)
 {
 }
 
-Types::Overlay::Overlay(uint32_t w, uint32_t h, Types::Color bg)
+Types::Overlay::Overlay(uint32_t w, uint32_t h, graphics::Color bg)
     : width(w)
     , height(h)
     , background(bg)
@@ -117,4 +84,10 @@ Types::AtomicF& Types::AtomicF::operator+=(float d)
     }
 
     return *this;
+}
+
+double_t Types::PI()
+{
+    static double_t sPI = std::acos(-1);
+    return sPI;
 }

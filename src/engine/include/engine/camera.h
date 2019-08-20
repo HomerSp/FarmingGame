@@ -46,13 +46,14 @@ public:
 
     Camera(std::shared_ptr<Context> &ctx, uint32_t width, uint32_t height);
 
+    Types::Rect<float_t> rect();
     Types::Point<float_t> position();
 
     int32_t x();
     int32_t y();
 
-    uint32_t width() const;
-    uint32_t height() const;
+    uint32_t width();
+    uint32_t height();
 
     void follow(Target* target, asIScriptFunction* fun = nullptr);
     void moveTo(int32_t dstX, int32_t dstY, asIScriptFunction* fun = nullptr);
@@ -72,8 +73,7 @@ public:
 
 private:
     Target* mTarget;
-    Types::Dimension<uint32_t> mDimen;
-    Types::Point<float_t> mPos;
+    Types::Rect<float_t> mRect;
     Types::Point<float_t> mTargetPos;
     std::mutex mMovementMutex;
 

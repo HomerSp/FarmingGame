@@ -1,6 +1,7 @@
-#include <engine/renderer.h>
+#include <engine/graphics/renderer.h>
 
 using namespace engine;
+using namespace engine::graphics;
 
 Context& Renderer::context()
 {

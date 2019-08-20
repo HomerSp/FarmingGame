@@ -15,7 +15,7 @@ class Engine;
 
 class Context {
 public:
-    Context(Engine& engine, std::shared_ptr<script::ScriptEngine>& scriptEngine, const Renderer& renderer);
+    Context(Engine& engine, std::shared_ptr<script::ScriptEngine>& scriptEngine, const graphics::Renderer& renderer);
 
     Engine& engine();
     script::ScriptEngine& scriptEngine();

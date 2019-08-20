@@ -1,9 +1,9 @@
 #include <map>
 
-#include <engine/image.h>
+#include <engine/graphics/image.h>
 #include <engine/logger.h>
 
-using namespace engine;
+using namespace engine::graphics;
 
 bool Image::operator!() const
 {

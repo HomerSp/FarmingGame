@@ -42,7 +42,7 @@ Charset::Charset(std::shared_ptr<Context>& ctx, const std::string& name)
     mValid = !mNodes.empty();
 }
 
-void Charset::draw(Renderer& renderer, const Types::Point<>& pos, Charset::Type type, int32_t direction, int32_t frame)
+void Charset::draw(graphics::Renderer& renderer, const Types::Point<>& pos, Charset::Type type, int32_t direction, int32_t frame)
 {
     // Couldn't find the node, return...
     if (mNodes.find(type) == mNodes.end()) {

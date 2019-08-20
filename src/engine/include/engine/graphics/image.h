@@ -6,6 +6,7 @@
 #include <engine/types.h>
 
 namespace engine {
+namespace graphics {
 class Image {
 public:
     Image() = default;
@@ -16,4 +17,5 @@ public:
 
     bool operator!() const;
 };
+}
 }

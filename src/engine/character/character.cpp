@@ -5,9 +5,9 @@
 
 #include <engine/assetmanager.h>
 #include <engine/character/character.h>
+#include <engine/graphics/renderer.h>
 #include <engine/logger.h>
 #include <engine/map.h>
-#include <engine/renderer.h>
 
 using namespace engine;
 using namespace engine::character;
@@ -84,7 +84,7 @@ Types::Rect<float_t> Character::rect()
     return {mPos.x, mPos.y, static_cast<float_t>(mCharset->width(mCharsetType)), static_cast<float_t>(mCharset->height(mCharsetType))};
 }
 
-void Character::draw(Renderer& renderer, const Types::Point<>& camera)
+void Character::draw(graphics::Renderer& renderer, const Types::Point<>& camera)
 {
     std::lock_guard<std::mutex> lock(mMovementMutex);
     int32_t cols = mCharset->columns(mCharsetType);

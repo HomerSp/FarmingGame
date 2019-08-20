@@ -8,6 +8,9 @@
 #include <unordered_map>
 #include <vector>
 
+#include <engine/graphics/color.h>
+#include <engine/graphics/colorgradient.h>
+
 namespace engine {
 class Types {
 public:
@@ -75,26 +78,6 @@ public:
         uint32_t cols, rows;
     };
 
-    struct Color {
-    public:
-        Color(const Color& o, float_t a);
-        Color(float_t r, float_t g, float_t b, float_t a = 1.0f);
-
-        static Color fromInt(uint8_t r, uint8_t g, uint8_t b, uint8_t a = 255);
-
-        float_t r, g, b, a;
-    };
-
-    struct ColorGradient {
-    public:
-        ColorGradient(const ColorGradient& other, float_t alpha = 1.0f);
-        ColorGradient(const Color& color);
-        ColorGradient(const Color& cInner, const Color& cOuter);
-
-        Color inner;
-        Color outer;
-    };
-
     template<typename T = int32_t>
     struct Quad {
     public:
@@ -124,19 +107,21 @@ public:
 
     struct FilledEllipse : public Ellipse {
     public:
-        FilledEllipse(int32_t x, int32_t y, int32_t radius, const Types::ColorGradient& gradient);
+        FilledEllipse(int32_t x, int32_t y, int32_t radius, const graphics::ColorGradient& gradient);
 
-        Types::ColorGradient gradient;
+        graphics::ColorGradient gradient;
     };
 
     struct Overlay {
     public:
-        Overlay(uint32_t w, uint32_t h, Types::Color bg);
+        static constexpr uint32_t LIGHTS_MAX = 255;
+
+        Overlay(uint32_t w, uint32_t h, graphics::Color bg);
 
         void addEllipse(const Types::FilledEllipse &ellipse);
 
         uint32_t width, height;
-        Types::Color background;
+        graphics::Color background;
         std::vector<Types::FilledEllipse> ellipses;
     };
 
@@ -170,5 +155,7 @@ public:
         AtomicF& operator=(float d);
         AtomicF& operator+=(float d);
     };
+
+    static double_t PI();
 };
 }

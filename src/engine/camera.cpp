@@ -10,38 +10,45 @@ using namespace engine;
 Camera::Camera(std::shared_ptr<Context> &ctx, uint32_t width, uint32_t height)
     : ScriptObject(ctx)
     , mTarget(nullptr)
-    , mDimen(width, height)
-    , mPos(0.0f, 0.0f)
+    , mRect(0.0f, 0.0f, width, height)
     , mTargetPos(-1, -1)
 {
+}
+
+Types::Rect<float_t> Camera::rect()
+{
+    std::lock_guard<std::mutex> lock(mMovementMutex);
+    return mRect;
 }
 
 Types::Point<float_t> Camera::position()
 {
     std::lock_guard<std::mutex> lock(mMovementMutex);
-    return mPos;
+    return {mRect.x, mRect.y};
 }
 
 int32_t Camera::x()
 {
     std::lock_guard<std::mutex> lock(mMovementMutex);
-    return static_cast<int32_t>(mPos.x);
+    return mRect.x;
 }
 
 int32_t Camera::y()
 {
     std::lock_guard<std::mutex> lock(mMovementMutex);
-    return static_cast<int32_t>(mPos.y);
+    return mRect.y;
 }
 
-uint32_t Camera::width() const
+uint32_t Camera::width()
 {
-    return mDimen.width;
+    std::lock_guard<std::mutex> lock(mMovementMutex);
+    return mRect.width;
 }
 
-uint32_t Camera::height() const
+uint32_t Camera::height()
 {
-    return mDimen.height;
+    std::lock_guard<std::mutex> lock(mMovementMutex);
+    return mRect.height;
 }
 
 void Camera::follow(Camera::Target* target, asIScriptFunction* fun)
@@ -78,22 +85,22 @@ void Camera::moveTo(int32_t dstX, int32_t dstY, asIScriptFunction* fun)
 bool Camera::contains(const Types::Rect<float_t>& rc, const Types::Dimension<>& buf)
 {
     std::lock_guard<std::mutex> lock(mMovementMutex);
-    Types::Rect<float_t> cameraRc(mPos.x - buf.width, mPos.y - buf.height, mDimen.width + buf.width * 2, mDimen.height + buf.height * 2);
+    Types::Rect<float_t> cameraRc(mRect.x - buf.width, mRect.y - buf.height, mRect.width + buf.width * 2, mRect.height + buf.height * 2);
     return cameraRc.intersects(rc);
 }
 
 bool Camera::outsideView(const Types::Point<float_t>& pos)
 {
     std::lock_guard<std::mutex> lock(mMovementMutex);
-    return pos.x < mPos.x || pos.x > mPos.x + mDimen.width || pos.y < mPos.y || pos.y > mPos.y + mDimen.height;
+    return pos.x < mRect.x || pos.x > mRect.x + mRect.width || pos.y < mRect.y || pos.y > mRect.y + mRect.height;
 }
 
 bool Camera::processAsync(uint64_t frameDiff, Map* map)
 {
     std::lock_guard<std::mutex> lock(mMovementMutex);
 
-    float_t posX = mPos.x;
-    float_t posY = mPos.y;
+    float_t posX = mRect.x;
+    float_t posY = mRect.y;
     float_t targetPosX = mTargetPos.x;
     float_t targetPosY = mTargetPos.y;
     float_t targetX = targetPosX;
@@ -101,8 +108,8 @@ bool Camera::processAsync(uint64_t frameDiff, Map* map)
 
     // If we have a target we need to follow that.
     if (mTarget != nullptr) {
-        targetX =  mTarget->x() + std::floor(mTarget->width() / 2) - std::floor(mDimen.width / 2);
-        targetY = mTarget->y() + std::floor(mTarget->height() * 0.75f) - std::floor(mDimen.height / 2);
+        targetX =  mTarget->x() + std::floor(mTarget->width() / 2) - std::floor(mRect.width / 2);
+        targetY = mTarget->y() + std::floor(mTarget->height() * 0.75f) - std::floor(mRect.height / 2);
     }
 
     // Check if we are supposed to move the camera smoothly (ie, if we have a target)
@@ -148,16 +155,16 @@ bool Camera::processAsync(uint64_t frameDiff, Map* map)
     if (posX < 0) {
         posX = targetX = 0;
         targetPosX = -1;
-    } else if (posX > map->pixelWidth() - mDimen.width) {
-        posX = targetX = map->pixelWidth() - mDimen.width;
+    } else if (posX > map->pixelWidth() - mRect.width) {
+        posX = targetX = map->pixelWidth() - mRect.width;
         targetPosX = -1;
     }
 
     if (posY < 0) {
         posY = targetY = 0;
         targetPosY = -1;
-    } else if (posY > map->pixelHeight() - mDimen.height) {
-        posY = targetY = map->pixelHeight() - mDimen.height;
+    } else if (posY > map->pixelHeight() - mRect.height) {
+        posY = targetY = map->pixelHeight() - mRect.height;
         targetPosY = -1;
     }
 
@@ -170,9 +177,9 @@ bool Camera::processAsync(uint64_t frameDiff, Map* map)
         targetPosY = -1;
     }
 
-    bool changed = mPos.x != posX || mPos.y != posY;
-    mPos.x = posX;
-    mPos.y = posY;
+    bool changed = mRect.x != posX || mRect.y != posY;
+    mRect.x = posX;
+    mRect.y = posY;
     mTargetPos.x = targetPosX;
     mTargetPos.y = targetPosY;
 
@@ -222,8 +229,8 @@ void Camera::setPosition(int32_t x, int32_t y)
     mTarget = nullptr;
     mTargetPos.x = -1;
     mTargetPos.y = -1;
-    mPos.x = x;
-    mPos.y = y;
+    mRect.x = x;
+    mRect.y = y;
 }
 
 void Camera::setTarget(Camera::Target* target)
@@ -233,14 +240,16 @@ void Camera::setTarget(Camera::Target* target)
     mTargetPos.x = -1;
     mTargetPos.y = -1;
     if (mTarget != nullptr) {
-        mPos.x = -1;
-        mPos.y = -1;
+        mRect.x = -1;
+        mRect.y = -1;
     }
 }
 
 void Camera::setViewport(const Types::Dimension<uint32_t>& d)
 {
-    mDimen = d;
+    std::lock_guard<std::mutex> lock(mMovementMutex);
+    mRect.width = d.width;
+    mRect.height = d.height;
 }
 
 std::string Camera::className()

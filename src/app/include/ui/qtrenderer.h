@@ -13,26 +13,18 @@
 #include <memory>
 
 #include <engine/engine.h>
-#include <engine/image.h>
-#include <engine/renderer.h>
+#include <engine/graphics/buffer.h>
+#include <engine/graphics/image.h>
+#include <engine/graphics/matrix.h>
+#include <engine/graphics/renderer.h>
+#include <engine/particles.h>
 
-class QtRenderer : public QObject, public engine::Renderer, protected QOpenGLExtraFunctions {
+#include <ui/qtbuffer.h>
+#include <ui/qtmatrix.h>
+
+class QtRenderer : public QObject, public engine::graphics::Renderer, protected QOpenGLExtraFunctions
+{
     Q_OBJECT
-public:
-    class QtImage : public engine::Image {
-    public:
-        QtImage(const std::string& path);
-        virtual ~QtImage() = default;
-
-        const QImage& image() const;
-
-        virtual uint32_t width() const;
-        virtual uint32_t height() const;
-
-    private:
-        std::unique_ptr<QImage> mImage;
-    };
-
 public:
     QtRenderer();
     virtual ~QtRenderer() = default;
@@ -44,12 +36,13 @@ public:
     int32_t width();
     int32_t height();
 
-    void fillEllipse(const engine::Types::Rect<>& dst, const engine::Types::Color& color);
-    void fillRect(const engine::Types::Rect<>& dst, const engine::Types::Color& color);
+    void fillEllipse(const engine::Types::Rect<>& dst, const engine::graphics::Color& color);
+    void fillRect(const engine::Types::Rect<>& dst, const engine::graphics::Color& color);
 
-    void drawImage(const engine::Image& img, engine::Types::Rect<> dst, engine::Types::Rect<> src);
-    void drawText(const engine::Types::Rect<>& dst, const std::string& text, const engine::Types::Color& color, int32_t size, engine::Types::TextAlign align, std::string type);
+    void drawImage(const engine::graphics::Image& img, engine::Types::Rect<> dst, engine::Types::Rect<> src);
+    void drawText(const engine::Types::Rect<>& dst, const std::string& text, const engine::graphics::Color& color, int32_t size, engine::Types::TextAlign align, std::string type);
     void drawOverlay(const engine::Types::Point<>& dst, const engine::Types::Overlay& overlay, float mod);
+    void drawParticles(const engine::Types::Point<>& dst, const engine::Particles& particles);
 
     void rotate(float_t deg);
     void translate(int32_t x, int32_t y);
@@ -57,7 +50,7 @@ public:
     void save();
     void restore();
 
-    std::unique_ptr<engine::Image> loadImage(const std::string& path) const;
+    std::unique_ptr<engine::graphics::Image> loadImage(const std::string& path) const;
 
 public slots:
     void cleanup();
@@ -73,10 +66,14 @@ private:
     std::unique_ptr<QOpenGLShaderProgram> mTextureShader;
     std::unique_ptr<QOpenGLShaderProgram> mPointLightShader;
     std::unique_ptr<QOpenGLShaderProgram> mColorShader;
+    std::unique_ptr<QOpenGLShaderProgram> mParticleShader;
 
-    QMatrix4x4 mWorldMatrix, mProjectionMatrix;
+    std::unique_ptr<QtMatrix> mWorldMatrix, mProjectionMatrix, mFBOMatrix;
     std::unique_ptr<QOpenGLFramebufferObject> mFBO;
-    QOpenGLBuffer mBufferVBO, mBufferFBO, mBufferCoords, mBufferMatrix;
+    std::unique_ptr<QtBuffer> mBufferVBO, mBufferFBO, mBufferMatrix;
+
+    std::unique_ptr<QtBuffer> mLightsBuffer;
+    std::unique_ptr<QtBuffer> mBufferParticles;
 
     engine::Types::Dimension<int32_t> mSize;
 };

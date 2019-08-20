@@ -2,7 +2,7 @@
 
 using namespace engine; 
 
-Context::Context(Engine& engine, std::shared_ptr<script::ScriptEngine>& scriptEngine, const Renderer& renderer)
+Context::Context(Engine& engine, std::shared_ptr<script::ScriptEngine>& scriptEngine, const graphics::Renderer& renderer)
     : mEngine(engine)
     , mScriptEngine(scriptEngine)
 {
