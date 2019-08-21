@@ -10,7 +10,7 @@ MapItemView::MapItemView(QQuickItem* parent)
 {
     setAcceptHoverEvents(true);
 
-    mMap = std::make_shared<engine::Map>(mContext, "map_small");
+    mMap = std::make_shared<engine::Map>(mContext, mRenderer, "map_small");
     setImplicitWidth(mMap->pixelWidth());
     setImplicitHeight(mMap->pixelHeight());
 

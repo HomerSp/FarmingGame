@@ -8,6 +8,7 @@
 
 #include <engine/collisionmap.h>
 #include <engine/context.h>
+#include <engine/graphics/buffer.h>
 #include <engine/screeneffects.h>
 #include <engine/tileset.h>
 #include <engine/types.h>
@@ -17,29 +18,29 @@ namespace engine {
 class Tileset;
 
 namespace graphics {
+class Buffer;
+class BufferWriter;
 class Renderer;
 }
 
 class MapLightSource : public Overlay::LightSource {
 public:
-    MapLightSource(Types::Point<int32_t> pos, int32_t radius, float_t strength, const graphics::ColorGradient& color);
+    MapLightSource(Types::Point<int32_t> pos, int32_t radius, const graphics::ColorGradient& color);
     virtual ~MapLightSource() = default;
 
     virtual Types::Point<int32_t> lightPosition();
     virtual int32_t lightRadius();
-    virtual float_t lightStrength();
     virtual graphics::ColorGradient lightColor() override;
 
 private:
     Types::Point<int32_t> mPosition;
     int32_t mRadius;
-    float_t mStrength;
     graphics::ColorGradient mColor;
 };
 
 class MapLayer {
 public:
-    MapLayer(Types::Map2D data, std::shared_ptr<Tileset> tileset, uint32_t width, uint32_t height);
+    MapLayer(graphics::Renderer& renderer, Types::Map2D data, std::shared_ptr<Tileset> tileset, uint32_t width, uint32_t height);
 
     bool animate(uint64_t frameDiff);
 
@@ -76,7 +77,7 @@ struct MapType {
 
 class Map : public ContextObject {
 public:
-    Map(std::shared_ptr<Context>& ctx, const std::string& id);
+    Map(std::shared_ptr<Context>& ctx, graphics::Renderer& renderer, const std::string& id);
 
     bool animate(uint64_t frameDiff);
 

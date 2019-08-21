@@ -28,6 +28,8 @@ Particles::Particles(graphics::Renderer& renderer, uint32_t count, const graphic
     , mCount(count)
     , mFrameSpeed(100.0f)
     , mMoveSpeed(20.0f)
+    , mMinLife(0)
+    , mMaxLife(100)
 {
     mParticles.resize(mCount, Particle(c, size));
 
@@ -128,6 +130,12 @@ void Particles::setMoveSpeed(float_t moveSpeed)
     mMoveSpeed = moveSpeed;
 }
 
+void Particles::setLifeRange(uint8_t minLife, uint8_t maxLife)
+{
+    mMinLife = minLife;
+    mMaxLife = maxLife;
+}
+
 const Particle &Particles::operator[](int index) const
 {
     return mParticles.at(index);
@@ -135,7 +143,7 @@ const Particle &Particles::operator[](int index) const
 
 void Particles::initNew(Particle& particle, Camera& camera)
 {
-    float_t life = Random::range(0, 100) / 100.0f;
+    float_t life = Random::range(mMinLife, mMaxLife) / 100.0f;
     particle.startLife = particle.life = life;
     particle.rect.x = camera.x() + Random::range(camera.width());
     particle.rect.y = camera.y() + Random::range(camera.height());

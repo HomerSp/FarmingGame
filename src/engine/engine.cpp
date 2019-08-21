@@ -39,7 +39,7 @@ Engine::Engine(uint32_t width, uint32_t height, std::shared_ptr<graphics::Render
     mHud = std::make_unique<engine::Hud>(mContext);
     mCamera = std::make_unique<engine::Camera>(mContext, mWidth, mHeight);
     mClock = std::make_unique<engine::Clock>(mContext);
-    mMap = std::make_unique<engine::Map>(mContext, "map");
+    mMap = std::make_unique<engine::Map>(mContext, *mRenderer, "map");
     mPlayer = std::make_shared<engine::Player>(mContext);
     mWeather = std::make_unique<engine::Weather>(*mRenderer);
 

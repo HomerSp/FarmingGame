@@ -19,6 +19,7 @@ class TilesetType;
 class Tileset;
 
 namespace graphics {
+class BufferWriter;
 class Renderer;
 }
 
@@ -69,7 +70,6 @@ public:
 
     Types::Point<> lightBase() const;
     int32_t lightRadius() const;
-    float_t lightStrength() const;
     graphics::ColorGradient lightColor() const;
 
     bool operator!() const;
@@ -108,7 +108,6 @@ private:
     // Light
     Types::Point<> mLightBase;
     int32_t mLightRadius;
-    float_t mLightStrength;
     graphics::ColorGradient mLightColor;
 };
 
@@ -117,6 +116,8 @@ public:
     Tileset(std::shared_ptr<Context>& ctx, const std::string& name);
 
     void draw(graphics::Renderer& renderer, TilesetNode& node, const Types::Point<>& pos);
+
+    graphics::Image& image() const;
 
     Types::Dimension<> getTileDimension() const
     {

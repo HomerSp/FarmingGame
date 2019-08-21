@@ -26,6 +26,8 @@ public:
     const float_t& b() const;
     const float_t& a() const;
 
+    Color& operator*=(float_t alpha);
+
     static Color fromInt(uint8_t r, uint8_t g, uint8_t b, uint8_t a = 255);
     static Color max(const Color& first, const Color& second);
 

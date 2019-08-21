@@ -5,7 +5,9 @@
 
 #include <engine/assetmanager.h>
 #include <engine/collisionmap.h>
+#include <engine/graphics/bufferwriter.h>
 #include <engine/graphics/image.h>
+#include <engine/graphics/matrix.h>
 #include <engine/graphics/renderer.h>
 #include <engine/logger.h>
 #include <engine/tileset.h>
@@ -24,7 +26,6 @@ TilesetType::TilesetType(uint32_t index, Types::Dimension<>& tileDimension, cons
     , mBase(0)
     , mLightBase(-1, -1)
     , mLightRadius(0)
-    , mLightStrength(0.0f)
     , mLightColor({1.0f, 1.0f, 1.0f})
 {
     switch (Types::hash(tileType.c_str())) {
@@ -85,11 +86,6 @@ Types::Point<> TilesetType::lightBase() const
 int32_t TilesetType::lightRadius() const
 {
     return mLightRadius;
-}
-
-float_t TilesetType::lightStrength() const
-{
-    return mLightStrength;
 }
 
 graphics::ColorGradient TilesetType::lightColor() const
@@ -173,11 +169,6 @@ void TilesetType::setLightBase(Types::Point<> base)
 void TilesetType::setLightRadius(int32_t radius)
 {
     mLightRadius = radius;
-}
-
-void TilesetType::setLightStrength(float_t strength)
-{
-    mLightStrength = strength;
 }
 
 void TilesetType::setLightColor(const graphics::ColorGradient& color)
@@ -569,13 +560,15 @@ Tileset::Tileset(std::shared_ptr<Context>& ctx, const std::string& name)
                     type->setLightRadius(lightObj["radius"].asInt());
                 }
 
+                float_t strength = 1.0f;
                 if (lightObj.isMember("strength")) {
-                    type->setLightStrength(lightObj["strength"].asInt() / 255.0f);
+                    strength = lightObj["strength"].asInt() / 255.0f;
                 }
 
                 if (lightObj.isMember("color") && lightObj["color"].size() >= 3) {
                     Json::Value colorObj = lightObj["color"];
                     auto g = graphics::ColorGradient(graphics::Color::fromInt(colorObj[0].asInt(), colorObj[1].asInt(), colorObj[2].asInt()));
+                    g *= strength;
                     type->setLightColor(g);
                 }
             }
@@ -596,6 +589,11 @@ Tileset::Tileset(std::shared_ptr<Context>& ctx, const std::string& name)
     }
 
     mValid = true;
+}
+
+graphics::Image& Tileset::image() const
+{
+    return *mImage;
 }
 
 void Tileset::draw(graphics::Renderer& renderer, TilesetNode& node, const Types::Point<>& pos)
@@ -639,11 +637,9 @@ void Tileset::updateCollisionMap(const CollisionMap& tilesetMap, CollisionMap& o
     for (const auto po : node.pos) {
         for (int32_t cy = 0; cy < dimen.height; cy++) {
             for (int32_t cx = 0; cx < dimen.width; cx++) {
-                if (tilesetMap.get(po.x + cx, po.y + cy)) {
-                    uint32_t dstx = (x * mTileDimension.width) + (dx * (mTileDimension.width / 2)) + cx;
-                    uint32_t dsty = (y * mTileDimension.height) + (dy * (mTileDimension.height / 2)) + cy;
-                    outMap.set(dstx, dsty, true);
-                }
+                uint32_t dstx = (x * mTileDimension.width) + (dx * (mTileDimension.width / 2)) + cx;
+                uint32_t dsty = (y * mTileDimension.height) + (dy * (mTileDimension.height / 2)) + cy;
+                outMap.set(dstx, dsty, tilesetMap.get(po.x + cx, po.y + cy));
             }
         }
 

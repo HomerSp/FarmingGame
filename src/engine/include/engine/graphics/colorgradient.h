@@ -23,6 +23,8 @@ public:
     Color& inner();
     Color& outer();
 
+    ColorGradient& operator*=(float_t alpha);
+
 private:
     Color mInner, mOuter;
 };

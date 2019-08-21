@@ -23,7 +23,6 @@ Item::Item(std::shared_ptr<Context>& ctx, const std::string& name)
     : ContextObject(ctx)
     , mUiImage(nullptr)
     , mLightRadius(0)
-    , mLightStrength(0.0f)
     , mLightColor({1.0f, 1.0f, 1.0f})
 {
     std::unique_ptr<Json::Value> doc = context().assetManager().data(AssetManager::Item, name);
@@ -65,8 +64,9 @@ Item::Item(std::shared_ptr<Context>& ctx, const std::string& name)
             mLightRadius = lightObj["radius"].asInt();
         }
 
+        float_t strength = 1.0f;
         if (lightObj.isMember("strength")) {
-            mLightStrength = lightObj["strength"].asInt() / 255.0f;
+            strength = lightObj["strength"].asInt() / 255.0f;
         }
 
         if (lightObj.isMember("color")) {
@@ -81,6 +81,8 @@ Item::Item(std::shared_ptr<Context>& ctx, const std::string& name)
                 graphics::Color cO = graphics::Color::fromInt(outerObj[0].asInt(), outerObj[1].asInt(), outerObj[2].asInt());
                 mLightColor = graphics::ColorGradient(cI, cO);
             }
+
+            mLightColor *= strength;
         }
     }
 
@@ -117,11 +119,6 @@ Types::Point<int32_t> Item::lightPosition()
 int32_t Item::lightRadius()
 {
     return mLightRadius;
-}
-
-float_t Item::lightStrength()
-{
-    return mLightStrength;
 }
 
 graphics::ColorGradient Item::lightColor() 

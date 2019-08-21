@@ -8,6 +8,6 @@ in vec2 vCoords;
 
 void main(void)
 {
-    vec2 c = vec2(vCoords.x / iResolution.x, vCoords.y / iResolution.y);
+    vec2 c = vCoords.xy / iResolution.xy;
     oColor = texture2D(iTexture, c);
 };

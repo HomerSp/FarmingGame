@@ -38,3 +38,10 @@ Color& ColorGradient::outer()
 {
     return mOuter;
 }
+
+ColorGradient& ColorGradient::operator*=(float_t alpha)
+{
+    mInner *= alpha;
+    mOuter *= alpha;
+    return *this;
+}

@@ -38,7 +38,7 @@ void Overlay::draw(graphics::Renderer& renderer, Camera& camera, const std::vect
             continue;
         }
 
-        graphics::ColorGradient l = graphics::ColorGradient(source->lightColor(), source->lightStrength());
+        auto l = source->lightColor();
         writer += engine::graphics::Color::max(l.inner(), mBackground);
         writer += engine::graphics::Color::max(l.outer(), mBackground);
 

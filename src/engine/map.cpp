@@ -6,13 +6,14 @@
 
 #include <engine/assetmanager.h>
 #include <engine/collisionmap.h>
+#include <engine/graphics/bufferwriter.h>
 #include <engine/graphics/renderer.h>
 #include <engine/logger.h>
 #include <engine/map.h>
 
 using namespace engine;
 
-MapLayer::MapLayer(Types::Map2D data, std::shared_ptr<Tileset> tileset, uint32_t width, uint32_t height)
+MapLayer::MapLayer(graphics::Renderer& renderer, Types::Map2D data, std::shared_ptr<Tileset> tileset, uint32_t width, uint32_t height)
     : mValid(false)
     , mData(std::move(data))
     , mTileset(std::move(tileset))
@@ -143,7 +144,7 @@ bool MapLayer::updateLightSources(std::vector<std::shared_ptr<MapLightSource>>& 
                 if (node->type->hasAttribute(TilesetAttribute::LightSource) && std::find(added.begin(), added.end(), node->id) == added.end()) {
                     Types::Point<> base = node->type->lightBase();
                     auto dst = Types::Point<int32_t>(base.x + nodeX.first * d.width, base.y + nodeY.first * d.height);
-                    std::shared_ptr<MapLightSource> s = std::make_shared<MapLightSource>(dst, node->type->lightRadius(), node->type->lightStrength(), node->type->lightColor());
+                    std::shared_ptr<MapLightSource> s = std::make_shared<MapLightSource>(dst, node->type->lightRadius(), node->type->lightColor());
                     sources.push_back(s);
                     
                     added.push_back(node->id);
@@ -172,7 +173,7 @@ bool MapLayer::updatePaths(std::vector<Types::Point<int32_t> > &paths)
     return true;
 }
 
-Map::Map(std::shared_ptr<Context>& ctx, const std::string& id)
+Map::Map(std::shared_ptr<Context>& ctx, graphics::Renderer& renderer, const std::string& id)
     : ContextObject(ctx)
     , mValid(false)
     , mID(id)
@@ -245,7 +246,7 @@ Map::Map(std::shared_ptr<Context>& ctx, const std::string& id)
             }
         }
 
-        std::shared_ptr<MapLayer> layer = std::make_shared<MapLayer>(data, mTilesets.find(name)->second, mDimensions.width, mDimensions.height);
+        std::shared_ptr<MapLayer> layer = std::make_shared<MapLayer>(renderer, data, mTilesets.find(name)->second, mDimensions.width, mDimensions.height);
         if (!*layer) {
             Logger::critical() << "Could not load layer for" << id;
             return;
@@ -489,10 +490,9 @@ bool Map::operator!() const
     return !mValid;
 }
 
-MapLightSource::MapLightSource(Types::Point<int32_t> pos, int32_t radius, float_t strength, const graphics::ColorGradient& color)
+MapLightSource::MapLightSource(Types::Point<int32_t> pos, int32_t radius, const graphics::ColorGradient& color)
     : mPosition(pos)
     , mRadius(radius)
-    , mStrength(strength)
     , mColor(color)
 {
 }
@@ -505,11 +505,6 @@ Types::Point<int32_t> MapLightSource::lightPosition()
 int32_t MapLightSource::lightRadius()
 {
     return mRadius;
-}
-
-float_t MapLightSource::lightStrength()
-{
-    return mStrength;
 }
 
 graphics::ColorGradient MapLightSource::lightColor()

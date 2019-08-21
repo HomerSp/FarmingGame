@@ -5,14 +5,16 @@ using namespace engine;
 
 Weather::Weather(graphics::Renderer& renderer)
 {
-    mWeatherIntensity = Random::range(100, 200) / 100.0f;
+    mWeatherIntensity = Random::range(100, 800) / 100.0f;
     mWindDirection = Random::range(0, 360);
     mWindSpeed = Random::range(0, 200) / 100.0f;
 
     mWaterParticles = std::make_unique<engine::Particles>(renderer, 30, graphics::Color(1, 1, 0.8f, 0.5f), Types::Dimension<>(2, 2));
     mWaterParticles->setMoveSpeed(1.0f);
-    mSnowParticles = std::make_unique<engine::Particles>(renderer, 30, graphics::Color(1, 1, 1, 0.75f), Types::Dimension<>(4, 4), true);
+    mSnowParticles = std::make_unique<engine::Particles>(renderer, 30, graphics::Color(1, 1, 1, 1.0f), Types::Dimension<>(4, 4), true);
     mSnowParticles->setFrameSpeed(1000.0f);
+    mSnowParticles->setMoveSpeed(100.0f);
+    mSnowParticles->setLifeRange(75, 100);
 }
 
 uint16_t Weather::windDirection() const
@@ -45,6 +47,6 @@ void Weather::processAsync(uint64_t frameDiff, Camera& camera, Clock& clock)
 void Weather::setSize(const Types::Dimension<uint32_t>& size)
 {
     float_t mod = (size.width + size.height) / 1000.0f;
-    mWaterParticles->setCount(10 * mod);
-    mSnowParticles->setCount(50 * mod * mWeatherIntensity);
+    mWaterParticles->setCount(20 * mod);
+    mSnowParticles->setCount(70 * mod * mWeatherIntensity);
 }

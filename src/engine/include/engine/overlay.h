@@ -16,7 +16,6 @@ public:
     public:
         virtual Types::Point<int32_t> lightPosition() = 0;
         virtual int32_t lightRadius() = 0;
-        virtual float_t lightStrength() = 0;
         virtual graphics::ColorGradient lightColor();
     };
 

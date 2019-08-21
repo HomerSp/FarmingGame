@@ -59,6 +59,15 @@ const float_t& Color::a() const
     return mData[3];
 }
 
+Color& Color::operator*=(float_t alpha)
+{
+    mData[0] *= alpha;
+    mData[1] *= alpha;
+    mData[2] *= alpha;
+    mData[3] = 1.0f;
+    return *this;
+}
+
 Color Color::fromInt(uint8_t r, uint8_t g, uint8_t b, uint8_t a)
 {
     return {r / 255.0f, g / 255.0f, b / 255.0f, a / 255.0f};

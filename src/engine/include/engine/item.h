@@ -45,7 +45,6 @@ public:
     // Light source
     virtual Types::Point<int32_t> lightPosition();
     virtual int32_t lightRadius();
-    virtual float_t lightStrength();
     virtual graphics::ColorGradient lightColor() override;
 
     void use(Player& player);
@@ -56,7 +55,6 @@ private:
     std::unique_ptr<graphics::Image> mUiImage;
 
     int32_t mLightRadius;
-    uint8_t mLightStrength;
     graphics::ColorGradient mLightColor;
 
     std::unordered_map<ItemEffect::Type, std::shared_ptr<ItemValue>> mEffects;

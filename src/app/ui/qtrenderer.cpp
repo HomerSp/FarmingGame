@@ -18,7 +18,6 @@
 QtRenderer::QtRenderer()
     : mPainter(nullptr)
     , mFBO(nullptr)
-    , mSize(-1, -1)
 {
     initializeOpenGLFunctions();
 
@@ -48,16 +47,23 @@ QtRenderer::QtRenderer()
     mProjectionMatrix = std::make_unique<QtMatrix>();
     mFBOMatrix = std::make_unique<QtMatrix>();
 
-    mBufferVBO = std::make_unique<QtBuffer>(engine::graphics::Vertex2D::Size * 2);
-    mBufferFBO = std::make_unique<QtBuffer>(engine::graphics::Vertex2D::Size * 2);
+    mQuadVertexBuffer = std::make_unique<QtBuffer>(engine::graphics::Vertex2D::Size);
+    mCircleTextureBuffer = std::make_unique<QtBuffer>(engine::graphics::Vertex2D::Size);
+    mFBOTextureBuffer = std::make_unique<QtBuffer>(engine::graphics::Vertex2D::Size);
     mBufferMatrix = std::make_unique<QtBuffer>(engine::graphics::Matrix::Size);
 
-    engine::graphics::BufferWriter vboWriter(*mBufferVBO);
-    // Vertex
-    vboWriter += engine::graphics::Vertex2D().tl(0, 0).bl(0, 1).tr(1, 0).br(1, 1);
-    // Texture
+    engine::graphics::BufferWriter quadWriter(*mQuadVertexBuffer);
+    quadWriter += engine::graphics::Vertex2D().tl(0, 0).bl(0, 1).tr(1, 0).br(1, 1);
+    quadWriter.release();
+
+    engine::graphics::BufferWriter vboWriter(*mCircleTextureBuffer);
     vboWriter += engine::graphics::Vertex2D().tl(-1, -1).bl(-1, 1).tr(1, -1).br(1, 1);
     vboWriter.release();
+
+    // The FBO texture uses opengl coordinates where y starts at the bottom, so we need to reverse it here
+    engine::graphics::BufferWriter fboWriter(*mFBOTextureBuffer);
+    fboWriter += engine::graphics::Vertex2D().tl(0, 1).bl(0, 0).tr(1, 1).br(1, 0);
+    fboWriter.release();
 }
 
 void QtRenderer::setSize(uint32_t w, uint32_t h, double devicePixelRatio)
@@ -66,16 +72,6 @@ void QtRenderer::setSize(uint32_t w, uint32_t h, double devicePixelRatio)
     mDevice->setDevicePixelRatio(devicePixelRatio);
 
     mFBO = std::make_unique<QOpenGLFramebufferObject>(w, h);
-
-    engine::Types::Rect<float> vertexRect(0, 0, mFBO->width(), mFBO->height());
-
-    // The FBO texture is upside down (y starts at bottom), so we need to reverse it here
-    engine::graphics::BufferWriter fboWriter(*mBufferFBO);
-    // Vertex
-    fboWriter += engine::graphics::Vertex2D().tl(0, 0).bl(0, 1).tr(1, 0).br(1, 1);
-    // Texture
-    fboWriter += engine::graphics::Vertex2D().tl(0, 1).bl(0, 0).tr(1, 1).br(1, 0);
-    fboWriter.release();
 
     mWorldMatrix->reset();
     mWorldMatrix->ortho(0, w, h, 0, -1, 1);
@@ -105,28 +101,18 @@ void QtRenderer::paint(std::shared_ptr<engine::Engine>& engine)
 
 int32_t QtRenderer::width()
 {
-    if (mPainter == nullptr) {
-        engine::Logger::critical() << "No painter set!!!";
-        return 0;
-    }
-
     return mFBO->width();
 }
 
 int32_t QtRenderer::height()
 {
-    if (mPainter == nullptr) {
-        engine::Logger::critical() << "No painter set!!!";
-        return 0;
-    }
-
     return mFBO->height();
 }
 
 void QtRenderer::fillEllipse(const engine::Types::Rect<>& dst, const engine::graphics::Color& color)
 {
     if (mPainter == nullptr) {
-        engine::Logger::critical() << "No painter set!!!";
+        engine::Logger::critical("QtRenderer::fillEllipse") << "No painter set!!!";
         return;
     }
 
@@ -138,7 +124,7 @@ void QtRenderer::fillEllipse(const engine::Types::Rect<>& dst, const engine::gra
 void QtRenderer::fillRect(const engine::Types::Rect<>& dst, const engine::graphics::Color& color)
 {
     if (mPainter == nullptr) {
-        engine::Logger::critical() << "No painter set!!!";
+        engine::Logger::critical("QtRenderer::fillRect") << "No painter set!!!";
         return;
     }
 
@@ -149,7 +135,7 @@ void QtRenderer::fillRect(const engine::Types::Rect<>& dst, const engine::graphi
 void QtRenderer::drawImage(const engine::graphics::Image& img, engine::Types::Rect<> dst, engine::Types::Rect<> src)
 {
     if (mPainter == nullptr) {
-        engine::Logger::critical() << "No painter set!!!";
+        engine::Logger::critical("drawImage") << "No painter set!!!";
         return;
     }
 
@@ -167,7 +153,7 @@ void QtRenderer::drawImage(const engine::graphics::Image& img, engine::Types::Re
 void QtRenderer::drawText(const engine::Types::Rect<>& dst, const std::string& text, const engine::graphics::Color& color, int32_t size, engine::Types::TextAlign align, std::string type)
 {
     if (mPainter == nullptr) {
-        engine::Logger::critical() << "No painter set!!!";
+        engine::Logger::critical("drawText") << "No painter set!!!";
         return;
     }
 
@@ -229,13 +215,15 @@ void QtRenderer::drawOverlay(const engine::Types::Point<>& dst, engine::Overlay&
     mProjectionMatrix->translate(dst.x, dst.y);
     mPointLightShader->bind();
 
-    mBufferVBO->bind();
+    mCircleTextureBuffer->bind();
     mPointLightShader->enableAttributeArray(0);
-    mPointLightShader->setAttributeBuffer(0, GL_FLOAT, engine::graphics::Vertex2D::Size, 2, engine::graphics::Vector2D::Size);
+    mPointLightShader->setAttributeBuffer(0, GL_FLOAT, 0, 2, engine::graphics::Vector2D::Size);
+    mCircleTextureBuffer->release();
 
+    mQuadVertexBuffer->bind();
     mPointLightShader->enableAttributeArray(1);
     mPointLightShader->setAttributeBuffer(1, GL_FLOAT, 0, 2, engine::graphics::Vector2D::Size);
-    mBufferVBO->release();
+    mQuadVertexBuffer->release();
 
     auto& overlayBuffer = overlay.buffer();
     overlayBuffer.bind();
@@ -289,13 +277,15 @@ void QtRenderer::drawOverlay(const engine::Types::Point<>& dst, engine::Overlay&
 
     glBindTexture(GL_TEXTURE_2D, mFBO->texture());
 
-    mBufferFBO->bind();
+    mFBOTextureBuffer->bind();
     mTextureShader->enableAttributeArray(0);
-    mTextureShader->setAttributeBuffer(0, GL_FLOAT, engine::graphics::Vertex2D::Size, 2, engine::graphics::Vector2D::Size);
+    mTextureShader->setAttributeBuffer(0, GL_FLOAT, 0, 2, engine::graphics::Vector2D::Size);
+    mFBOTextureBuffer->release();
 
+    mQuadVertexBuffer->bind();
     mTextureShader->enableAttributeArray(1);
     mTextureShader->setAttributeBuffer(1, GL_FLOAT, 0, 2, engine::graphics::Vector2D::Size);
-    mBufferFBO->release();
+    mQuadVertexBuffer->release();
 
     mBufferMatrix->bind();
     for (uint32_t i = 0; i < 4; i++) {
@@ -343,10 +333,10 @@ void QtRenderer::drawParticles(const engine::Types::Point<>& dst, const engine::
 
     mParticleShader->bind();
 
-    mBufferFBO->bind();
+    mQuadVertexBuffer->bind();
     mParticleShader->enableAttributeArray(0);
     mParticleShader->setAttributeBuffer(0, GL_FLOAT, 0, 2, engine::graphics::Vector2D::Size);
-    mBufferFBO->release();
+    mQuadVertexBuffer->release();
 
     auto& particleBuffer = particles.buffer();
     particleBuffer.bind();
@@ -384,7 +374,7 @@ void QtRenderer::drawParticles(const engine::Types::Point<>& dst, const engine::
 void QtRenderer::rotate(float_t deg)
 {
     if (mPainter == nullptr) {
-        engine::Logger::critical() << "No painter set!!!";
+        engine::Logger::critical("QtRenderer::rotate") << "No painter set!!!";
         return;
     }
 
@@ -394,7 +384,7 @@ void QtRenderer::rotate(float_t deg)
 void QtRenderer::translate(int32_t x, int32_t y)
 {
     if (mPainter == nullptr) {
-        engine::Logger::critical() << "No painter set!!!";
+        engine::Logger::critical("QtRenderer::translate") << "No painter set!!!";
         return;
     }
 
@@ -405,7 +395,7 @@ void QtRenderer::translate(int32_t x, int32_t y)
 void QtRenderer::save()
 {
     if (mPainter == nullptr) {
-        engine::Logger::critical() << "No painter set!!!";
+        engine::Logger::critical("QtRenderer::save") << "No painter set!!!";
         return;
     }
 
@@ -415,7 +405,7 @@ void QtRenderer::save()
 void QtRenderer::restore()
 {
     if (mPainter == nullptr) {
-        engine::Logger::critical() << "No painter set!!!";
+        engine::Logger::critical("QtRenderer::restore") << "No painter set!!!";
         return;
     }
 
@@ -440,13 +430,6 @@ std::unique_ptr<engine::graphics::Matrix> QtRenderer::createMatrix() const
 void QtRenderer::cleanup()
 {
     mFBO.reset();
-}
-
-void QtRenderer::sync()
-{
-    if (!mFBO || mSize.width >= 0) {
-        mSize.width = mSize.height = -1;
-    }
 }
 
 void QtRenderer::initContext()

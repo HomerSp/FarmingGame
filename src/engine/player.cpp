@@ -58,11 +58,6 @@ int32_t Player::lightRadius()
     return mInventory[mCurrentItem]->lightRadius();
 }
 
-float_t Player::lightStrength()
-{
-    return mInventory[mCurrentItem]->lightStrength();
-}
-
 graphics::ColorGradient Player::lightColor()   
 {   
     return mInventory[mCurrentItem]->lightColor();  

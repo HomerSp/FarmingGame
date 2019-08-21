@@ -45,6 +45,7 @@ public:
     void setCount(uint32_t count);
     void setFrameSpeed(float_t frameSpeed);
     void setMoveSpeed(float_t moveSpeed);
+    void setLifeRange(uint8_t minLife, uint8_t maxLife);
 
     const Particle &operator[](int index) const;
 
@@ -58,8 +59,8 @@ private:
     float_t mFrameSpeed;
     float_t mMoveSpeed;
     std::vector<Particle> mParticles;
-    Types::Point<float_t> mMinSpeed;
-    Types::Point<float_t> mMaxSpeed;
+    uint8_t mMinLife, mMaxLife;
+    Types::Point<float_t> mMinSpeed, mMaxSpeed;
 
     std::unique_ptr<graphics::Buffer> mBuffer;
 };

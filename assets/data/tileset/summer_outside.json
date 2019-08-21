@@ -23,6 +23,11 @@
             "animation": {
                 "frames": 3
             }
+        },
+        // 4 - Bridge
+        {
+            "index": 4,
+            "tile": "automatic_horizontal"
         }
     ]
 }

@@ -16,10 +16,9 @@ public:
     Player(std::shared_ptr<Context> &ctx);
 
     // Light source
-    virtual Types::Point<int32_t> lightPosition();
-    virtual int32_t lightRadius();
-    virtual float_t lightStrength();
-    virtual graphics::ColorGradient lightColor();
+    virtual Types::Point<int32_t> lightPosition() override;
+    virtual int32_t lightRadius() override;
+    virtual graphics::ColorGradient lightColor() override;
 
     Types::Point<int32_t> position();
 

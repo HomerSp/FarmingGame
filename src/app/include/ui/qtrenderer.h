@@ -61,7 +61,6 @@ public slots:
 
 protected:
     void initContext();
-    void sync();
 
 private:
     std::unique_ptr<QOpenGLPaintDevice> mDevice;
@@ -74,7 +73,5 @@ private:
 
     std::unique_ptr<QtMatrix> mWorldMatrix, mProjectionMatrix, mFBOMatrix;
     std::unique_ptr<QOpenGLFramebufferObject> mFBO;
-    std::unique_ptr<QtBuffer> mBufferVBO, mBufferFBO, mBufferMatrix;
-
-    engine::Types::Dimension<int32_t> mSize;
+    std::unique_ptr<QtBuffer> mQuadVertexBuffer, mCircleTextureBuffer, mFBOTextureBuffer, mBufferMatrix;
 };
