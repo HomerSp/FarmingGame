@@ -10,12 +10,14 @@ Weather::Weather(graphics::Renderer& renderer)
     mWindSpeed = Random::range(0, 200) / 100.0f;
 
     mWaterParticles = std::make_unique<engine::Particles>(renderer, 30, graphics::Color(1, 1, 0.8f, 0.5f), Types::Dimension<>(2, 2));
+    mWaterParticles->setMoveSpeed(1.0f);
     mSnowParticles = std::make_unique<engine::Particles>(renderer, 30, graphics::Color(1, 1, 1, 0.75f), Types::Dimension<>(4, 4), true);
+    mSnowParticles->setFrameSpeed(1000.0f);
 }
 
-float_t Weather::windDirectionRad() const
+uint16_t Weather::windDirection() const
 {
-    return (mWindDirection * Types::PI()) / 180.0f;
+    return mWindDirection;
 }
 
 float_t Weather::windSpeed() const

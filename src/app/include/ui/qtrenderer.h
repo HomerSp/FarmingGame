@@ -76,7 +76,6 @@ private:
     std::unique_ptr<QtBuffer> mBufferVBO, mBufferFBO, mBufferMatrix;
 
     std::unique_ptr<QtBuffer> mLightsBuffer;
-    std::unique_ptr<QtBuffer> mBufferParticles;
 
     engine::Types::Dimension<int32_t> mSize;
 };

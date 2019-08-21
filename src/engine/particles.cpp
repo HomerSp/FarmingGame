@@ -13,6 +13,7 @@ Particle::Particle(const graphics::Color& color, const Types::Dimension<>& size)
     , speed(1.0f, 1.0f)
     , startLife(0.0f)
     , life(0.0f)
+    , angleDiff(0)
 {
 }
 
@@ -25,6 +26,8 @@ float_t Particle::alpha() const
 Particles::Particles(graphics::Renderer& renderer, uint32_t count, const graphics::Color& c, const Types::Dimension<>& size, bool enabled)
     : mEnabled(enabled)
     , mCount(count)
+    , mFrameSpeed(100.0f)
+    , mMoveSpeed(20.0f)
 {
     mParticles.resize(mCount, Particle(c, size));
 
@@ -52,13 +55,10 @@ void Particles::draw(graphics::Renderer& renderer, Camera& camera)
 
 void Particles::processAsync(uint64_t frameDiff, Camera& camera, Weather& weather)
 {
-    double m = (frameDiff / 100.0f);
+    double m = (frameDiff / mFrameSpeed);
     std::lock_guard<std::mutex> locker(mMutex);
 
-    float_t windDirection = weather.windDirectionRad();
-    float_t windSpeed = weather.windSpeed();
-    float_t windX = cos(windDirection) * m * windSpeed;
-    float_t windY = sin(windDirection) * m * windSpeed;
+    double_t windSpeed = weather.windSpeed();
 
     const auto& cameraRc = camera.rect();
     for (Particle& p: mParticles) {
@@ -68,8 +68,11 @@ void Particles::processAsync(uint64_t frameDiff, Camera& camera, Weather& weathe
                 p.life = 0.0f;
             }
 
-            p.rect.x += windX * p.speed.x;
-            p.rect.y += windY * p.speed.y;
+            double_t windDirection = (weather.windDirection() + p.angleDiff) * Types::PI() / 180.0f;
+            float_t windX = cos(windDirection) * m * windSpeed;
+            float_t windY = sin(windDirection) * m * windSpeed;
+            p.rect.x += windX * p.speed.x * mMoveSpeed;
+            p.rect.y += windY * p.speed.y * mMoveSpeed;
             p.life -= m * 0.1f;
             if (p.life < 0.0f) {
                 p.life = 0.0f;
@@ -115,6 +118,16 @@ void Particles::setCount(uint32_t count)
     mBuffer->resize((graphics::Matrix::Size + graphics::Color::Size) * count);
 }
 
+void Particles::setFrameSpeed(float_t frameSpeed)
+{
+    mFrameSpeed = frameSpeed;
+}
+
+void Particles::setMoveSpeed(float_t moveSpeed)
+{
+    mMoveSpeed = moveSpeed;
+}
+
 const Particle &Particles::operator[](int index) const
 {
     return mParticles.at(index);
@@ -126,4 +139,5 @@ void Particles::initNew(Particle& particle, Camera& camera)
     particle.startLife = particle.life = life;
     particle.rect.x = camera.x() + Random::range(camera.width());
     particle.rect.y = camera.y() + Random::range(camera.height());
+    particle.angleDiff = 0;
 }

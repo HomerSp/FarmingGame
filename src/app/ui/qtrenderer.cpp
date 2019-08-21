@@ -51,7 +51,6 @@ QtRenderer::QtRenderer()
     mBufferVBO = std::make_unique<QtBuffer>(engine::graphics::Vertex2D::Size * 2);
     mBufferFBO = std::make_unique<QtBuffer>(engine::graphics::Vertex2D::Size * 2);
     mBufferMatrix = std::make_unique<QtBuffer>(engine::graphics::Matrix::Size);
-    mBufferParticles = std::make_unique<QtBuffer>((engine::graphics::Matrix::Size + engine::graphics::Color::Size) * engine::Particles::MAX);
     mLightsBuffer = std::make_unique<QtBuffer>((engine::graphics::ColorGradient::Size + engine::graphics::Matrix::Size) * engine::Types::Overlay::LIGHTS_MAX);
 
     engine::graphics::BufferWriter vboWriter(*mBufferVBO);

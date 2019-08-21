@@ -21,6 +21,7 @@ struct Particle {
     Types::Rect<float_t> rect;
     Types::Point<float_t> speed;
     float_t startLife, life;
+    uint8_t angleDiff;
 };
 
 class Particles {
@@ -42,6 +43,8 @@ public:
 
     void setEnabled(bool enabled);
     void setCount(uint32_t count);
+    void setFrameSpeed(float_t frameSpeed);
+    void setMoveSpeed(float_t moveSpeed);
 
     const Particle &operator[](int index) const;
 
@@ -52,9 +55,12 @@ private:
     bool mEnabled;
     std::mutex mMutex;
     uint32_t mCount;
+    float_t mFrameSpeed;
+    float_t mMoveSpeed;
     std::vector<Particle> mParticles;
     Types::Point<float_t> mMinSpeed;
     Types::Point<float_t> mMaxSpeed;
+
     std::unique_ptr<graphics::Buffer> mBuffer;
 };
 }

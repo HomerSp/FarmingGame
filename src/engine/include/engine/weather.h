@@ -13,7 +13,7 @@ class Weather {
 public:
     Weather(graphics::Renderer& renderer);
 
-    float_t windDirectionRad() const;
+    uint16_t windDirection() const;
     float_t windSpeed() const;
 
     void drawWater(graphics::Renderer& renderer, Camera& camera);
