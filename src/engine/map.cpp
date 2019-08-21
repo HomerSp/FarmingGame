@@ -398,7 +398,7 @@ bool Map::isNodePath(int32_t x, int32_t y) const
     return std::find(mPaths.begin(), mPaths.end(), Types::Point<int32_t>(x, y)) != mPaths.end();
 }
 
-void Map::addLightSources(std::vector<std::shared_ptr<ScreenEffects::LightSource>>& sources)
+void Map::addLightSources(std::vector<std::shared_ptr<Overlay::LightSource>>& sources)
 {
     for (auto& s: mLights) {
         sources.push_back(s);

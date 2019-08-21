@@ -20,7 +20,7 @@ namespace graphics {
 class Renderer;
 }
 
-class MapLightSource : public ScreenEffects::LightSource {
+class MapLightSource : public Overlay::LightSource {
 public:
     MapLightSource(Types::Point<int32_t> pos, int32_t radius, float_t strength, const graphics::ColorGradient& color);
     virtual ~MapLightSource() = default;
@@ -87,7 +87,7 @@ public:
     bool isNodeSolid(int32_t x, int32_t y, const Types::Dimension<>& size) const;
     bool isNodePath(int32_t x, int32_t y) const;
 
-    void addLightSources(std::vector<std::shared_ptr<ScreenEffects::LightSource>>& sources);
+    void addLightSources(std::vector<std::shared_ptr<Overlay::LightSource>>& sources);
 
     void toggleLights(bool on);
 

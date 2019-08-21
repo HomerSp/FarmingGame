@@ -112,19 +112,6 @@ public:
         graphics::ColorGradient gradient;
     };
 
-    struct Overlay {
-    public:
-        static constexpr uint32_t LIGHTS_MAX = 255;
-
-        Overlay(uint32_t w, uint32_t h, graphics::Color bg);
-
-        void addEllipse(const Types::FilledEllipse &ellipse);
-
-        uint32_t width, height;
-        graphics::Color background;
-        std::vector<Types::FilledEllipse> ellipses;
-    };
-
     struct TextAlign {
         typedef enum {
             Left,

@@ -51,7 +51,6 @@ QtRenderer::QtRenderer()
     mBufferVBO = std::make_unique<QtBuffer>(engine::graphics::Vertex2D::Size * 2);
     mBufferFBO = std::make_unique<QtBuffer>(engine::graphics::Vertex2D::Size * 2);
     mBufferMatrix = std::make_unique<QtBuffer>(engine::graphics::Matrix::Size);
-    mLightsBuffer = std::make_unique<QtBuffer>((engine::graphics::ColorGradient::Size + engine::graphics::Matrix::Size) * engine::Types::Overlay::LIGHTS_MAX);
 
     engine::graphics::BufferWriter vboWriter(*mBufferVBO);
     // Vertex
@@ -210,7 +209,7 @@ void QtRenderer::drawText(const engine::Types::Rect<>& dst, const std::string& t
     mPainter->setPen(Qt::NoPen);
 }
 
-void QtRenderer::drawOverlay(const engine::Types::Point<>& dst, const engine::Types::Overlay& overlay, float mod)
+void QtRenderer::drawOverlay(const engine::Types::Point<>& dst, engine::Overlay& overlay, uint32_t lightsCount, float mod)
 {
     mPainter->beginNativePainting();
 
@@ -219,25 +218,13 @@ void QtRenderer::drawOverlay(const engine::Types::Point<>& dst, const engine::Ty
     glViewport(0, 0, mFBO->width(), mFBO->height());
     glDisable(GL_DEPTH_TEST);
 
-    glClearColor(overlay.background.r(), overlay.background.g(), overlay.background.b(), 1.0f);
+    const auto& overlayBackground = overlay.background();
+    glClearColor(overlayBackground.r(), overlayBackground.g(), overlayBackground.b(), 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glBlendEquationSeparate(GL_FUNC_ADD, GL_MAX);
-
-    engine::graphics::BufferWriter lightsWriter(*mLightsBuffer);
-    for(auto& e: overlay.ellipses) {
-        lightsWriter += engine::graphics::Color::max(e.gradient.inner(), overlay.background);
-        lightsWriter += engine::graphics::Color::max(e.gradient.outer(), overlay.background);
-
-        QtMatrix matrix;
-        matrix.translate(e.x - (e.radius / 2.0f), e.y - (e.radius / 2.0f));
-        matrix.scale(e.radius, e.radius);
-        lightsWriter += matrix;
-    }
-
-    lightsWriter.release();
 
     mProjectionMatrix->translate(dst.x, dst.y);
     mPointLightShader->bind();
@@ -250,7 +237,8 @@ void QtRenderer::drawOverlay(const engine::Types::Point<>& dst, const engine::Ty
     mPointLightShader->setAttributeBuffer(1, GL_FLOAT, 0, 2, engine::graphics::Vector2D::Size);
     mBufferVBO->release();
 
-    mLightsBuffer->bind();
+    auto& overlayBuffer = overlay.buffer();
+    overlayBuffer.bind();
     mPointLightShader->enableAttributeArray(2);
     mPointLightShader->setAttributeBuffer(2, GL_FLOAT, 0, 4, engine::graphics::ColorGradient::Size + engine::graphics::Matrix::Size);
     glVertexAttribDivisor(2, 1);
@@ -266,13 +254,13 @@ void QtRenderer::drawOverlay(const engine::Types::Point<>& dst, const engine::Ty
         glVertexAttribDivisor(4 + i, 1);
     }
 
-    mLightsBuffer->release();
+    overlayBuffer.release();
 
     mPointLightShader->setUniformValue("iWorldMatrix", *mWorldMatrix);
     mPointLightShader->setUniformValue("iProjectionMatrix", *mProjectionMatrix);
     mPointLightShader->setUniformValue("iMod", std::abs(mod - 1.0f));
 
-    glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, overlay.ellipses.size());
+    glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, lightsCount);
 
     mPointLightShader->disableAttributeArray(0);
     mPointLightShader->disableAttributeArray(1);

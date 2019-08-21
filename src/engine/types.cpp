@@ -4,8 +4,6 @@
 
 using namespace engine;
 
-constexpr uint32_t Types::Overlay::LIGHTS_MAX;
-
 Types::Cells::Cells(uint32_t cols, uint32_t rows)
     : cols(cols)
     , rows(rows)
@@ -29,18 +27,6 @@ Types::FilledEllipse::FilledEllipse(int32_t x, int32_t y, int32_t radius, const 
     : Ellipse(x, y, radius)
     , gradient(gradient)
 {
-}
-
-Types::Overlay::Overlay(uint32_t w, uint32_t h, graphics::Color bg)
-    : width(w)
-    , height(h)
-    , background(bg)
-{
-}
-
-void Types::Overlay::addEllipse(const Types::FilledEllipse &ellipse)
-{
-    ellipses.push_back(ellipse);
 }
 
 Types::TextAlign::TextAlign(std::initializer_list<Types::TextAlign::Type> types)

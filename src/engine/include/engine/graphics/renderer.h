@@ -11,6 +11,7 @@ namespace engine {
 
 class Context;
 class Engine;
+class Overlay;
 class Particles;
 
 namespace graphics {
@@ -34,7 +35,7 @@ public:
 
     virtual void drawImage(const graphics::Image& img, Types::Rect<> dst = Types::Rect<>(), Types::Rect<> src = Types::Rect<>()) = 0;
     virtual void drawText(const Types::Rect<>& dst, const std::string& text, const graphics::Color& color, int32_t size = -1, Types::TextAlign align = Types::TextAlign(), std::string type = "") = 0;
-    virtual void drawOverlay(const Types::Point<>& dst, const Types::Overlay& overlay, float mod) = 0;
+    virtual void drawOverlay(const Types::Point<>& dst, Overlay& overlay, uint32_t lightsCount, float mod) = 0;
     virtual void drawParticles(const engine::Types::Point<>& dst, const engine::Particles& particles) = 0;
 
     virtual void rotate(float_t deg) = 0;

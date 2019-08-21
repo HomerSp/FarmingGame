@@ -37,7 +37,6 @@ Engine::Engine(uint32_t width, uint32_t height, std::shared_ptr<graphics::Render
     mEngineObject = std::make_shared<EngineObject>(mContext);
 
     mHud = std::make_unique<engine::Hud>(mContext);
-    mScreenEffects = std::make_unique<engine::ScreenEffects>(mContext);
     mCamera = std::make_unique<engine::Camera>(mContext, mWidth, mHeight);
     mClock = std::make_unique<engine::Clock>(mContext);
     mMap = std::make_unique<engine::Map>(mContext, "map");
@@ -63,6 +62,8 @@ Engine::Engine(uint32_t width, uint32_t height, std::shared_ptr<graphics::Render
 
     mLights.push_back(mPlayer);
     mMap->addLightSources(mLights);
+
+    mScreenEffects = std::make_unique<engine::ScreenEffects>(mContext, *mRenderer, mLights.size());
 
     registerScript();
 

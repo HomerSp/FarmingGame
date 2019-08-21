@@ -17,6 +17,7 @@
 #include <engine/graphics/image.h>
 #include <engine/graphics/matrix.h>
 #include <engine/graphics/renderer.h>
+#include <engine/overlay.h>
 #include <engine/particles.h>
 
 #include <ui/qtbuffer.h>
@@ -41,7 +42,7 @@ public:
 
     void drawImage(const engine::graphics::Image& img, engine::Types::Rect<> dst, engine::Types::Rect<> src);
     void drawText(const engine::Types::Rect<>& dst, const std::string& text, const engine::graphics::Color& color, int32_t size, engine::Types::TextAlign align, std::string type);
-    void drawOverlay(const engine::Types::Point<>& dst, const engine::Types::Overlay& overlay, float mod);
+    void drawOverlay(const engine::Types::Point<>& dst, engine::Overlay& overlay, uint32_t lightsCount, float mod);
     void drawParticles(const engine::Types::Point<>& dst, const engine::Particles& particles);
 
     void rotate(float_t deg);
@@ -74,8 +75,6 @@ private:
     std::unique_ptr<QtMatrix> mWorldMatrix, mProjectionMatrix, mFBOMatrix;
     std::unique_ptr<QOpenGLFramebufferObject> mFBO;
     std::unique_ptr<QtBuffer> mBufferVBO, mBufferFBO, mBufferMatrix;
-
-    std::unique_ptr<QtBuffer> mLightsBuffer;
 
     engine::Types::Dimension<int32_t> mSize;
 };

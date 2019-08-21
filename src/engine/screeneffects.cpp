@@ -6,18 +6,13 @@
 
 using namespace engine;
 
-graphics::ColorGradient ScreenEffects::LightSource::lightColor()   
-{
-    return {{1.0f, 1.0f, 1.0f}};
-}
-
-ScreenEffects::ScreenEffects(std::shared_ptr<Context>& ctx)
+ScreenEffects::ScreenEffects(std::shared_ptr<Context>& ctx, graphics::Renderer& renderer, uint32_t lightsCount)
     : ContextObject(ctx)
-    , mRadiusMod(2.0f)
 {
+    mOverlay = std::make_unique<Overlay>(renderer, lightsCount);
 }
 
-void ScreenEffects::draw(graphics::Renderer& renderer, Clock& clock, Camera& camera, const std::vector<std::shared_ptr<LightSource>> &sources)
+void ScreenEffects::draw(graphics::Renderer& renderer, Clock& clock, Camera& camera, const std::vector<std::shared_ptr<Overlay::LightSource>> &sources)
 {
     uint32_t h = clock.hour();
 
@@ -59,27 +54,11 @@ void ScreenEffects::draw(graphics::Renderer& renderer, Clock& clock, Camera& cam
         }
     }
 
-    Types::Overlay overlay(renderer.width(), renderer.height(), color);
-    for (auto& source: sources) {
-        if (source->lightRadius() == 0) {
-            continue;
-        }
-
-        graphics::ColorGradient l = graphics::ColorGradient(source->lightColor(), source->lightStrength());
-        overlay.addEllipse(Types::FilledEllipse(source->lightPosition().x - camera.x(), source->lightPosition().y - camera.y(), source->lightRadius(), l));
-    }
-
-    renderer.drawOverlay({0, 0}, overlay, mRadiusMod);
+    mOverlay->setBackground(color);
+    mOverlay->draw(renderer, camera, sources);
 }
 
 bool ScreenEffects::processAsync(uint64_t frameDiff)
 {
-    float_t m = mRadiusMod - (frameDiff / 1000.0f);
-    if (m < 0.0f) {
-        m = 2.0f;
-    }
-
-    bool changed = std::floor(m * 8.0f) != std::floor(mRadiusMod * 8.0f);
-    mRadiusMod = m;
-    return changed;
+    return mOverlay->processAsync(frameDiff);
 }

@@ -101,7 +101,7 @@ private:
     std::unordered_map<std::string, std::shared_ptr<engine::character::Character>> mCharacters;
     std::unique_ptr<engine::Weather> mWeather;
 
-    std::vector<std::shared_ptr<engine::ScreenEffects::LightSource>> mLights;
+    std::vector<std::shared_ptr<engine::Overlay::LightSource>> mLights;
 
     bool mEnableThreading;
     std::vector<std::unique_ptr<std::thread>> mThreads;

@@ -37,7 +37,7 @@ struct ItemAttribute {
     } Type;
 };
 
-class Item : public ContextObject, public ScreenEffects::LightSource {
+class Item : public ContextObject, public Overlay::LightSource {
 public:
     Item(std::shared_ptr<Context>& ctx, const std::string& name);
     virtual ~Item() {}
