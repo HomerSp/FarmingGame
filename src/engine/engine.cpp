@@ -42,7 +42,7 @@ Engine::Engine(uint32_t width, uint32_t height, std::shared_ptr<graphics::Render
     mClock = std::make_unique<engine::Clock>(mContext);
     mMap = std::make_unique<engine::Map>(mContext, "map");
     mPlayer = std::make_shared<engine::Player>(mContext);
-    mWeather = std::make_unique<engine::Weather>();
+    mWeather = std::make_unique<engine::Weather>(*mRenderer);
 
     mPlayer->setPosition("map", 9 * 48, (12 * 48) - 24);
 

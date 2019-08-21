@@ -1,3 +1,4 @@
+#include <engine/graphics/bufferwriter.h>
 #include <engine/particles.h>
 #include <engine/random.h>
 #include <engine/weather.h>
@@ -21,11 +22,32 @@ float_t Particle::alpha() const
     return color.a() * std::abs(startLife - l);
 }
 
-Particles::Particles(uint32_t count, const graphics::Color& c, const Types::Dimension<>& size, bool enabled)
+Particles::Particles(graphics::Renderer& renderer, uint32_t count, const graphics::Color& c, const Types::Dimension<>& size, bool enabled)
     : mEnabled(enabled)
     , mCount(count)
 {
     mParticles.resize(mCount, Particle(c, size));
+
+    mBuffer = renderer.createBuffer((graphics::Matrix::Size + graphics::Color::Size) * count);
+}
+
+void Particles::draw(graphics::Renderer& renderer, Camera& camera)
+{
+    std::lock_guard<std::mutex> locker(mMutex);
+
+    engine::graphics::BufferWriter writer(*mBuffer);
+    for (const auto& p: mParticles) {
+        writer += engine::graphics::Color(p.color.r(), p.color.g(), p.color.b(), p.alpha());
+
+        auto mat = renderer.createMatrix();
+        mat->translate(p.rect.x, p.rect.y);
+        mat->scale(p.rect.width, p.rect.height);
+        writer += *mat;
+    }
+
+    writer.release();
+
+    renderer.drawParticles({-camera.x(), -camera.y()}, *this);
 }
 
 void Particles::processAsync(uint64_t frameDiff, Camera& camera, Weather& weather)
@@ -60,6 +82,11 @@ void Particles::processAsync(uint64_t frameDiff, Camera& camera, Weather& weathe
     }
 }
 
+graphics::Buffer& Particles::buffer() const
+{
+    return *mBuffer;
+}
+
 void Particles::lock()
 {
     mMutex.lock();
@@ -85,6 +112,7 @@ void Particles::setCount(uint32_t count)
 {
     std::lock_guard<std::mutex> lock(mMutex);
     mCount = count;
+    mBuffer->resize((graphics::Matrix::Size + graphics::Color::Size) * count);
 }
 
 const Particle &Particles::operator[](int index) const

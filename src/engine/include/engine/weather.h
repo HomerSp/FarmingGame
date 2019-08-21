@@ -11,7 +11,7 @@
 namespace engine {
 class Weather {
 public:
-    Weather();
+    Weather(graphics::Renderer& renderer);
 
     float_t windDirectionRad() const;
     float_t windSpeed() const;

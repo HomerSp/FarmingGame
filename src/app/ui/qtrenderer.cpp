@@ -353,21 +353,6 @@ void QtRenderer::drawParticles(const engine::Types::Point<>& dst, const engine::
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    
-    engine::graphics::BufferWriter particlesWriter(*mBufferParticles);
-    for (uint32_t i = 0; i < std::min(particles.size(), engine::Particles::MAX); i++) {
-        auto& p = particles[i];
-
-        engine::graphics::Color color(p.color.r(), p.color.g(), p.color.b(), p.alpha());
-        particlesWriter += color;
-
-        QtMatrix mat;
-        mat.translate(p.rect.x, p.rect.y);
-        mat.scale(p.rect.width, p.rect.height);
-        particlesWriter += mat;
-    }
-
-    particlesWriter.release();
 
     mParticleShader->bind();
 
@@ -376,7 +361,8 @@ void QtRenderer::drawParticles(const engine::Types::Point<>& dst, const engine::
     mParticleShader->setAttributeBuffer(0, GL_FLOAT, 0, 2, engine::graphics::Vector2D::Size);
     mBufferFBO->release();
 
-    mBufferParticles->bind();
+    auto& particleBuffer = particles.buffer();
+    particleBuffer.bind();
     mParticleShader->enableAttributeArray(1);
     mParticleShader->setAttributeBuffer(1, GL_FLOAT, 0, 4, engine::graphics::Color::Size + engine::graphics::Matrix::Size);
     glVertexAttribDivisor(1, 1);
@@ -387,7 +373,7 @@ void QtRenderer::drawParticles(const engine::Types::Point<>& dst, const engine::
         glVertexAttribDivisor(2 + i, 1);
     }
 
-    mBufferParticles->release();
+    particleBuffer.release();
 
     mParticleShader->setUniformValue("iWorldMatrix", *mWorldMatrix);
     mParticleShader->setUniformValue("iProjectionMatrix", *mProjectionMatrix);
@@ -452,6 +438,16 @@ void QtRenderer::restore()
 std::unique_ptr<engine::graphics::Image> QtRenderer::loadImage(const std::string& path) const
 {
     return std::make_unique<QtImage>(path);
+}
+
+std::unique_ptr<engine::graphics::Buffer> QtRenderer::createBuffer(uint32_t size) const
+{
+    return std::make_unique<QtBuffer>(size);
+}
+
+std::unique_ptr<engine::graphics::Matrix> QtRenderer::createMatrix() const
+{
+    return std::make_unique<QtMatrix>();
 }
 
 void QtRenderer::cleanup()

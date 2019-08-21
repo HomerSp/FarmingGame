@@ -13,6 +13,7 @@ namespace graphics {
 class Buffer {
 public:
     Buffer() = default;
+    virtual ~Buffer() = default;
 
     virtual void bind() = 0;
     virtual void release() = 0;

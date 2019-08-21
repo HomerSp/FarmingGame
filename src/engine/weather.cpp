@@ -3,14 +3,14 @@
 
 using namespace engine;
 
-Weather::Weather()
+Weather::Weather(graphics::Renderer& renderer)
 {
     mWeatherIntensity = Random::range(100, 200) / 100.0f;
     mWindDirection = Random::range(0, 360);
     mWindSpeed = Random::range(0, 200) / 100.0f;
 
-    mWaterParticles = std::make_unique<engine::Particles>(30, graphics::Color(1, 1, 0.8f, 0.5f), Types::Dimension<>(2, 2));
-    mSnowParticles = std::make_unique<engine::Particles>(30, graphics::Color(1, 1, 1, 0.75f), Types::Dimension<>(2, 2), true);
+    mWaterParticles = std::make_unique<engine::Particles>(renderer, 30, graphics::Color(1, 1, 0.8f, 0.5f), Types::Dimension<>(2, 2));
+    mSnowParticles = std::make_unique<engine::Particles>(renderer, 30, graphics::Color(1, 1, 1, 0.75f), Types::Dimension<>(4, 4), true);
 }
 
 float_t Weather::windDirectionRad() const
@@ -25,16 +25,12 @@ float_t Weather::windSpeed() const
 
 void Weather::drawWater(graphics::Renderer& renderer, Camera& camera)
 {
-    mWaterParticles->lock();
-    renderer.drawParticles({-camera.x(), -camera.y()}, *mWaterParticles);
-    mWaterParticles->unlock();
+    mWaterParticles->draw(renderer, camera);
 }
 
 void Weather::drawWeather(graphics::Renderer& renderer, Camera& camera)
 {
-    mSnowParticles->lock();
-    renderer.drawParticles({-camera.x(), -camera.y()}, *mSnowParticles);
-    mSnowParticles->unlock();
+    mSnowParticles->draw(renderer, camera);
 }
 
 void Weather::processAsync(uint64_t frameDiff, Camera& camera, Clock& clock)

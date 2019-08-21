@@ -15,6 +15,7 @@ class Particles;
 
 namespace graphics {
 
+class Buffer;
 class Image;
 
 class Renderer {
@@ -43,6 +44,9 @@ public:
     virtual void restore() = 0;
 
     virtual std::unique_ptr<graphics::Image> loadImage(const std::string& path) const = 0;
+
+    virtual std::unique_ptr<graphics::Buffer> createBuffer(uint32_t size) const = 0;
+    virtual std::unique_ptr<engine::graphics::Matrix> createMatrix() const = 0;
 
     Context& context();
 

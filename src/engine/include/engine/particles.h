@@ -4,6 +4,8 @@
 #include <set>
 
 #include <engine/camera.h>
+#include <engine/graphics/buffer.h>
+#include <engine/graphics/renderer.h>
 #include <engine/types.h>
 
 namespace engine {
@@ -25,12 +27,16 @@ class Particles {
 public:
     constexpr static uint32_t MAX = 1000;
 
-    Particles(uint32_t count, const graphics::Color& c, const Types::Dimension<>& size, bool enabled = false);
+    Particles(graphics::Renderer& renderer, uint32_t count, const graphics::Color& c, const Types::Dimension<>& size, bool enabled = false);
 
     void lock();
     void unlock();
 
+    void draw(graphics::Renderer& renderer, Camera& camera);
+
     void processAsync(uint64_t frameDiff, Camera& camera, Weather& weather);
+
+    graphics::Buffer& buffer() const;
 
     uint32_t size() const;
 
@@ -49,5 +55,6 @@ private:
     std::vector<Particle> mParticles;
     Types::Point<float_t> mMinSpeed;
     Types::Point<float_t> mMaxSpeed;
+    std::unique_ptr<graphics::Buffer> mBuffer;
 };
 }

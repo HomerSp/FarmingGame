@@ -52,6 +52,9 @@ public:
 
     std::unique_ptr<engine::graphics::Image> loadImage(const std::string& path) const;
 
+    std::unique_ptr<engine::graphics::Buffer> createBuffer(uint32_t size) const;
+    std::unique_ptr<engine::graphics::Matrix> createMatrix() const;
+
 public slots:
     void cleanup();
 
