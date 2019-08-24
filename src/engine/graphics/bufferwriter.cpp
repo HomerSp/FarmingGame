@@ -14,15 +14,21 @@ void BufferWriter::release()
     mBuffer.release();
 }
 
+BufferWriter& BufferWriter::operator+=(const Color& color)
+{
+    mOffset += mBuffer.write(mOffset, color);
+    return *this;
+}
+
 BufferWriter& BufferWriter::operator+=(const Matrix& matrix)
 {
     mOffset += mBuffer.write(mOffset, matrix);
     return *this;
 }
 
-BufferWriter& BufferWriter::operator+=(const graphics::Color& color)
+BufferWriter& BufferWriter::operator+=(const Transform& transform)
 {
-    mOffset += mBuffer.write(mOffset, color);
+    mOffset += mBuffer.write(mOffset, transform);
     return *this;
 }
 

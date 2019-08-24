@@ -17,8 +17,9 @@ public:
 
     virtual void resize(uint32_t size) override;
 
-    virtual uint32_t write(uint32_t offset, const engine::graphics::Matrix& matrix) override;
     virtual uint32_t write(uint32_t offset, const engine::graphics::Color& color) override;
+    virtual uint32_t write(uint32_t offset, const engine::graphics::Matrix& matrix) override;
+    virtual uint32_t write(uint32_t offset, const engine::graphics::Transform& transform) override;
     virtual uint32_t write(uint32_t offset, const engine::graphics::Vertex2D& vertex) override;
 
 private:

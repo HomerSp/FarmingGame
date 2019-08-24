@@ -16,6 +16,7 @@
 #include <engine/graphics/buffer.h>
 #include <engine/graphics/image.h>
 #include <engine/graphics/matrix.h>
+#include <engine/graphics/transform.h>
 #include <engine/graphics/renderer.h>
 #include <engine/overlay.h>
 #include <engine/particles.h>
@@ -44,6 +45,7 @@ public:
     void drawText(const engine::Types::Rect<>& dst, const std::string& text, const engine::graphics::Color& color, int32_t size, engine::Types::TextAlign align, std::string type);
     void drawOverlay(const engine::Types::Point<>& dst, engine::Overlay& overlay, uint32_t lightsCount, float mod);
     void drawParticles(const engine::Types::Point<>& dst, const engine::Particles& particles);
+    void drawTest(float_t angle);
 
     void rotate(float_t deg);
     void translate(int32_t x, int32_t y);
@@ -51,10 +53,11 @@ public:
     void save();
     void restore();
 
-    std::unique_ptr<engine::graphics::Image> loadImage(const std::string& path) const;
+    std::unique_ptr<engine::graphics::Image> loadImage(const std::string& path) const override;
 
-    std::unique_ptr<engine::graphics::Buffer> createBuffer(uint32_t size) const;
-    std::unique_ptr<engine::graphics::Matrix> createMatrix() const;
+    std::unique_ptr<engine::graphics::Buffer> createBuffer(uint32_t size) const override;
+    std::unique_ptr<engine::graphics::Matrix> createMatrix() const override;
+    std::unique_ptr<engine::graphics::Transform> createTransform() const override;
 
 public slots:
     void cleanup();

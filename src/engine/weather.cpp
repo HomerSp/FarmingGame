@@ -1,3 +1,4 @@
+#include <engine/logger.h>
 #include <engine/random.h>
 #include <engine/weather.h>
 
@@ -5,9 +6,9 @@ using namespace engine;
 
 Weather::Weather(graphics::Renderer& renderer)
 {
-    mWeatherIntensity = Random::range(100, 800) / 100.0f;
-    mWindDirection = Random::range(0, 360);
-    mWindSpeed = Random::range(0, 200) / 100.0f;
+    mWeatherIntensity = Random::range(100) / 100.0f;
+    mWindDirection = (Random::range(200) - 100) / 100.0f;
+    mWindSpeed = Random::range(100) / 100.0f;
 
     mWaterParticles = std::make_unique<engine::Particles>(renderer, 30, graphics::Color(1, 1, 0.8f, 0.5f), Types::Dimension<>(2, 2));
     mWaterParticles->setMoveSpeed(1.0f);
@@ -15,9 +16,13 @@ Weather::Weather(graphics::Renderer& renderer)
     mSnowParticles->setFrameSpeed(1000.0f);
     mSnowParticles->setMoveSpeed(100.0f);
     mSnowParticles->setLifeRange(75, 100);
+    mRainParticles = std::make_unique<engine::Particles>(renderer, 30, graphics::Color(1, 1, 1, 1.0f), Types::Dimension<>(2, 40), true);
+    mRainParticles->setFrameSpeed(100.0f);
+    mRainParticles->setMoveSpeed(100.0f);
+    mRainParticles->setLifeRange(85, 100);
 }
 
-uint16_t Weather::windDirection() const
+uint8_t Weather::windDirection() const
 {
     return mWindDirection;
 }
@@ -34,7 +39,8 @@ void Weather::drawWater(graphics::Renderer& renderer, Camera& camera)
 
 void Weather::drawWeather(graphics::Renderer& renderer, Camera& camera)
 {
-    mSnowParticles->draw(renderer, camera);
+    //mSnowParticles->draw(renderer, camera);
+    mRainParticles->draw(renderer, camera);
 }
 
 void Weather::processAsync(uint64_t frameDiff, Camera& camera, Clock& clock)
@@ -42,11 +48,14 @@ void Weather::processAsync(uint64_t frameDiff, Camera& camera, Clock& clock)
     mWaterParticles->setEnabled(clock.daylight());
     mWaterParticles->processAsync(frameDiff, camera, *this);
     mSnowParticles->processAsync(frameDiff, camera, *this);
+    mRainParticles->processAsync(frameDiff, camera, *this);
 }
 
 void Weather::setSize(const Types::Dimension<uint32_t>& size)
 {
     float_t mod = (size.width + size.height) / 1000.0f;
+    Logger::debug() << "setSize" << mod;
     mWaterParticles->setCount(20 * mod);
-    mSnowParticles->setCount(70 * mod * mWeatherIntensity);
+    mSnowParticles->setCount(70 * mod * mWeatherIntensity * 10.0f);
+    mRainParticles->setCount(20 * mod * mWeatherIntensity * 10.0f);
 }

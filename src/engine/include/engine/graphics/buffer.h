@@ -5,6 +5,7 @@
 
 #include <engine/graphics/color.h>
 #include <engine/graphics/matrix.h>
+#include <engine/graphics/transform.h>
 #include <engine/graphics/vertex.h>
 #include <engine/types.h>
 
@@ -20,8 +21,9 @@ public:
 
     virtual void resize(uint32_t size) = 0;
 
-    virtual uint32_t write(uint32_t offset, const Matrix& matrix) = 0;
     virtual uint32_t write(uint32_t offset, const Color& color) = 0;
+    virtual uint32_t write(uint32_t offset, const Matrix& matrix) = 0;
+    virtual uint32_t write(uint32_t offset, const Transform& transform) = 0;
     virtual uint32_t write(uint32_t offset, const Vertex2D& vertex) = 0;
 
 private:

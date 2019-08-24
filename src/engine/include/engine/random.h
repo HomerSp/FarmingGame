@@ -5,8 +5,8 @@
 namespace engine {
 class Random {
 public:
-    static uint32_t range(uint32_t min, uint32_t max);
-    static uint32_t range(uint32_t max);
+    static int32_t range(int32_t min, int32_t max);
+    static int32_t range(int32_t max);
 
 };
 }

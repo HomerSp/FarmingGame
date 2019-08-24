@@ -48,6 +48,7 @@ public:
 
     virtual std::unique_ptr<graphics::Buffer> createBuffer(uint32_t size) const = 0;
     virtual std::unique_ptr<engine::graphics::Matrix> createMatrix() const = 0;
+    virtual std::unique_ptr<engine::graphics::Transform> createTransform() const = 0;
 
     Context& context();
 

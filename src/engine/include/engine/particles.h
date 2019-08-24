@@ -21,13 +21,11 @@ struct Particle {
     Types::Rect<float_t> rect;
     Types::Point<float_t> speed;
     float_t startLife, life;
-    uint8_t angleDiff;
+    float_t angle;
 };
 
 class Particles {
 public:
-    constexpr static uint32_t MAX = 1000;
-
     Particles(graphics::Renderer& renderer, uint32_t count, const graphics::Color& c, const Types::Dimension<>& size, bool enabled = false);
 
     void lock();
@@ -46,13 +44,15 @@ public:
     void setFrameSpeed(float_t frameSpeed);
     void setMoveSpeed(float_t moveSpeed);
     void setLifeRange(uint8_t minLife, uint8_t maxLife);
+    void setAngle(float_t angle);
 
     const Particle &operator[](int index) const;
 
 protected:
-    void initNew(Particle& particle, Camera& camera);
+    void initNew(Particle& particle, Camera& camera, float_t angle);
 
 private:
+    const Particle mOriginParticle;
     bool mEnabled;
     std::mutex mMutex;
     uint32_t mCount;
@@ -61,6 +61,7 @@ private:
     std::vector<Particle> mParticles;
     uint8_t mMinLife, mMaxLife;
     Types::Point<float_t> mMinSpeed, mMaxSpeed;
+    float_t mAngle;
 
     std::unique_ptr<graphics::Buffer> mBuffer;
 };

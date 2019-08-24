@@ -1,11 +1,10 @@
 #include <engine/graphics/bufferwriter.h>
+#include <engine/logger.h>
 #include <engine/particles.h>
 #include <engine/random.h>
 #include <engine/weather.h>
 
 using namespace engine;
-
-constexpr uint32_t Particles::MAX;
 
 Particle::Particle(const graphics::Color& color, const Types::Dimension<>& size)
     : color(color)
@@ -13,7 +12,7 @@ Particle::Particle(const graphics::Color& color, const Types::Dimension<>& size)
     , speed(1.0f, 1.0f)
     , startLife(0.0f)
     , life(0.0f)
-    , angleDiff(0)
+    , angle(0.0f)
 {
 }
 
@@ -24,14 +23,16 @@ float_t Particle::alpha() const
 }
 
 Particles::Particles(graphics::Renderer& renderer, uint32_t count, const graphics::Color& c, const Types::Dimension<>& size, bool enabled)
-    : mEnabled(enabled)
+    : mOriginParticle(c, size)
+    , mEnabled(enabled)
     , mCount(count)
     , mFrameSpeed(100.0f)
     , mMoveSpeed(20.0f)
     , mMinLife(0)
     , mMaxLife(100)
+    , mAngle(-1.0f)
 {
-    mParticles.resize(mCount, Particle(c, size));
+    mParticles.resize(mCount, mOriginParticle);
 
     mBuffer = renderer.createBuffer((graphics::Matrix::Size + graphics::Color::Size) * count);
 }
@@ -40,14 +41,18 @@ void Particles::draw(graphics::Renderer& renderer, Camera& camera)
 {
     std::lock_guard<std::mutex> locker(mMutex);
 
+    auto transform = renderer.createTransform();
+
     engine::graphics::BufferWriter writer(*mBuffer);
     for (const auto& p: mParticles) {
         writer += engine::graphics::Color(p.color.r(), p.color.g(), p.color.b(), p.alpha());
 
-        auto mat = renderer.createMatrix();
-        mat->translate(p.rect.x, p.rect.y);
-        mat->scale(p.rect.width, p.rect.height);
-        writer += *mat;
+        transform->reset();
+        transform->translate(p.rect.x, p.rect.y);
+        transform->rotate(180.0f - p.angle);
+        transform->scale(p.rect.width, p.rect.height);
+
+        writer += *transform;
     }
 
     writer.release();
@@ -57,32 +62,34 @@ void Particles::draw(graphics::Renderer& renderer, Camera& camera)
 
 void Particles::processAsync(uint64_t frameDiff, Camera& camera, Weather& weather)
 {
-    double m = (frameDiff / mFrameSpeed);
     std::lock_guard<std::mutex> locker(mMutex);
+    double m = (frameDiff / mFrameSpeed);
 
     double_t windSpeed = weather.windSpeed();
+    double_t windDirection = (weather.windDirection() * windSpeed * 45.0f);
 
     const auto& cameraRc = camera.rect();
     for (Particle& p: mParticles) {
         if (p.life > 0.0f) {
-            if (p.rect.left() < cameraRc.left() || p.rect.right() > cameraRc.right()
-                || p.rect.top() < cameraRc.top() || p.rect.bottom() > cameraRc.bottom()) {
-                p.life = 0.0f;
-            }
-
-            double_t windDirection = (weather.windDirection() + p.angleDiff) * Types::PI() / 180.0f;
-            float_t windX = cos(windDirection) * m * windSpeed;
-            float_t windY = sin(windDirection) * m * windSpeed;
-            p.rect.x += windX * p.speed.x * mMoveSpeed;
-            p.rect.y += windY * p.speed.y * mMoveSpeed;
-            p.life -= m * 0.1f;
-            if (p.life < 0.0f) {
+            float_t bufSize = p.rect.width + p.rect.height;
+            Types::Rect<float_t> bufferRect(cameraRc.x - bufSize, cameraRc.y - bufSize, cameraRc.width + bufSize, cameraRc.height + bufSize);
+            if (bufferRect.intersects(p.rect)) {
+                float_t r = ((180.0f - p.angle) * Types::PI()) / 180.0f;
+                float_t windX = sin(r) * m;
+                float_t windY = -cos(r) * m;
+                p.rect.x += windX * p.speed.x * mMoveSpeed;
+                p.rect.y += windY * p.speed.y * mMoveSpeed;
+                p.life -= m * 0.1f;
+                if (p.life < 0.0f) {
+                    p.life = 0.0f;
+                }
+            } else {
                 p.life = 0.0f;
             }
         }
 
         if (mEnabled && p.life == 0.0f) {
-            initNew(p, camera);
+            initNew(p, camera, windDirection);
         }
     }
 }
@@ -118,6 +125,7 @@ void Particles::setCount(uint32_t count)
     std::lock_guard<std::mutex> lock(mMutex);
     mCount = count;
     mBuffer->resize((graphics::Matrix::Size + graphics::Color::Size) * count);
+    mParticles.resize(mCount, mOriginParticle);
 }
 
 void Particles::setFrameSpeed(float_t frameSpeed)
@@ -136,16 +144,25 @@ void Particles::setLifeRange(uint8_t minLife, uint8_t maxLife)
     mMaxLife = maxLife;
 }
 
+void Particles::setAngle(float_t angle)
+{
+    mAngle = angle;
+}
+
 const Particle &Particles::operator[](int index) const
 {
     return mParticles.at(index);
 }
 
-void Particles::initNew(Particle& particle, Camera& camera)
+void Particles::initNew(Particle& particle, Camera& camera, float_t angle)
 {
+    float_t x = Random::range(camera.width() + (particle.rect.width + particle.rect.height) * 2) - particle.rect.width - particle.rect.height;
+    float_t y = Random::range(camera.height() + (particle.rect.width + particle.rect.height) * 2) - particle.rect.width - particle.rect.height;
+    float_t r = (Random::range(100) - 50) / 10.0f;
+
     float_t life = Random::range(mMinLife, mMaxLife) / 100.0f;
     particle.startLife = particle.life = life;
-    particle.rect.x = camera.x() + Random::range(camera.width());
-    particle.rect.y = camera.y() + Random::range(camera.height());
-    particle.angleDiff = 0;
+    particle.rect.x = camera.x() + x;
+    particle.rect.y = camera.y() + y;
+    particle.angle = angle + r;
 }

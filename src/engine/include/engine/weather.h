@@ -13,7 +13,7 @@ class Weather {
 public:
     Weather(graphics::Renderer& renderer);
 
-    uint16_t windDirection() const;
+    uint8_t windDirection() const;
     float_t windSpeed() const;
 
     void drawWater(graphics::Renderer& renderer, Camera& camera);
@@ -27,10 +27,11 @@ private:
     std::mutex mMutex;
     float_t mWeatherIntensity;
 
-    uint16_t mWindDirection;
+    uint8_t mWindDirection;
     float_t mWindSpeed;
 
     std::unique_ptr<Particles> mWaterParticles;
     std::unique_ptr<Particles> mSnowParticles;
+    std::unique_ptr<Particles> mRainParticles;
 };
 }
