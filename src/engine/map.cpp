@@ -1,12 +1,10 @@
 #include <algorithm>
 #include <cmath>
-#include <fstream>
 
-#include <json/json.h>
+#include <json/value.h>
 
 #include <engine/assetmanager.h>
 #include <engine/collisionmap.h>
-#include <engine/graphics/bufferwriter.h>
 #include <engine/graphics/renderer.h>
 #include <engine/logger.h>
 #include <engine/map.h>

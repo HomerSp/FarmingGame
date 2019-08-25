@@ -1,9 +1,6 @@
 #pragma once
 
-#include <memory>
-#include <vector>
-
-#include <engine/types.h>
+#include <cstdint>
 
 namespace engine {
 namespace graphics {

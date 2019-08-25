@@ -3,7 +3,6 @@
 #include <cmath>
 
 #include <QMatrix4x4>
-#include <QTransform>
 
 #include <engine/graphics/matrix.h>
 

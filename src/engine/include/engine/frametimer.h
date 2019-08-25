@@ -1,10 +1,7 @@
 #pragma once
 
-#include <array>
 #include <atomic>
 #include <chrono>
-#include <string>
-#include <unordered_map>
 
 namespace engine {
 class FrameTimer {

@@ -1,3 +1,5 @@
+#include <QString>
+
 #include <ui/qtimage.h>
 
 QtImage::QtImage(const std::string& path)

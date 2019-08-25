@@ -1,3 +1,4 @@
+#include <engine/context.h>
 #include <engine/graphics/renderer.h>
 
 using namespace engine;

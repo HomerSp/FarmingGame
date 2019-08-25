@@ -1,4 +1,8 @@
+#include <engine/graphics/buffer.h>
 #include <engine/graphics/bufferwriter.h> 
+#include <engine/graphics/matrix.h>
+#include <engine/graphics/transform.h>
+#include <engine/graphics/vertex2d.h>
 
 using namespace engine::graphics;
 

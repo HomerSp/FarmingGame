@@ -1,5 +1,3 @@
-#include <algorithm>
-
 #include <engine/keys.h>
 
 using namespace engine;

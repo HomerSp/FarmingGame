@@ -20,9 +20,9 @@ public:
     void paint(QPainter* painter) override;
 
 protected:
-    void hoverEnterEvent(QHoverEvent* event);
-    void hoverLeaveEvent(QHoverEvent* event);
-    void hoverMoveEvent(QHoverEvent* event);
+    void hoverEnterEvent(QHoverEvent* event) override;
+    void hoverLeaveEvent(QHoverEvent* event) override;
+    void hoverMoveEvent(QHoverEvent* event) override;
 
 private:
     QtRenderer mRenderer;

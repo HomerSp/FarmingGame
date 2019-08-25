@@ -2,13 +2,18 @@
 
 #include <mutex>
 
-#include <engine/camera.h>
-#include <engine/clock.h>
 #include <engine/particles.h>
-#include <engine/graphics/renderer.h>
 #include <engine/types.h>
 
 namespace engine {
+
+namespace graphics {
+class Renderer;
+}
+
+class Camera;
+class Clock;
+
 class Weather {
 public:
     typedef enum {

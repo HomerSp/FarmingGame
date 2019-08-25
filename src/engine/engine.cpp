@@ -1,13 +1,7 @@
-#include <cassert>
 #include <cmath>
-#include <iomanip>
-#include <random>
-#include <sstream>
-#include <thread>
 
 #include <scriptbuilder/scriptbuilder.h>
 
-#include <engine/assetmanager.h>
 #include <engine/context.h>
 #include <engine/engine.h>
 #include <engine/graphics/renderer.h>

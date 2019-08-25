@@ -1,16 +1,18 @@
 #pragma once
 
-#include <cmath>
 #include <cstdint>
 
-#include <engine/graphics/buffer.h>
-#include <engine/graphics/matrix.h>
-#include <engine/graphics/transform.h>
-#include <engine/graphics/vertex.h>
 #include <engine/types.h>
 
 namespace engine {
 namespace graphics {
+
+class Buffer;
+class Color;
+class Matrix;
+class Transform;
+class Vertex2D;
+
 class BufferWriter {
 public:
     BufferWriter(Buffer& buffer, uint32_t offset = 0);

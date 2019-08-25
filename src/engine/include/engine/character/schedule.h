@@ -1,6 +1,6 @@
 #pragma once
 
-#include <json/json.h>
+#include <string>
 
 namespace engine {
 namespace character {

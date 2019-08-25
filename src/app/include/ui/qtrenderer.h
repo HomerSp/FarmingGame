@@ -1,13 +1,9 @@
 #pragma once
 
-#include <QImage>
-#include <QOpenGLBuffer>
 #include <QOpenGLExtraFunctions>
 #include <QOpenGLFramebufferObject>
 #include <QOpenGLPaintDevice>
 #include <QOpenGLShaderProgram>
-#include <QOpenGLTexture>
-#include <QOpenGLTextureBlitter>
 #include <QPainter>
 
 #include <memory>
@@ -31,27 +27,26 @@ public:
     QtRenderer();
     virtual ~QtRenderer() = default;
 
-    void setSize(uint32_t w, uint32_t h, double devicePixelRatio);
+    void setSize(uint32_t w, uint32_t h, double devicePixelRatio) override;
 
-    void paint(std::shared_ptr<engine::Engine>& engine);
+    void paint(std::shared_ptr<engine::Engine>& engine) override;
 
-    int32_t width();
-    int32_t height();
+    int32_t width() override;
+    int32_t height() override;
 
-    void fillEllipse(const engine::Types::Rect<>& dst, const engine::graphics::Color& color);
-    void fillRect(const engine::Types::Rect<>& dst, const engine::graphics::Color& color);
+    void fillEllipse(const engine::Types::Rect<>& dst, const engine::graphics::Color& color) override;
+    void fillRect(const engine::Types::Rect<>& dst, const engine::graphics::Color& color) override;
 
-    void drawImage(const engine::graphics::Image& img, engine::Types::Rect<> dst, engine::Types::Rect<> src);
-    void drawText(const engine::Types::Rect<>& dst, const std::string& text, const engine::graphics::Color& color, int32_t size, engine::Types::TextAlign align, std::string type);
-    void drawOverlay(const engine::Types::Point<>& dst, engine::Overlay& overlay, uint32_t lightsCount, float mod);
-    void drawParticles(const engine::Types::Point<>& dst, const engine::Particles& particles);
-    void drawTest(float_t angle);
+    void drawImage(const engine::graphics::Image& img, engine::Types::Rect<> dst, engine::Types::Rect<> src) override;
+    void drawText(const engine::Types::Rect<>& dst, const std::string& text, const engine::graphics::Color& color, int32_t size, engine::Types::TextAlign align, std::string type) override;
+    void drawOverlay(const engine::Types::Point<>& dst, engine::Overlay& overlay, uint32_t lightsCount, float mod) override;
+    void drawParticles(const engine::Types::Point<>& dst, const engine::Particles& particles) override;
 
-    void rotate(float_t deg);
-    void translate(int32_t x, int32_t y);
+    void rotate(float_t deg) override;
+    void translate(int32_t x, int32_t y) override;
 
-    void save();
-    void restore();
+    void save() override;
+    void restore() override;
 
     std::unique_ptr<engine::graphics::Image> loadImage(const std::string& path) const override;
 
@@ -63,7 +58,7 @@ public slots:
     void cleanup();
 
 protected:
-    void initContext();
+    void initContext() override;
 
 private:
     std::unique_ptr<QOpenGLPaintDevice> mDevice;

@@ -2,14 +2,17 @@
 
 #include <unordered_map>
 
+#include <engine/character/character.h>
 #include <engine/item.h>
-#include <engine/screeneffects.h>
+#include <engine/overlay.h>
 
 namespace engine {
 
 namespace character {
 class Character;
 }
+
+class Context;
 
 class Player : public character::Character, public Overlay::LightSource {
 public:

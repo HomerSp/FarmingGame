@@ -1,15 +1,15 @@
 #pragma once
 
-#include <engine/context.h>
 #include <engine/screeneffects.h>
 
 namespace engine {
 
-class Player;
-
 namespace graphics {
 class Image;
 }
+
+class Context;
+class Player;
 
 struct ItemValue {
 public:
@@ -43,8 +43,8 @@ public:
     virtual ~Item() {}
 
     // Light source
-    virtual Types::Point<int32_t> lightPosition();
-    virtual int32_t lightRadius();
+    virtual Types::Point<int32_t> lightPosition() override;
+    virtual int32_t lightRadius() override;
     virtual graphics::ColorGradient lightColor() override;
 
     void use(Player& player);

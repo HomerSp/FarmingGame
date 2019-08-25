@@ -1,5 +1,3 @@
-#include <QTransform>
-
 #include <ui/qtmatrix.h>
 
 const float_t* QtMatrix::constData() const

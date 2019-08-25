@@ -1,11 +1,10 @@
 #include <QMatrix4x4>
 
+#include <engine/graphics/matrix.h>
+#include <engine/graphics/vertex2d.h>
+
 #include <ui/qtbuffer.h>
 #include <ui/qttransform.h>
-
-#include <engine/logger.h>
-
-#include <string>
 
 QtBuffer::QtBuffer(uint32_t size)
 {

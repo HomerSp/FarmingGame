@@ -2,6 +2,7 @@
 
 #include <cmath>
 #include <memory>
+#include <string>
 #include <vector>
 
 #include <engine/particles.h>
@@ -17,7 +18,10 @@ class Particles;
 namespace graphics {
 
 class Buffer;
+class Color;
 class Image;
+class Matrix;
+class Transform;
 
 class Renderer {
 public:

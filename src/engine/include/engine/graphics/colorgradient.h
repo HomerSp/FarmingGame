@@ -1,9 +1,6 @@
 #pragma once
 
-#include <cmath>
 #include <cstdint>
-
-#include <array>
 
 #include <engine/graphics/color.h>
 

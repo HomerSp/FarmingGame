@@ -1,16 +1,17 @@
 #pragma once
 
-#include <cmath>
 #include <cstdint>
 
-#include <engine/graphics/color.h>
-#include <engine/graphics/matrix.h>
-#include <engine/graphics/transform.h>
-#include <engine/graphics/vertex.h>
 #include <engine/types.h>
 
 namespace engine {
 namespace graphics {
+
+class Color;
+class Matrix;
+class Transform;
+class Vertex2D;
+
 class Buffer {
 public:
     Buffer() = default;

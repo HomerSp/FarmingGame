@@ -7,6 +7,10 @@
 
 namespace engine {
 
+namespace graphics {
+class Renderer;
+}
+
 namespace script {
 class ScriptEngine;
 }

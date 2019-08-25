@@ -11,6 +11,7 @@
 
 namespace engine {
 
+class Context;
 class Map;
 
 class Clock : public script::ScriptObject {

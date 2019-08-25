@@ -1,7 +1,4 @@
-#include <map>
-
 #include <engine/graphics/image.h>
-#include <engine/logger.h>
 
 using namespace engine::graphics;
 

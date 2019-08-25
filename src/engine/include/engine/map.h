@@ -8,8 +8,8 @@
 
 #include <engine/collisionmap.h>
 #include <engine/context.h>
-#include <engine/graphics/buffer.h>
-#include <engine/screeneffects.h>
+#include <engine/graphics/colorgradient.h>
+#include <engine/overlay.h>
 #include <engine/tileset.h>
 #include <engine/types.h>
 
@@ -28,8 +28,8 @@ public:
     MapLightSource(Types::Point<int32_t> pos, int32_t radius, const graphics::ColorGradient& color);
     virtual ~MapLightSource() = default;
 
-    virtual Types::Point<int32_t> lightPosition();
-    virtual int32_t lightRadius();
+    virtual Types::Point<int32_t> lightPosition() override;
+    virtual int32_t lightRadius() override;
     virtual graphics::ColorGradient lightColor() override;
 
 private:

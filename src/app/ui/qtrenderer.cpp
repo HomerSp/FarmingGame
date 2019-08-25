@@ -1,14 +1,10 @@
-#include <QByteArray>
-#include <QDataStream>
 #include <QFontDatabase>
-#include <QIODevice>
-#include <QImage>
 
 #include <engine/context.h>
 #include <engine/fontmanager.h>
 #include <engine/graphics/bufferwriter.h>
-#include <engine/graphics/vector.h>
-#include <engine/graphics/vertex.h>
+#include <engine/graphics/vector2d.h>
+#include <engine/graphics/vertex2d.h>
 #include <engine/logger.h>
 
 #include <ui/qtimage.h>
@@ -370,62 +366,6 @@ void QtRenderer::drawParticles(const engine::Types::Point<>& dst, const engine::
     mParticleShader->release();
 
     mProjectionMatrix->translate(-dst.x, -dst.y);
-    mPainter->endNativePainting();
-}
-
-void QtRenderer::drawTest(float_t angle)
-{
-    mPainter->beginNativePainting();
-
-    mColorShader->bind();
-
-    mQuadVertexBuffer->bind();
-    mColorShader->enableAttributeArray(0);
-    mColorShader->setAttributeBuffer(0, GL_FLOAT, 0, 2, engine::graphics::Vector2D::Size);
-    mQuadVertexBuffer->release();
-
-    engine::graphics::Color color(1.0, 1.0, 1.0f, 1.0f);
-
-    auto transform = createTransform();
-    transform->translate(50, 50);
-    transform->rotate(angle);
-    transform->translate(-50, -50);
-    transform->translate(100, 100);
-    transform->scale(100, 2);
-
-    auto buffer = createBuffer(engine::graphics::Color::Size + engine::graphics::Matrix::Size);
-    engine::graphics::BufferWriter writer(*buffer);
-    writer += color;
-    writer += *transform;
-
-    mColorShader->enableAttributeArray(1);
-    mColorShader->setAttributeBuffer(1, GL_FLOAT, 0, 4, engine::graphics::Color::Size + engine::graphics::Matrix::Size);
-    glVertexAttribDivisor(1, 1);
-
-    for (uint32_t i = 0; i < 4; i++) {
-        uint32_t offset = engine::graphics::Color::Size + i * engine::graphics::Vector4D::Size;
-        mColorShader->enableAttributeArray(2 + i);
-        mColorShader->setAttributeBuffer(2 + i, GL_FLOAT, offset, 4, engine::graphics::Color::Size + engine::graphics::Matrix::Size);
-        glVertexAttribDivisor(2 + i, 1);
-    }
-
-    writer.release();
-
-    mColorShader->setUniformValue("iWorldMatrix", *mWorldMatrix);
-    mColorShader->setUniformValue("iProjectionMatrix", *mProjectionMatrix);
-
-    glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, 1);
-
-    mColorShader->disableAttributeArray(0);
-    mColorShader->disableAttributeArray(1);
-    glVertexAttribDivisor(1, 0);
-    for (uint32_t i = 0; i < 4; i++) {
-        mColorShader->disableAttributeArray(2 + i);
-        glVertexAttribDivisor(2 + i, 0);
-    }
-
-    mColorShader->release();
-
     mPainter->endNativePainting();
 }
 

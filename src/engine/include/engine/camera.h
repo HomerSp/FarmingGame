@@ -17,6 +17,7 @@ namespace script {
 class ScriptObject;
 }
 
+class Context;
 class Map;
 
 class Camera : public engine::script::ScriptObject {

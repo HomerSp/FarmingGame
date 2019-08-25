@@ -15,3 +15,8 @@ link_directories(${src_DIR}/engine)
 
 set(engine_EXTRA_LIBRARY jsoncpp_lib_static lodepng)
 set(engine_LIBRARY engine angelscript angelscript_addon angelscript_function ${engine_EXTRA_LIBRARY})
+
+if(LINT)
+    set(CMAKE_CXX_CLANG_TIDY "/usr/bin/clang-tidy-6.0;-checks=*,-fuchsia-default-arguments,-google-build-using-namespace,-cppcoreguidelines-pro-type-reinterpret-cast,-fuchsia-overloaded-operator;-extra-arg=-Wno-unknown-warning-option")
+endif(LINT)
+

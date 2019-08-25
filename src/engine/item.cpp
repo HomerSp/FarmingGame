@@ -1,10 +1,10 @@
 #include <cmath>
 #include <memory>
 
-#include <json/json.h>
+#include <json/value.h>
 
 #include <engine/assetmanager.h>
-#include <engine/character/character.h>
+#include <engine/context.h>
 #include <engine/graphics/image.h>
 #include <engine/item.h>
 #include <engine/logger.h>

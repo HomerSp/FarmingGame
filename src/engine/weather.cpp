@@ -1,3 +1,6 @@
+#include <engine/camera.h>
+#include <engine/clock.h>
+#include <engine/graphics/renderer.h>
 #include <engine/logger.h>
 #include <engine/random.h>
 #include <engine/weather.h>

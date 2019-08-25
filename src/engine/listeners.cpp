@@ -1,7 +1,4 @@
-#include <thread>
-
 #include <engine/listeners.h>
-#include <engine/logger.h>
 #include <engine/script/scriptobject.h>
 
 using namespace engine;

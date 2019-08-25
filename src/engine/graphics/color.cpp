@@ -1,3 +1,5 @@
+#include <algorithm>
+
 #include <engine/graphics/color.h> 
 
 using namespace engine::graphics;

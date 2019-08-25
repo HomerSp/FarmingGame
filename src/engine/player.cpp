@@ -1,5 +1,8 @@
+#include <json/value.h>
+
 #include <engine/assetmanager.h>
 #include <engine/character/character.h>
+#include <engine/context.h>
 #include <engine/item.h>
 #include <engine/logger.h>
 #include <engine/player.h>

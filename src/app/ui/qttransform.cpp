@@ -1,5 +1,3 @@
-#include <QTransform>
-
 #include <ui/qttransform.h>
 
 void QtTransform::reset()

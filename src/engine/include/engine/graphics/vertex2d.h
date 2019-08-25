@@ -5,10 +5,10 @@
 
 #include <array>
 
-#include <engine/graphics/vector.h>
-
 namespace engine {
 namespace graphics {
+
+class Vector2D;
 
 class Vertex2D {
 public:

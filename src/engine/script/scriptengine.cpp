@@ -1,4 +1,4 @@
-#include <cassert>
+#include <sstream>
 
 #include <functionptr.h>
 #include <scripthandle/scripthandle.h>
