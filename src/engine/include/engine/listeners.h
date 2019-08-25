@@ -1,6 +1,8 @@
 #pragma once
 
 #include <atomic>
+#include <cstdint>
+#include <memory>
 
 #include <angelscript.h>
 #include <functionptr.h>

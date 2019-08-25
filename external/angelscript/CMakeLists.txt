@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.1.0)
 
-set(TARGET_FLAGS -fno-strict-aliasing -Wno-unused-variable -Wno-error=unused-but-set-variable)
+set(TARGET_FLAGS -fno-strict-aliasing -Wno-unused-variable)
 
 add_subdirectory(src/sdk/angelscript/projects/cmake)
 target_compile_options(angelscript PUBLIC ${TARGET_FLAGS})
