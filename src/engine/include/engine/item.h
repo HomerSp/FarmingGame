@@ -1,15 +1,19 @@
 #pragma once
 
-#include <engine/screeneffects.h>
+#include <cstdint>
+
+#include <engine/contextobject.h>
+#include <engine/graphics/colorgradient.h>
+#include <engine/overlay.h>
 
 namespace engine {
+
+class Context;
+class Player;
 
 namespace graphics {
 class Image;
 }
-
-class Context;
-class Player;
 
 struct ItemValue {
 public:

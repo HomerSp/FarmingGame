@@ -9,19 +9,20 @@
 #include <unordered_set>
 
 #include <engine/collisionmap.h>
-#include <engine/context.h>
+#include <engine/contextobject.h>
 #include <engine/graphics/image.h>
 #include <engine/types.h>
 
 namespace engine {
 
-class TilesetType;
-class Tileset;
-
 namespace graphics {
 class BufferWriter;
 class Renderer;
 }
+
+class Context;
+class TilesetType;
+class Tileset;
 
 struct TilesetNode {
     uint32_t id;

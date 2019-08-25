@@ -1,3 +1,4 @@
+#include <engine/context.h>
 #include <engine/script/scriptengine.h>
 #include <engine/script/scriptobject.h>
 

@@ -1,6 +1,7 @@
 #include <iomanip>
 
 #include <engine/clock.h>
+#include <engine/context.h>
 #include <engine/logger.h>
 #include <engine/map.h>
 #include <engine/time.h>

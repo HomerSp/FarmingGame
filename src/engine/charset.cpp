@@ -1,5 +1,6 @@
 #include <engine/assetmanager.h>
 #include <engine/charset.h>
+#include <engine/context.h>
 #include <engine/logger.h>
 
 using namespace engine;

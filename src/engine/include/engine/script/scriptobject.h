@@ -6,7 +6,7 @@
 #include <angelscript.h>
 #include <functionptr.h>
 
-#include <engine/context.h>
+#include <engine/contextobject.h>
 
 #define SCRIPT_METHOD(c, m) asSMethodPtr<sizeof(void (c::*)())>::Convert(reinterpret_cast<void (c::*)()>(&c::m))
 
@@ -17,7 +17,6 @@
 namespace engine {
 
 class Context;
-class ContextObject;
 
 namespace script {
 

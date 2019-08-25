@@ -1,5 +1,6 @@
 #include <engine/graphics/bufferwriter.h>
 #include <engine/graphics/matrix.h>
+#include <engine/graphics/renderer.h>
 #include <engine/graphics/transform.h>
 #include <engine/particles.h>
 #include <engine/random.h>

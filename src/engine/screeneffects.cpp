@@ -1,5 +1,6 @@
 #include <engine/camera.h>
 #include <engine/clock.h>
+#include <engine/context.h>
 #include <engine/graphics/renderer.h>
 #include <engine/screeneffects.h>
 #include <engine/weather.h>

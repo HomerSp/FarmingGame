@@ -5,12 +5,15 @@
 
 #include <json/value.h>
 
-#include <engine/context.h>
+#include <engine/contextobject.h>
 #include <engine/graphics/image.h>
 #include <engine/graphics/renderer.h>
 #include <engine/types.h>
 
 namespace engine {
+
+class Context;
+
 struct CharsetNode {
 public:
     CharsetNode(const Types::Rect<>& rc, const Types::Cells& cells, const Types::Rect<>& collision);

@@ -4,6 +4,7 @@
 
 #include <engine/assetmanager.h>
 #include <engine/collisionmap.h>
+#include <engine/context.h>
 #include <engine/graphics/bufferwriter.h>
 #include <engine/graphics/image.h>
 #include <engine/graphics/matrix.h>

@@ -1,5 +1,6 @@
 #include <engine/assetmanager.h>
 #include <engine/clock.h>
+#include <engine/context.h>
 #include <engine/frametimer.h>
 #include <engine/graphics/image.h>
 #include <engine/graphics/renderer.h>

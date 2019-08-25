@@ -2,7 +2,7 @@
 
 #include <atomic>
 
-#include <engine/context.h>
+#include <engine/contextobject.h>
 #include <engine/overlay.h>
 #include <engine/types.h>
 
@@ -10,6 +10,7 @@ namespace engine {
 
 class Camera;
 class Clock;
+class Context;
 
 namespace graphics {
 class Renderer;

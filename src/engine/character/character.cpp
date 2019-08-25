@@ -4,6 +4,7 @@
 
 #include <engine/assetmanager.h>
 #include <engine/character/character.h>
+#include <engine/context.h>
 #include <engine/graphics/renderer.h>
 #include <engine/logger.h>
 #include <engine/map.h>

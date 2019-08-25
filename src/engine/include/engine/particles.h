@@ -5,12 +5,17 @@
 
 #include <engine/camera.h>
 #include <engine/graphics/buffer.h>
+#include <engine/graphics/color.h>
 #include <engine/graphics/renderer.h>
 #include <engine/types.h>
 
 namespace engine {
 
 class Weather;
+
+namespace graphics {
+class Renderer;
+}
 
 struct Particle {
     Particle(const graphics::Color& color, const Types::Dimension<>& size);

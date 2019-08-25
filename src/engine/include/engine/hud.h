@@ -2,11 +2,12 @@
 
 #include <atomic>
 
-#include <engine/context.h>
+#include <engine/contextobject.h>
 
 namespace engine {
 
 class Clock;
+class Context;
 class FrameTimer;
 class Item;
 class Player;

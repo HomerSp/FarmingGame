@@ -18,6 +18,7 @@ set(HEADERS
 	include/engine/clock.h
 	include/engine/collisionmap.h
 	include/engine/context.h
+	include/engine/contextobject.h
 	include/engine/engine.h
 	include/engine/frametimer.h
 	include/engine/fontmanager.h
@@ -27,6 +28,7 @@ set(HEADERS
 	include/engine/listeners.h
 	include/engine/logger.h
 	include/engine/map.h
+	include/engine/maplayer.h
 	include/engine/overlay.h
 	include/engine/particles.h
 	include/engine/pathfinding.h
@@ -46,6 +48,7 @@ set(SOURCES
 	clock.cpp
 	collisionmap.cpp
 	context.cpp
+	contextobject.cpp
 	engine.cpp
 	frametimer.cpp
 	fontmanager.cpp
@@ -55,6 +58,7 @@ set(SOURCES
 	listeners.cpp
 	logger.cpp
 	map.cpp
+	maplayer.cpp
 	overlay.cpp
 	particles.cpp
 	pathfinding.cpp
