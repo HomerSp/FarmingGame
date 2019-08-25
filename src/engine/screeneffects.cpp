@@ -1,8 +1,8 @@
 #include <engine/camera.h>
 #include <engine/clock.h>
 #include <engine/graphics/renderer.h>
-#include <engine/logger.h>
 #include <engine/screeneffects.h>
+#include <engine/weather.h>
 
 using namespace engine;
 
@@ -12,46 +12,46 @@ ScreenEffects::ScreenEffects(std::shared_ptr<Context>& ctx, graphics::Renderer& 
     mOverlay = std::make_unique<Overlay>(renderer, lightsCount);
 }
 
-void ScreenEffects::draw(graphics::Renderer& renderer, Clock& clock, Camera& camera, const std::vector<std::shared_ptr<Overlay::LightSource>> &sources)
+void ScreenEffects::draw(graphics::Renderer& renderer, Clock& clock, Camera& camera, const std::vector<std::shared_ptr<Overlay::LightSource>> &sources, Weather& weather)
 {
     uint32_t h = clock.hour();
 
-    // Daylight
-    if (clock.daylight()) {
-        return;
+    auto weatherType = weather.type();
+    float_t baseC = 1.0f;
+    if (weatherType == Weather::Overcast || weatherType == Weather::Rain) {
+        baseC = 0.75f;
     }
 
-    float_t baseAlpha = 0.75f;
-    switch(clock.month()) {
-    case 1:
-        baseAlpha += 0.08f;
-        break;
-    case 3:
-        baseAlpha -= 0.08f;
-        break;
-    }
-
-    graphics::Color color(1.0f - baseAlpha, 1.0f - baseAlpha, 1.0f - baseAlpha);
-
-    // Night
-    if (h >= clock.dawn() && h < clock.dusk()) {
-        float_t currentHour = clock.currentHour();
-
-        // Sunrise
-        if (h >= clock.dawn() && h < clock.sunrise()) {
-            float_t diff = (currentHour - clock.dawn() * 60) / ((clock.sunrise() - clock.dawn()) * 60.0f);
-            float_t alpha = baseAlpha - baseAlpha * diff;
-            float_t d = 0.2f * diff;
-            float_t c = 1.0f - alpha;
-            color = graphics::Color(std::min(c + d, 1.0f), c, c);
-        // Sunset
-        } else if (h >= clock.sunset() && h < clock.dusk()) {
-            float_t diff = (currentHour - (clock.sunset() * 60)) / ((clock.dusk() - clock.sunset()) * 60.0f);
-            float_t alpha = baseAlpha * diff;
-            float_t d = 0.2f - 0.2f * diff;
-            float_t c = 1.0f - alpha;
-            color = graphics::Color(std::min(c + d, 1.0f), c, c);
+    graphics::Color color(baseC, baseC, baseC);
+    if (!clock.daylight()) {
+        float_t baseAlpha = baseC - 0.25f;
+        switch(clock.month()) {
+        case 1:
+            baseAlpha += 0.08f;
+            break;
+        case 3:
+            baseAlpha -= 0.08f;
+            break;
         }
+
+        float_t c = baseC - baseAlpha;
+
+        // Night
+        if (h >= clock.dawn() && h < clock.dusk()) {
+            float_t currentHour = clock.currentHour();
+
+            // Sunrise
+            if (h >= clock.dawn() && h < clock.sunrise()) {
+                float_t diff = (currentHour - clock.dawn() * 60) / ((clock.sunrise() - clock.dawn()) * 60.0f);
+                c = baseC - (baseAlpha - baseAlpha * diff);
+            // Sunset
+            } else if (h >= clock.sunset() && h < clock.dusk()) {
+                float_t diff = (currentHour - (clock.sunset() * 60)) / ((clock.dusk() - clock.sunset()) * 60.0f);
+                c = baseC - (baseAlpha * diff);
+            }
+        }
+
+        color = graphics::Color(c, c, c);
     }
 
     mOverlay->setBackground(color);

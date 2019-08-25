@@ -11,8 +11,16 @@
 namespace engine {
 class Weather {
 public:
+    typedef enum {
+        Sunny = 0,
+        Cloudy,
+        Overcast,
+        Rain,
+    } Type;
+public:
     Weather(graphics::Renderer& renderer);
 
+    Weather::Type type() const;
     uint8_t windDirection() const;
     float_t windSpeed() const;
 
@@ -25,8 +33,9 @@ public:
 
 private:
     std::mutex mMutex;
-    float_t mWeatherIntensity;
 
+    Weather::Type mType;
+    float_t mIntensity;
     uint8_t mWindDirection;
     float_t mWindSpeed;
 

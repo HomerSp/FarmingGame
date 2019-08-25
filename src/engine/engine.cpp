@@ -360,7 +360,7 @@ void Engine::paint()
 
     mWeather->drawWeather(renderer, *mCamera);
 
-    mScreenEffects->draw(renderer, *mClock, *mCamera, mLights);
+    mScreenEffects->draw(renderer, *mClock, *mCamera, mLights, *mWeather);
 
     if (translateX != 0.0f || translateY != 0.0f) {
         renderer.translate(-translateX, -translateY);

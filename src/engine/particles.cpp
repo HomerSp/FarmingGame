@@ -31,6 +31,7 @@ Particles::Particles(graphics::Renderer& renderer, uint32_t count, const graphic
     , mMinLife(0)
     , mMaxLife(100)
     , mAngle(-1.0f)
+    , mSpawnRect(-1, -1, -1, -1)
 {
     mParticles.resize(mCount, mOriginParticle);
 
@@ -41,55 +42,59 @@ void Particles::draw(graphics::Renderer& renderer, Camera& camera)
 {
     std::lock_guard<std::mutex> locker(mMutex);
 
-    auto transform = renderer.createTransform();
+    if (mSpawnRect.width >= 0.0f) {
+        auto transform = renderer.createTransform();
 
-    engine::graphics::BufferWriter writer(*mBuffer);
-    for (const auto& p: mParticles) {
-        writer += engine::graphics::Color(p.color.r(), p.color.g(), p.color.b(), p.alpha());
+        engine::graphics::BufferWriter writer(*mBuffer);
+        for (const auto& p: mParticles) {
+            writer += engine::graphics::Color(p.color.r(), p.color.g(), p.color.b(), p.alpha());
 
-        transform->reset();
-        transform->translate(p.rect.x, p.rect.y);
-        transform->rotate(180.0f - p.angle);
-        transform->scale(p.rect.width, p.rect.height);
+            transform->reset();
+            transform->translate(p.rect.x, p.rect.y);
+            transform->rotate(180.0f - p.angle);
+            transform->scale(p.rect.width, p.rect.height);
 
-        writer += *transform;
+            writer += *transform;
+        }
+
+        writer.release();
+
+        renderer.drawParticles({-camera.x(), -camera.y()}, *this);
     }
-
-    writer.release();
-
-    renderer.drawParticles({-camera.x(), -camera.y()}, *this);
 }
 
 void Particles::processAsync(uint64_t frameDiff, Camera& camera, Weather& weather)
 {
     std::lock_guard<std::mutex> locker(mMutex);
-    double m = (frameDiff / mFrameSpeed);
+    if (mSpawnRect.width >= 0.0f) {
+        double m = (frameDiff / mFrameSpeed);
 
-    double_t windSpeed = weather.windSpeed();
-    double_t windDirection = (weather.windDirection() * windSpeed * 45.0f);
+        double_t windSpeed = weather.windSpeed();
+        double_t windDirection = (weather.windDirection() * windSpeed * 45.0f);
 
-    const auto& cameraRc = camera.rect();
-    for (Particle& p: mParticles) {
-        if (p.life > 0.0f) {
-            float_t bufSize = p.rect.width + p.rect.height;
-            Types::Rect<float_t> bufferRect(cameraRc.x - bufSize, cameraRc.y - bufSize, cameraRc.width + bufSize, cameraRc.height + bufSize);
-            if (bufferRect.intersects(p.rect)) {
-                float_t r = ((180.0f - p.angle) * Types::PI()) / 180.0f;
-                float_t windX = sin(r) * m;
-                float_t windY = -cos(r) * m;
-                p.rect.x += windX * p.speed.x * mMoveSpeed;
-                p.rect.y += windY * p.speed.y * mMoveSpeed;
-                p.life -= m * 0.1f;
-                if (p.life < 0.0f) {
+        auto cameraRc = mSpawnRect;
+        cameraRc.x += camera.x();
+        cameraRc.y += camera.y();
+        for (Particle& p: mParticles) {
+            if (p.life > 0.0f) {
+                if (cameraRc.intersects(p.rect)) {
+                    float_t r = ((180.0f - p.angle) * Types::PI()) / 180.0f;
+                    float_t windX = sin(r) * m;
+                    float_t windY = -cos(r) * m;
+                    p.rect.x += windX * p.speed.x * mMoveSpeed;
+                    p.rect.y += windY * p.speed.y * mMoveSpeed;
+                    p.life -= m * 0.1f;
+                    if (p.life < 0.0f) {
+                        p.life = 0.0f;
+                    }
+                } else {
                     p.life = 0.0f;
                 }
-            } else {
-                p.life = 0.0f;
             }
-        }
 
-        if (mEnabled && p.life == 0.0f) {
-            initNew(p, camera, windDirection);
+            if (mEnabled && p.life == 0.0f) {
+                initNew(p, camera, windDirection);
+            }
         }
     }
 }
@@ -149,6 +154,11 @@ void Particles::setAngle(float_t angle)
     mAngle = angle;
 }
 
+void Particles::setSpawnRect(const Types::Rect<float_t>& rc)
+{
+    mSpawnRect = rc;
+}
+
 const Particle &Particles::operator[](int index) const
 {
     return mParticles.at(index);
@@ -156,8 +166,8 @@ const Particle &Particles::operator[](int index) const
 
 void Particles::initNew(Particle& particle, Camera& camera, float_t angle)
 {
-    float_t x = Random::range(camera.width() + (particle.rect.width + particle.rect.height) * 2) - particle.rect.width - particle.rect.height;
-    float_t y = Random::range(camera.height() + (particle.rect.width + particle.rect.height) * 2) - particle.rect.width - particle.rect.height;
+    float_t x = Random::range(mSpawnRect.left(), mSpawnRect.right());
+    float_t y = Random::range(mSpawnRect.top(), mSpawnRect.bottom());
     float_t r = (Random::range(100) - 50) / 10.0f;
 
     float_t life = Random::range(mMinLife, mMaxLife) / 100.0f;

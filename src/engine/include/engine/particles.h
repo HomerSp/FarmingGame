@@ -45,6 +45,7 @@ public:
     void setMoveSpeed(float_t moveSpeed);
     void setLifeRange(uint8_t minLife, uint8_t maxLife);
     void setAngle(float_t angle);
+    void setSpawnRect(const Types::Rect<float_t> &rc);
 
     const Particle &operator[](int index) const;
 
@@ -62,6 +63,7 @@ private:
     uint8_t mMinLife, mMaxLife;
     Types::Point<float_t> mMinSpeed, mMaxSpeed;
     float_t mAngle;
+    Types::Rect<float_t> mSpawnRect;
 
     std::unique_ptr<graphics::Buffer> mBuffer;
 };

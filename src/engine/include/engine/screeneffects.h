@@ -19,7 +19,7 @@ class ScreenEffects : public ContextObject {
 public:
     ScreenEffects(std::shared_ptr<Context>& ctx, graphics::Renderer& renderer, uint32_t lightsCount);
 
-    void draw(graphics::Renderer& renderer, Clock& clock, Camera& camera, const std::vector<std::shared_ptr<Overlay::LightSource>> &sources);
+    void draw(graphics::Renderer& renderer, Clock& clock, Camera& camera, const std::vector<std::shared_ptr<Overlay::LightSource>> &sources, Weather& weather);
 
     bool processAsync(uint64_t frameDiff);
 
