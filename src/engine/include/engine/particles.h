@@ -41,7 +41,7 @@ public:
     void processAsync(uint64_t frameDiff, Camera& camera, Weather& weather);
 
     graphics::Buffer& buffer() const;
-
+    bool enabled() const;
     uint32_t size() const;
 
     void setEnabled(bool enabled);

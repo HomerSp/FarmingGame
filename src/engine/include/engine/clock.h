@@ -15,6 +15,14 @@ class Context;
 class Map;
 
 class Clock : public script::ScriptObject {
+public:
+    typedef enum {
+        Spring = 1,
+        Summer = 2,
+        Autumn = 3,
+        Winter = 4,
+    } Month;
+
 private:
     class ChangeListener : public Listeners::Listener {
     public:

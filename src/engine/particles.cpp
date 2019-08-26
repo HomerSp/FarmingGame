@@ -106,6 +106,11 @@ graphics::Buffer& Particles::buffer() const
     return *mBuffer;
 }
 
+bool Particles::enabled() const
+{
+    return mEnabled;
+}
+
 void Particles::lock()
 {
     mMutex.lock();
@@ -124,15 +129,19 @@ uint32_t Particles::size() const
 void Particles::setEnabled(bool enabled)
 {
     std::lock_guard<std::mutex> lock(mMutex);
-    mEnabled = enabled;
+    if (mEnabled != enabled) {
+        mEnabled = enabled;
+    }
 }
 
 void Particles::setCount(uint32_t count)
 {
     std::lock_guard<std::mutex> lock(mMutex);
-    mCount = count;
-    mBuffer->resize((graphics::Matrix::Size + graphics::Color::Size) * count);
-    mParticles.resize(mCount, mOriginParticle);
+    if (mCount != count) {
+        mCount = count;
+        mBuffer->resize((graphics::Matrix::Size + graphics::Color::Size) * count);
+        mParticles.resize(mCount, mOriginParticle);
+    }
 }
 
 void Particles::setFrameSpeed(float_t frameSpeed)

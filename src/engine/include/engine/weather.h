@@ -22,6 +22,18 @@ public:
         Overcast,
         Rain,
     } Type;
+
+private:
+    struct Data {
+        Data();
+        Data(Weather::Type type, float_t intensity, uint8_t windDirection, float_t windSpeed);
+
+        Weather::Type type;
+        float_t intensity;
+        uint8_t windDirection;
+        float_t windSpeed;
+    };
+
 public:
     Weather(graphics::Renderer& renderer);
 
@@ -37,12 +49,12 @@ public:
     void setSize(const Types::Dimension<uint32_t>& size);
 
 private:
+    void updateIntensity();
+
     std::mutex mMutex;
 
-    Weather::Type mType;
-    float_t mIntensity;
-    uint8_t mWindDirection;
-    float_t mWindSpeed;
+    float_t mSizeMod;
+    std::array<Weather::Data, 2> mData;
 
     std::unique_ptr<Particles> mWaterParticles;
     std::unique_ptr<Particles> mSnowParticles;

@@ -14,14 +14,11 @@ set(HEADERS
 
 set(SOURCES
     ${SOURCES}
-    graphics/buffer.cpp
     graphics/bufferwriter.cpp
     graphics/color.cpp
     graphics/colorgradient.cpp
     graphics/image.cpp
-    graphics/matrix.cpp
     graphics/renderer.cpp
-    graphics/transform.cpp
     graphics/vector2d.cpp
     graphics/vertex2d.cpp
 ) 

@@ -27,10 +27,10 @@ void ScreenEffects::draw(graphics::Renderer& renderer, Clock& clock, Camera& cam
     if (!clock.daylight()) {
         float_t baseAlpha = baseC - 0.25f;
         switch(clock.month()) {
-        case 1:
+        case Clock::Winter:
             baseAlpha += 0.08f;
             break;
-        case 3:
+        case Clock::Summer:
             baseAlpha -= 0.08f;
             break;
         }

@@ -7,15 +7,25 @@
 
 using namespace engine;
 
-Weather::Weather(graphics::Renderer& renderer)
-    : mType(Rain)
-    , mIntensity(0.0f)
-    , mWindDirection(0.0f)
-    , mWindSpeed(0.0f)
+Weather::Data::Data()
+    : Data(Weather::Sunny, 0.0f, 0.0f, 0.0f)
 {
-    mIntensity = Random::range(100) / 100.0f;
-    mWindDirection = (Random::range(200) - 100) / 100.0f;
-    mWindSpeed = Random::range(100) / 100.0f;
+}
+
+Weather::Data::Data(Weather::Type type, float_t intensity, uint8_t windDirection, float_t windSpeed)
+    : type(type)
+    , intensity(intensity)
+    , windDirection(windDirection)
+    , windSpeed(windSpeed)
+{
+}
+
+Weather::Weather(graphics::Renderer& renderer)
+    : mSizeMod(0.0f)
+    , mData({})
+{
+    mData[0] = Data(Sunny, Random::range(100) / 100.0f, (Random::range(200) - 100) / 100.0f, Random::range(100) / 100.0f);
+    mData[1] = Data(Rain, Random::range(100) / 100.0f, (Random::range(200) - 100) / 100.0f, Random::range(100) / 100.0f);
 
     mWaterParticles = std::make_unique<engine::Particles>(renderer, 30, graphics::Color(1, 1, 0.8f, 0.5f), Types::Dimension<>(2, 2));
     mWaterParticles->setMoveSpeed(1.0f);
@@ -31,17 +41,17 @@ Weather::Weather(graphics::Renderer& renderer)
 
 Weather::Type Weather::type() const
 {
-    return mType;
+    return mData[0].type;
 }
 
 uint8_t Weather::windDirection() const
 {
-    return mWindDirection;
+    return mData[0].windDirection;
 }
 
 float_t Weather::windSpeed() const
 {
-    return mWindSpeed;
+    return mData[0].windSpeed;
 }
 
 void Weather::drawWater(graphics::Renderer& renderer, Camera& camera)
@@ -51,31 +61,48 @@ void Weather::drawWater(graphics::Renderer& renderer, Camera& camera)
 
 void Weather::drawWeather(graphics::Renderer& renderer, Camera& camera)
 {
-    if (mType == Rain) {
-        mSnowParticles->draw(renderer, camera);
-        //mRainParticles->draw(renderer, camera);
+    if (mData[0].type == Rain) {
+        if (mSnowParticles->enabled()) {
+            mSnowParticles->draw(renderer, camera);
+        } else {
+            mRainParticles->draw(renderer, camera);
+        }
     }
 }
 
 void Weather::processAsync(uint64_t frameDiff, Camera& camera, Clock& clock)
 {
-    if (mType == Sunny || mType == Cloudy) {
+    if (mData[0].type == Sunny || mData[0].type == Cloudy) {
         mWaterParticles->setEnabled(clock.daylight());
         mWaterParticles->processAsync(frameDiff, camera, *this);
     }
 
-    if (mType == Rain) {
-        mSnowParticles->processAsync(frameDiff, camera, *this);
-        mRainParticles->processAsync(frameDiff, camera, *this);
+    // Rain or snow
+    if (mData[0].type == Rain) {
+        bool winter = clock.month() == Clock::Winter;
+        mSnowParticles->setEnabled(winter);
+        mRainParticles->setEnabled(!winter);
+        if (winter) {
+            mSnowParticles->processAsync(frameDiff, camera, *this);
+        } else {
+            mRainParticles->processAsync(frameDiff, camera, *this);
+        }
     }
 }
 
 void Weather::setSize(const Types::Dimension<uint32_t>& size)
 {
-    float_t mod = (size.width + size.height) / 1000.0f;
-    mWaterParticles->setCount(20 * mod);
-    mSnowParticles->setCount(70 * mod * mIntensity * 10.0f);
+    mWaterParticles->setSpawnRect(Types::Rect<float_t>(-16, -16, size.width + 32, size.height + 32));
     mSnowParticles->setSpawnRect(Types::Rect<float_t>(-static_cast<int32_t>(size.width / 2), -static_cast<int32_t>(size.height / 2), size.width * 2, size.height * 2));
-    mRainParticles->setCount(20 * mod * mIntensity * 10.0f);
     mRainParticles->setSpawnRect(Types::Rect<float_t>(-16, -static_cast<int32_t>(size.height / 2), size.width + 32, size.height * 2));
+
+    mSizeMod = (size.width + size.height) / 1000.0f;
+    updateIntensity();
+}
+
+void Weather::updateIntensity()
+{
+    mWaterParticles->setCount(40 * mSizeMod);
+    mSnowParticles->setCount(70 * mSizeMod * mData[0].intensity * 10.0f);
+    mRainParticles->setCount(20 * mSizeMod * mData[0].intensity * 10.0f);
 }
