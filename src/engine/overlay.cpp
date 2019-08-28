@@ -14,7 +14,7 @@ Overlay::Overlay(graphics::Renderer& renderer, uint32_t lightsCount)
     : mRadiusMod(2.0f)
     , mBackground({0, 0, 0, 0})
 {
-    mBuffer = renderer.createBuffer((graphics::ColorGradient::Size + graphics::Matrix::Size) * lightsCount);
+    mBuffer = renderer.createBuffer((graphics::ColorGradient::Size() + graphics::Matrix::Size()) * lightsCount);
 }
 
 const graphics::Color& Overlay::background() const

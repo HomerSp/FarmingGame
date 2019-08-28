@@ -10,7 +10,7 @@ namespace graphics {
 
 class Vector2D {
 public:
-    static constexpr uint32_t Size = sizeof(float_t) * 2;
+    static constexpr inline uint32_t Size() { return sizeof(float_t) * 2; }
 
     Vector2D() = default;
     virtual ~Vector2D() = default;
@@ -27,7 +27,7 @@ private:
 
 class Vector4D {
 public:
-    static constexpr uint32_t Size = sizeof(float_t) * 4;
+    static constexpr inline uint32_t Size() { return sizeof(float_t) * 4; }
 
     Vector4D() = default;
     virtual ~Vector4D() = default;

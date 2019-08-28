@@ -37,7 +37,7 @@ public:
     int32_t bufferWidth() const;
     int32_t bufferHeight() const;
 
-    bool process();
+    void process();
     void paint();
 
     void setKeyMap(const std::unordered_map<int32_t, Keys::Type>& keys);
@@ -82,7 +82,6 @@ private:
     std::shared_ptr<EngineObject> mEngineObject;
 
     std::atomic<bool> mRunning;
-    std::atomic<bool> mNeedRepaint;
     std::atomic<bool> mHasFocus;
     uint32_t mWidth;
     uint32_t mHeight;

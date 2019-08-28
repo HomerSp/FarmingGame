@@ -12,7 +12,7 @@ class Vector2D;
 
 class Vertex2D {
 public:
-    static constexpr uint32_t Size = sizeof(float_t) * 2 * 4;
+    static constexpr inline uint32_t Size() { return sizeof(float_t) * 2 * 4; }
 
     Vertex2D() = default;
     virtual ~Vertex2D() = default;

@@ -12,7 +12,6 @@ using namespace engine::character;
 
 Engine::Engine(uint32_t width, uint32_t height, std::shared_ptr<graphics::Renderer> renderer)
     : mRunning(true)
-    , mNeedRepaint(false)
     , mHasFocus(true)
     , mWidth(width)
     , mHeight(height)
@@ -35,7 +34,7 @@ Engine::Engine(uint32_t width, uint32_t height, std::shared_ptr<graphics::Render
     mClock = std::make_unique<engine::Clock>(mContext);
     mMap = std::make_unique<engine::Map>(mContext, *mRenderer, "map");
     mPlayer = std::make_shared<engine::Player>(mContext);
-    mWeather = std::make_unique<engine::Weather>(*mRenderer);
+    mWeather = std::make_unique<engine::Weather>(mContext, *mRenderer, *mClock);
 
     mPlayer->setPosition("map", 9 * 48, (12 * 48) - 24);
 
@@ -90,7 +89,7 @@ int32_t Engine::bufferHeight() const
     return mMap->getTileDimension().height * 2;
 }
 
-bool Engine::process()
+void Engine::process()
 {
     if (!mEnableThreading) {
         animateAsync();
@@ -103,8 +102,6 @@ bool Engine::process()
     for(auto &i: mCharacters) {
         i.second->processListeners();
     }
-
-    return mNeedRepaint;
 }
 
 void Engine::animateAsync()
@@ -112,16 +109,12 @@ void Engine::animateAsync()
     while (mRunning) {
         uint64_t diff = mAnimationFrameTimer.start();
 
-        if (mMap->animate(diff)) {
-            mNeedRepaint = true;
-        }
+        mMap->animate(diff);
 
         Types::Dimension<> d = mMap->getTileDimension();
         for(auto &i: mCharacters) {
             if (mCamera->contains(i.second->rect(), d)) {
-                if (i.second->animate(diff, !i.second->isMoving())) {
-                    mNeedRepaint = true;
-                }
+                i.second->animate(diff, !i.second->isMoving());
             }
         }
 
@@ -256,8 +249,10 @@ void Engine::processAsync()
                     mPlayer->useItem();
                 }
 
-                if (mClock->processAsync(diff, mMap.get())) {
-                    mNeedRepaint = true;
+                uint8_t day = mClock->day();
+                mClock->processAsync(diff, mMap.get());
+                if (day != mClock->day()) {
+                    mWeather->dayChanged(*mClock);
                 }
             } else {
                 mPlayer->setSpeed(1.0f);
@@ -267,20 +262,13 @@ void Engine::processAsync()
         mPlayer->velocity(diff, x, y);
 
         // Process movement, etc
-        if (mCamera->processAsync(diff, mMap.get())) {
-            mNeedRepaint = true;
-        }
+        mCamera->processAsync(diff, mMap.get());
 
         for(auto &i: mCharacters) {
-            if (i.second->processAsync(diff, *mMap, &mCharacters, mCamera.get())) {
-                mNeedRepaint = true;
-            }
+            i.second->processAsync(diff, *mMap, &mCharacters, mCamera.get());
         }
 
-        if (mScreenEffects->processAsync(diff)) {
-            mNeedRepaint = true;
-        }
-
+        mScreenEffects->processAsync(diff);
         mWeather->processAsync(diff, *mCamera, *mClock);
 
         if (!mEnableThreading) {
@@ -361,8 +349,6 @@ void Engine::paint()
     }
 
     mHud->draw(renderer, *mClock, *mPlayer, mDrawingTimer);
-
-    mNeedRepaint = false;
 }
 
 void Engine::setKeyMap(const std::unordered_map<int32_t, Keys::Type>& keys)

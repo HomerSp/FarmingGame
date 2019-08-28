@@ -4,8 +4,6 @@
 
 using namespace engine::graphics;
 
-constexpr uint32_t Color::Size;
-
 Color::Color(const Color& o, float_t a)
     : Color(o.mData[0], o.mData[1], o.mData[2], a)
 {

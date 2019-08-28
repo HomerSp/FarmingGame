@@ -2,9 +2,6 @@
 
 using namespace engine::graphics;
 
-constexpr uint32_t Vector2D::Size;
-constexpr uint32_t Vector4D::Size;
-
 const float_t* Vector2D::constData() const
 {
     return &mData[0];

@@ -7,7 +7,7 @@ namespace engine {
 namespace graphics {
 class Matrix {
 public:
-    static constexpr uint32_t Size = sizeof(float_t) * 4 * 4;
+    static constexpr inline uint32_t Size() { return sizeof(float_t) * 4 * 4; };
 
     Matrix() = default;
     virtual ~Matrix() = default;

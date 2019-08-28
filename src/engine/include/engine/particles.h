@@ -44,7 +44,7 @@ public:
     bool enabled() const;
     uint32_t size() const;
 
-    void setEnabled(bool enabled);
+    void setEnabled(bool enabled, bool immediate = false);
     void setCount(uint32_t count);
     void setFrameSpeed(float_t frameSpeed);
     void setMoveSpeed(float_t moveSpeed);
@@ -59,7 +59,7 @@ protected:
 
 private:
     const Particle mOriginParticle;
-    bool mEnabled;
+    bool mSetEnabled, mEnabled;
     std::mutex mMutex;
     uint32_t mCount;
     float_t mFrameSpeed;

@@ -3,8 +3,6 @@
 
 using namespace engine::graphics;
 
-constexpr uint32_t Vertex2D::Size;
-
 const float_t* Vertex2D::constData() const
 {
     return &mData[0][0];

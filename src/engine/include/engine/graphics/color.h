@@ -9,7 +9,7 @@ namespace engine {
 namespace graphics {
 class Color {
 public:
-    static constexpr uint32_t Size = sizeof(float_t) * 4;
+    static constexpr inline uint32_t Size() { return sizeof(float_t) * 4; }
 
     Color(const Color& o, float_t a);
     Color(float_t r, float_t g, float_t b, float_t a = 1.0f);

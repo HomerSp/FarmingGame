@@ -2,6 +2,7 @@
 
 #include <mutex>
 
+#include <engine/contextobject.h>
 #include <engine/particles.h>
 #include <engine/types.h>
 
@@ -13,14 +14,17 @@ class Renderer;
 
 class Camera;
 class Clock;
+class Context;
 
-class Weather {
+class Weather : public ContextObject {
 public:
     typedef enum {
-        Sunny = 0,
-        Cloudy,
+        Clear = 0,
         Overcast,
         Rain,
+        Storm,
+        First = Clear,
+        Last = Storm,
     } Type;
 
 private:
@@ -35,8 +39,9 @@ private:
     };
 
 public:
-    Weather(graphics::Renderer& renderer);
+    Weather(std::shared_ptr<Context>& ctx, graphics::Renderer& renderer, Clock& clock);
 
+    bool overcast() const;
     Weather::Type type() const;
     uint8_t windDirection() const;
     float_t windSpeed() const;
@@ -44,12 +49,16 @@ public:
     void drawWater(graphics::Renderer& renderer, Camera& camera);
     void drawWeather(graphics::Renderer& renderer, Camera& camera);
 
+    void dayChanged(Clock& clock);
+
     void processAsync(uint64_t frameDiff, Camera& camera, Clock& clock);
 
     void setSize(const Types::Dimension<uint32_t>& size);
 
 private:
+    Type randomType(Clock& clock);
     void updateIntensity();
+    void updateParticles(Clock& clock);
 
     std::mutex mMutex;
 

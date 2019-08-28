@@ -44,10 +44,10 @@ QtRenderer::QtRenderer()
     mProjectionMatrix = std::make_unique<QtMatrix>();
     mFBOMatrix = std::make_unique<QtMatrix>();
 
-    mQuadVertexBuffer = std::make_unique<QtBuffer>(engine::graphics::Vertex2D::Size);
-    mCircleTextureBuffer = std::make_unique<QtBuffer>(engine::graphics::Vertex2D::Size);
-    mFBOTextureBuffer = std::make_unique<QtBuffer>(engine::graphics::Vertex2D::Size);
-    mBufferMatrix = std::make_unique<QtBuffer>(engine::graphics::Matrix::Size);
+    mQuadVertexBuffer = std::make_unique<QtBuffer>(engine::graphics::Vertex2D::Size());
+    mCircleTextureBuffer = std::make_unique<QtBuffer>(engine::graphics::Vertex2D::Size());
+    mFBOTextureBuffer = std::make_unique<QtBuffer>(engine::graphics::Vertex2D::Size());
+    mBufferMatrix = std::make_unique<QtBuffer>(engine::graphics::Matrix::Size());
 
     engine::graphics::BufferWriter quadWriter(*mQuadVertexBuffer);
     quadWriter += engine::graphics::Vertex2D().tl(0, 0).bl(0, 1).tr(1, 0).br(1, 1);
@@ -214,28 +214,28 @@ void QtRenderer::drawOverlay(const engine::Types::Point<>& dst, engine::Overlay&
 
     mCircleTextureBuffer->bind();
     mPointLightShader->enableAttributeArray(0);
-    mPointLightShader->setAttributeBuffer(0, GL_FLOAT, 0, 2, engine::graphics::Vector2D::Size);
+    mPointLightShader->setAttributeBuffer(0, GL_FLOAT, 0, 2, engine::graphics::Vector2D::Size());
     mCircleTextureBuffer->release();
 
     mQuadVertexBuffer->bind();
     mPointLightShader->enableAttributeArray(1);
-    mPointLightShader->setAttributeBuffer(1, GL_FLOAT, 0, 2, engine::graphics::Vector2D::Size);
+    mPointLightShader->setAttributeBuffer(1, GL_FLOAT, 0, 2, engine::graphics::Vector2D::Size());
     mQuadVertexBuffer->release();
 
     auto& overlayBuffer = overlay.buffer();
     overlayBuffer.bind();
     mPointLightShader->enableAttributeArray(2);
-    mPointLightShader->setAttributeBuffer(2, GL_FLOAT, 0, 4, engine::graphics::ColorGradient::Size + engine::graphics::Matrix::Size);
+    mPointLightShader->setAttributeBuffer(2, GL_FLOAT, 0, 4, engine::graphics::ColorGradient::Size() + engine::graphics::Matrix::Size());
     glVertexAttribDivisor(2, 1);
 
     mPointLightShader->enableAttributeArray(3);
-    mPointLightShader->setAttributeBuffer(3, GL_FLOAT, engine::graphics::Color::Size, 4, engine::graphics::ColorGradient::Size + engine::graphics::Matrix::Size);
+    mPointLightShader->setAttributeBuffer(3, GL_FLOAT, engine::graphics::Color::Size(), 4, engine::graphics::ColorGradient::Size() + engine::graphics::Matrix::Size());
     glVertexAttribDivisor(3, 1);
 
     for (uint32_t i = 0; i < 4; i++) {
-        uint32_t offset = engine::graphics::ColorGradient::Size + (engine::graphics::Vector4D::Size * i);
+        uint32_t offset = engine::graphics::ColorGradient::Size() + (engine::graphics::Vector4D::Size() * i);
         mPointLightShader->enableAttributeArray(4 + i);
-        mPointLightShader->setAttributeBuffer(4 + i, GL_FLOAT, offset, 4, engine::graphics::ColorGradient::Size + engine::graphics::Matrix::Size);
+        mPointLightShader->setAttributeBuffer(4 + i, GL_FLOAT, offset, 4, engine::graphics::ColorGradient::Size() + engine::graphics::Matrix::Size());
         glVertexAttribDivisor(4 + i, 1);
     }
 
@@ -276,22 +276,22 @@ void QtRenderer::drawOverlay(const engine::Types::Point<>& dst, engine::Overlay&
 
     mFBOTextureBuffer->bind();
     mTextureShader->enableAttributeArray(0);
-    mTextureShader->setAttributeBuffer(0, GL_FLOAT, 0, 2, engine::graphics::Vector2D::Size);
+    mTextureShader->setAttributeBuffer(0, GL_FLOAT, 0, 2, engine::graphics::Vector2D::Size());
     mFBOTextureBuffer->release();
 
     mQuadVertexBuffer->bind();
     mTextureShader->enableAttributeArray(1);
-    mTextureShader->setAttributeBuffer(1, GL_FLOAT, 0, 2, engine::graphics::Vector2D::Size);
+    mTextureShader->setAttributeBuffer(1, GL_FLOAT, 0, 2, engine::graphics::Vector2D::Size());
     mQuadVertexBuffer->release();
 
     mBufferMatrix->bind();
     for (uint32_t i = 0; i < 4; i++) {
         mTextureShader->enableAttributeArray(2 + i);
-        mTextureShader->setAttributeBuffer(2 + i, GL_FLOAT, i * engine::graphics::Vector4D::Size, 4, engine::graphics::Matrix::Size);
+        mTextureShader->setAttributeBuffer(2 + i, GL_FLOAT, i * engine::graphics::Vector4D::Size(), 4, engine::graphics::Matrix::Size());
         glVertexAttribDivisor(2 + i, 1);
 
         mTextureShader->enableAttributeArray(6 + i);
-        mTextureShader->setAttributeBuffer(6 + i, GL_FLOAT, i * engine::graphics::Vector4D::Size, 4, engine::graphics::Matrix::Size);
+        mTextureShader->setAttributeBuffer(6 + i, GL_FLOAT, i * engine::graphics::Vector4D::Size(), 4, engine::graphics::Matrix::Size());
         glVertexAttribDivisor(6 + i, 1);
     }
 
@@ -332,19 +332,19 @@ void QtRenderer::drawParticles(const engine::Types::Point<>& dst, const engine::
 
     mQuadVertexBuffer->bind();
     mParticleShader->enableAttributeArray(0);
-    mParticleShader->setAttributeBuffer(0, GL_FLOAT, 0, 2, engine::graphics::Vector2D::Size);
+    mParticleShader->setAttributeBuffer(0, GL_FLOAT, 0, 2, engine::graphics::Vector2D::Size());
     mQuadVertexBuffer->release();
 
     auto& particleBuffer = particles.buffer();
     particleBuffer.bind();
     mParticleShader->enableAttributeArray(1);
-    mParticleShader->setAttributeBuffer(1, GL_FLOAT, 0, 4, engine::graphics::Color::Size + engine::graphics::Matrix::Size);
+    mParticleShader->setAttributeBuffer(1, GL_FLOAT, 0, 4, engine::graphics::Color::Size() + engine::graphics::Matrix::Size());
     glVertexAttribDivisor(1, 1);
 
     for (uint32_t i = 0; i < 4; i++) {
-        uint32_t offset = engine::graphics::Color::Size + i * engine::graphics::Vector4D::Size;
+        uint32_t offset = engine::graphics::Color::Size() + i * engine::graphics::Vector4D::Size();
         mParticleShader->enableAttributeArray(2 + i);
-        mParticleShader->setAttributeBuffer(2 + i, GL_FLOAT, offset, 4, engine::graphics::Color::Size + engine::graphics::Matrix::Size);
+        mParticleShader->setAttributeBuffer(2 + i, GL_FLOAT, offset, 4, engine::graphics::Color::Size() + engine::graphics::Matrix::Size());
         glVertexAttribDivisor(2 + i, 1);
     }
 

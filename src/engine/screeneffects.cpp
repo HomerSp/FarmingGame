@@ -17,9 +17,8 @@ void ScreenEffects::draw(graphics::Renderer& renderer, Clock& clock, Camera& cam
 {
     uint32_t h = clock.hour();
 
-    auto weatherType = weather.type();
     float_t baseC = 1.0f;
-    if (weatherType == Weather::Overcast || weatherType == Weather::Rain) {
+    if (weather.overcast()) {
         baseC = 0.75f;
     }
 

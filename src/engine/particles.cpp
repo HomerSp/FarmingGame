@@ -2,6 +2,7 @@
 #include <engine/graphics/matrix.h>
 #include <engine/graphics/renderer.h>
 #include <engine/graphics/transform.h>
+#include <engine/logger.h>
 #include <engine/particles.h>
 #include <engine/random.h>
 #include <engine/weather.h>
@@ -26,6 +27,7 @@ float_t Particle::alpha() const
 
 Particles::Particles(graphics::Renderer& renderer, uint32_t count, const graphics::Color& c, const Types::Dimension<>& size, bool enabled)
     : mOriginParticle(c, size)
+    , mSetEnabled(enabled)
     , mEnabled(enabled)
     , mCount(count)
     , mFrameSpeed(100.0f)
@@ -37,14 +39,13 @@ Particles::Particles(graphics::Renderer& renderer, uint32_t count, const graphic
 {
     mParticles.resize(mCount, mOriginParticle);
 
-    mBuffer = renderer.createBuffer((graphics::Matrix::Size + graphics::Color::Size) * count);
+    mBuffer = renderer.createBuffer((graphics::Matrix::Size() + graphics::Color::Size()) * count);
 }
 
 void Particles::draw(graphics::Renderer& renderer, Camera& camera)
 {
     std::lock_guard<std::mutex> locker(mMutex);
-
-    if (mSpawnRect.width >= 0.0f) {
+    if (mEnabled && mSpawnRect.width >= 0.0f) {
         auto transform = renderer.createTransform();
 
         engine::graphics::BufferWriter writer(*mBuffer);
@@ -68,7 +69,7 @@ void Particles::draw(graphics::Renderer& renderer, Camera& camera)
 void Particles::processAsync(uint64_t frameDiff, Camera& camera, Weather& weather)
 {
     std::lock_guard<std::mutex> locker(mMutex);
-    if (mSpawnRect.width >= 0.0f) {
+    if (mEnabled && mSpawnRect.width >= 0.0f) {
         double m = (frameDiff / mFrameSpeed);
 
         double_t windSpeed = weather.windSpeed();
@@ -77,6 +78,8 @@ void Particles::processAsync(uint64_t frameDiff, Camera& camera, Weather& weathe
         auto cameraRc = mSpawnRect;
         cameraRc.x += camera.x();
         cameraRc.y += camera.y();
+
+        bool haveParticles = false;
         for (Particle& p: mParticles) {
             if (p.life > 0.0f) {
                 if (cameraRc.intersects(p.rect)) {
@@ -94,9 +97,17 @@ void Particles::processAsync(uint64_t frameDiff, Camera& camera, Weather& weathe
                 }
             }
 
-            if (mEnabled && p.life == 0.0f) {
+            if (!haveParticles && p.life != 0.0f) {
+                haveParticles = true;
+            }
+
+            if (mSetEnabled && p.life == 0.0f) {
                 initNew(p, camera, windDirection);
             }
+        }
+
+        if (!haveParticles && mSetEnabled != mEnabled) {
+            mEnabled = mSetEnabled;
         }
     }
 }
@@ -126,11 +137,15 @@ uint32_t Particles::size() const
     return mParticles.size();
 }
 
-void Particles::setEnabled(bool enabled)
+void Particles::setEnabled(bool enabled, bool immediate)
 {
     std::lock_guard<std::mutex> lock(mMutex);
-    if (mEnabled != enabled) {
-        mEnabled = enabled;
+    if (mSetEnabled != enabled) {
+        if (immediate || enabled) {
+            mSetEnabled = mEnabled = enabled;
+        } else {
+            mSetEnabled = enabled;
+        }
     }
 }
 
@@ -139,7 +154,7 @@ void Particles::setCount(uint32_t count)
     std::lock_guard<std::mutex> lock(mMutex);
     if (mCount != count) {
         mCount = count;
-        mBuffer->resize((graphics::Matrix::Size + graphics::Color::Size) * count);
+        mBuffer->resize((graphics::Matrix::Size() + graphics::Color::Size()) * count);
         mParticles.resize(mCount, mOriginParticle);
     }
 }
