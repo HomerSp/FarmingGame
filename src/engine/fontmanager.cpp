@@ -12,7 +12,7 @@ FontManager::FontManager(Context& context)
 {
     auto doc = mContext.assetManager().data(AssetManager::Font, "types");
     if (!doc || !doc->isObject()) {
-        Logger::critical() << "Invalid JSON data for font";
+        Logger::critical("FontManager") << "Invalid JSON data for font";
         return;
     }
 
@@ -21,7 +21,7 @@ FontManager::FontManager(Context& context)
     }
 
     if (mFonts.find("default") == mFonts.end()) {
-        Logger::warning() << "Missing default font";
+        Logger::warning("FontManager") << "Missing default font";
     }
 }
 
@@ -29,7 +29,7 @@ bool FontManager::files(std::vector<std::string>& out)
 {
     auto doc = mContext.assetManager().data(AssetManager::Font, "files");
     if (!doc || doc->empty()) {
-        Logger::critical() << "Invalid JSON data for font files";
+        Logger::critical("FontManager") << "Invalid JSON data for font files";
         return false;
     }
 

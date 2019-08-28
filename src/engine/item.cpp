@@ -27,13 +27,13 @@ Item::Item(std::shared_ptr<Context>& ctx, const std::string& name)
 {
     std::unique_ptr<Json::Value> doc = context().assetManager().data(AssetManager::Item, name);
     if (!doc->isObject() || !doc->isMember("image")) {
-        Logger::critical() << "Invalid JSON data for item" << name;
+        Logger::critical("Item") << "Invalid JSON data for item" << name;
         return;
     }
 
     Json::Value imageObj = (*doc)["image"];
     if (!imageObj.isObject() || !imageObj.isMember("item")) {
-        Logger::critical() << "Invalid JSON image data for item" << name;
+        Logger::critical("Item") << "Invalid JSON image data for item" << name;
         return;
     }
 
@@ -52,7 +52,7 @@ Item::Item(std::shared_ptr<Context>& ctx, const std::string& name)
                 mAttributes[ItemAttribute::LightSource] = true;
                 break;
             default:
-                Logger::warning() << "Unknown attribute" << key << "for item" << name;
+                Logger::warning("Item") << "Unknown attribute" << key << "for item" << name;
                 break;
             }
         }
@@ -98,7 +98,7 @@ Item::Item(std::shared_ptr<Context>& ctx, const std::string& name)
                 type = ItemEffect::Health;
                 break;
             default:
-                Logger::warning() << "Unknown use type for item" << name;
+                Logger::warning("Item") << "Unknown use type for item" << name;
                 break;
             }
 

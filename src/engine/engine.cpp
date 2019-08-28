@@ -20,7 +20,7 @@ Engine::Engine(uint32_t width, uint32_t height, std::shared_ptr<graphics::Render
     , mPlayer(nullptr)
     , mEnableThreading(true)
 {
-    Logger::debug() << "Creating Engine";
+    Logger::debug("Engine") << "Constructor";
 
     mScriptEngine = std::make_shared<script::ScriptEngine>();
     mContext = std::make_shared<Context>(*this, mScriptEngine, *mRenderer);
@@ -35,6 +35,9 @@ Engine::Engine(uint32_t width, uint32_t height, std::shared_ptr<graphics::Render
     mMap = std::make_unique<engine::Map>(mContext, *mRenderer, "map");
     mPlayer = std::make_shared<engine::Player>(mContext);
     mWeather = std::make_unique<engine::Weather>(mContext, *mRenderer, *mClock);
+
+    mClock->connect(mClock->DayChanged, std::bind(&Weather::dayChanged, std::ref(*mWeather), std::cref(*mClock)));
+    mClock->connect(mClock->DaylightChanged, std::bind(&Weather::daylightChanged, std::ref(*mWeather), std::cref(*mClock)));
 
     mPlayer->setPosition("map", 9 * 48, (12 * 48) - 24);
 
@@ -68,7 +71,7 @@ Engine::Engine(uint32_t width, uint32_t height, std::shared_ptr<graphics::Render
 
 Engine::~Engine()
 {
-    Logger::debug() << "~Engine";
+    Logger::debug("Engine") << "Destructor";
 
     // Stop the running threads
     mRunning = false;
@@ -76,7 +79,7 @@ Engine::~Engine()
         i->join();
     }
 
-    Logger::debug() << "~Engine done";
+    Logger::debug("Engine") << "Destructor done";
 }
 
 int32_t Engine::bufferWidth() const
@@ -249,11 +252,7 @@ void Engine::processAsync()
                     mPlayer->useItem();
                 }
 
-                uint8_t day = mClock->day();
                 mClock->processAsync(diff, mMap.get());
-                if (day != mClock->day()) {
-                    mWeather->dayChanged(*mClock);
-                }
             } else {
                 mPlayer->setSpeed(1.0f);
             }
@@ -403,17 +402,18 @@ bool Engine::registerScript()
     // the engine to build a script module.
     CScriptBuilder builder;
     if (builder.StartNewModule(mScriptEngine->engine(), "MainModule") != 0) {
-        Logger::error() << ("Unrecoverable error while starting a new module.");
+        Logger::critical("Engine") << "registerScript, Unrecoverable error while starting a new module.";
         return false;
     }
 
-    if (builder.AddSectionFromFile("assets/script/main.as") < 0) {
-        Logger::error() << ("Please correct the errors in the script and try again.");
+    std::string data = mContext->assetManager().script("main");
+    if (builder.AddSectionFromMemory("main", data.c_str(), data.length()) < 0) {
+        Logger::critical("Engine") << "registerScript, Please correct the errors in the script and try again.";
         return false;
     }
 
     if (builder.BuildModule() < 0) {
-        Logger::error() << ("Please correct the errors in the script and try again.");
+        Logger::critical("Engine") << "registerScript, Please correct the errors in the script and try again.";
         return false;
     }
 
@@ -421,7 +421,7 @@ bool Engine::registerScript()
     asIScriptModule *mod = mScriptEngine->engine()->GetModule("MainModule");
     asIScriptFunction *func = mod->GetFunctionByDecl("void main()");
     if (func == nullptr) {
-        Logger::error() << ("The script must have the function 'void main()'. Please add it and try again.");
+        Logger::critical("Engine") << "registerScript, The script must have the function 'void main()'. Please add it and try again.";
         return false;
     }
 
@@ -434,7 +434,7 @@ bool Engine::registerScript()
 
     int32_t r = mScriptEngine->context()->Execute();
     if (r == asEXECUTION_EXCEPTION) {
-        Logger::error() << "An exception" << mScriptEngine->context()->GetExceptionString() << "occurred. Please correct the code and try again.";
+        Logger::critical("engine") << "registerScript, An exception" << mScriptEngine->context()->GetExceptionString() << "occurred. Please correct the code and try again.";
         return false;
     }
 

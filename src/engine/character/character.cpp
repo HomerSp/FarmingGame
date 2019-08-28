@@ -30,12 +30,12 @@ Character::Character(std::shared_ptr<Context> &ctx, std::string id)
     , mTargetPos(-1, -1)
     , mTargetNodesCurrent(0)
 {
-    Logger::debug() << "Character" << mID;
+    Logger::debug("Character") << mID;
 
     std::unique_ptr<Json::Value> docPtr = context().assetManager().data(AssetManager::Character, mID);
     Json::Value doc = *docPtr;
     if (!doc.isObject() || !doc.isMember("name") || !doc.isMember("charset")) {
-        Logger::critical() << "Invalid JSON data for character" << mID;
+        Logger::critical("Character") << "Invalid JSON data for character" << mID;
         return;
     }
 

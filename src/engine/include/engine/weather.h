@@ -49,16 +49,19 @@ public:
     void drawWater(graphics::Renderer& renderer, Camera& camera);
     void drawWeather(graphics::Renderer& renderer, Camera& camera);
 
-    void dayChanged(Clock& clock);
-
     void processAsync(uint64_t frameDiff, Camera& camera, Clock& clock);
 
     void setSize(const Types::Dimension<uint32_t>& size);
 
+// Listeners
+public:
+    void dayChanged(const Clock& clock);
+    void daylightChanged(const Clock& clock);
+
 private:
-    Type randomType(Clock& clock);
+    Type randomType(const Clock& clock);
     void updateIntensity();
-    void updateParticles(Clock& clock);
+    void updateParticles(const Clock& clock);
 
     std::mutex mMutex;
 

@@ -54,7 +54,7 @@ uint32_t Camera::height()
 void Camera::follow(Camera::Target* target, asIScriptFunction* fun)
 {
     if (target == nullptr) {
-        Logger::critical() << "Invalid follow target!";
+        Logger::critical("Camera") << "Invalid follow target!";
         return;
     }
 

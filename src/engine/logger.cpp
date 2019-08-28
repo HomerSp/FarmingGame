@@ -6,9 +6,9 @@ using namespace engine;
 
 static std::mutex loggerMutex;
 
-LoggerStream::LoggerStream(std::ostream& s, std::string type, std::string tag)
+LoggerStream::LoggerStream(std::ostream& s, char type, std::string tag)
     : mOut(s)
-    , mType(std::move(type))
+    , mType(type)
     , mTag(std::move(tag))
 {
 }
@@ -25,34 +25,34 @@ LoggerStream::~LoggerStream()
 }
 
 Logger::critical::critical(std::string tag)
-    : LoggerStream(std::cerr, "Critical", std::move(tag))
+    : LoggerStream(std::cerr, 'C', std::move(tag))
 {
 }
 
 Logger::error::error(std::string tag)
-    : LoggerStream(std::cerr, "Error", std::move(tag))
+    : LoggerStream(std::cerr, 'E', std::move(tag))
 {
 }
 
 Logger::warning::warning(std::string tag)
-    : LoggerStream(std::cerr, "Warning", std::move(tag))
+    : LoggerStream(std::cerr, 'W', std::move(tag))
 {
 }
 
 Logger::info::info(std::string tag)
-    : LoggerStream(std::cout, "Info", std::move(tag))
+    : LoggerStream(std::cout, 'I', std::move(tag))
 {
 }
 
 #ifdef DEBUG
 Logger::debug::debug(std::string tag)
-    : LoggerStream(std::cout, "Debug", std::move(tag))
+    : LoggerStream(std::cout, 'D', std::move(tag))
 {
 }
 #endif
 
 Logger::script::script()
-    : LoggerStream(std::cout, "Script", "")
+    : LoggerStream(std::cout, 'S', "")
 {
 }
 

@@ -42,13 +42,13 @@ void scriptMessageCallback(const asSMessageInfo *msg, void *param)
         << msg->col
         << "]";
 
-    Logger::error() << stream.str() << msg->message;
+    Logger::error("Script") << stream.str() << msg->message;
 }
 
 bool ScriptEngine::create()
 {
     if (mEngine != nullptr) {
-        Logger::error() << "Script engine already created, possible error?";
+        Logger::error("Script") << "Script engine already created, possible error?";
         return false;
     }
 
@@ -56,7 +56,7 @@ bool ScriptEngine::create()
 
     mEngine = asCreateScriptEngine();
     if (mEngine->SetMessageCallback(asFUNCTION(scriptMessageCallback), nullptr, asCALL_CDECL) != 0) {
-        Logger::error() << "Could not register message callback";
+        Logger::error("Script") << "Could not register message callback";
         return false;
     }
 
@@ -69,7 +69,7 @@ bool ScriptEngine::create()
 bool ScriptEngine::createContext()
 {
     if (mContext != nullptr) {
-        Logger::error() << "Script context already created, possible error?";
+        Logger::error("Script") << "Script context already created, possible error?";
         return false;
     }
 

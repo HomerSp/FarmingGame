@@ -19,13 +19,13 @@ Player::Player(std::shared_ptr<Context> &ctx)
 {
     std::unique_ptr<Json::Value> doc = context().assetManager().data(AssetManager::Character, "player");
     if (!doc->isObject() || !doc->isMember("stats")) {
-        Logger::critical() << "Invalid JSON data for player";
+        Logger::critical("Map") << "Invalid JSON data for player";
         return;
     }
 
     Json::Value statsObj = (*doc)["stats"];
     if (!statsObj.isMember("max_level") || ! statsObj.isMember("stamina") || !statsObj.isMember("health")) {
-        Logger::critical() << "Missing JSON stats data for player";
+        Logger::critical("Map") << "Missing JSON stats data for player";
         return;
     }
 

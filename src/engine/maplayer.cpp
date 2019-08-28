@@ -111,7 +111,7 @@ bool MapLayer::updateCollisionMap(CollisionMap& outMap)
 {
     std::unique_ptr<CollisionMap> tilesetCollisionMap = mTileset->loadCollisionMap();
     if (!tilesetCollisionMap) {
-        Logger::error() << "Could not load tileset collision map";
+        Logger::error("MapLayer") << "Could not load tileset collision map";
         return false;
     }
 

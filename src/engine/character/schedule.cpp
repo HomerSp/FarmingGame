@@ -7,5 +7,5 @@ using namespace engine::character;
 
 Schedule::Schedule(const std::string& name)
 {
-    Logger::debug() << "Schedule" << name;
+    Logger::debug("Schedule") << name;
 }

@@ -20,16 +20,16 @@ Map::Map(std::shared_ptr<Context>& ctx, graphics::Renderer& renderer, const std:
     , mType(Map::Type::Outside)
     , mDimensions(0, 0)
 {
-    Logger::debug() << "Loading Map" << id;
+    Logger::debug("Map") << "Loading Map" << id;
 
     auto doc = context().assetManager().data(AssetManager::Map, id);
     if (!doc || !doc->isObject()) {
-        Logger::critical() << "Invalid JSON data for" << id;
+        Logger::critical("Map") << "Invalid JSON data for" << id;
         return;
     }
 
     if (!doc->isMember("width") || !doc->isMember("height") || !doc->isMember("layers")) {
-        Logger::critical() << "Could not find required map JSON attributes for" << id;
+        Logger::critical("Map") << "Could not find required map JSON attributes for" << id;
         return;
     }
 
@@ -50,7 +50,7 @@ Map::Map(std::shared_ptr<Context>& ctx, graphics::Renderer& renderer, const std:
     Json::Value layers = (*doc)["layers"];
     for (auto layerObj : layers) {
         if (!layerObj.isMember("tileset")) {
-            Logger::critical() << "Could not find required map layer JSON attributes for" << id;
+            Logger::critical("Map") << "Could not find required map layer JSON attributes for" << id;
             return;
         }
 
@@ -61,7 +61,7 @@ Map::Map(std::shared_ptr<Context>& ctx, graphics::Renderer& renderer, const std:
 
         mTilesets[name] = std::make_shared<Tileset>(contextPtr(), name);
         if (!*mTilesets[name]) {
-            Logger::critical() << "Could not load tileset for" << id;
+            Logger::critical("Map") << "Could not load tileset for" << id;
             return;
         }
     }
@@ -69,12 +69,12 @@ Map::Map(std::shared_ptr<Context>& ctx, graphics::Renderer& renderer, const std:
     for (auto layerObj : layers) {
         std::string name = layerObj["tileset"].asString();
         if (mTilesets.find(name) == mTilesets.end()) {
-            Logger::critical() << "Could not find tileset for" << name;
+            Logger::critical("Map") << "Could not find tileset for" << name;
             return;
         }
 
         if (!layerObj.isMember("data")) {
-            Logger::critical() << "Could not find required layer JSON attributes for" << id;
+            Logger::critical("Map") << "Could not find required layer JSON attributes for" << id;
             return;
         }
 
@@ -88,7 +88,7 @@ Map::Map(std::shared_ptr<Context>& ctx, graphics::Renderer& renderer, const std:
 
         std::shared_ptr<MapLayer> layer = std::make_shared<MapLayer>(renderer, data, mTilesets.find(name)->second, mDimensions.width, mDimensions.height);
         if (!*layer) {
-            Logger::critical() << "Could not load layer for" << id;
+            Logger::critical("Map") << "Could not load layer for" << id;
             return;
         }
 
@@ -98,15 +98,15 @@ Map::Map(std::shared_ptr<Context>& ctx, graphics::Renderer& renderer, const std:
     mCollisionMap = std::make_unique<CollisionMap>(pixelWidth(), pixelHeight());
     for (const auto& layer : mLayers) {
         if (!layer->updateCollisionMap(*mCollisionMap)) {
-            Logger::warning() << "Could not load collision map for" << id;
+            Logger::warning("Map") << "Could not load collision map for" << id;
         }
 
         if (!layer->updateLightSources(mLights)) {
-            Logger::warning() << "Could not load light sources for" << id;
+            Logger::warning("Map") << "Could not load light sources for" << id;
         }
 
         if (!layer->updatePaths(mPaths)) {
-            Logger::warning() << "Could not load paths for" << id;
+            Logger::warning("Map") << "Could not load paths for" << id;
         }
     }
 

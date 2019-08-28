@@ -19,18 +19,18 @@ Charset::Charset(std::shared_ptr<Context>& ctx, const std::string& name)
 {
     std::unique_ptr<Json::Value> doc = context().assetManager().data(AssetManager::Charset, name);
     if (!doc || !doc->isObject()) {
-        Logger::critical() << "Could not open charset JSON file" << name;
+        Logger::critical("Charset") << "Could not open charset JSON file" << name;
         return;
     }
 
     if (!doc->isMember("image")) {
-        Logger::critical() << "Could not find required charset JSON data for" << name;
+        Logger::critical("Charset") << "Could not find required charset JSON data for" << name;
         return;
     }
 
     mImage = context().assetManager().image(AssetManager::Charset, (*doc)["image"].asString());
     if (!*mImage) {
-        Logger::critical() << "Could not load charset image for" << name;
+        Logger::critical("Charset") << "Could not load charset image for" << name;
         return;
     }
 
@@ -93,7 +93,7 @@ Types::Rect<> Charset::collision(Charset::Type type)
 void Charset::addNode(Charset::Type type, Json::Value& val)
 {
     if (!val.isMember("size") || !val.isMember("pos") || !val.isMember("cells")) {
-        Logger::error() << "Could not find required json values for charset";
+        Logger::error("Charset") << "addNode, Could not find required json values for charset";
         return;
     }
 
@@ -102,7 +102,7 @@ void Charset::addNode(Charset::Type type, Json::Value& val)
     Json::Value cells = val["cells"];
     Json::Value collision = val["collision"];
     if (size.size() != 2 || pos.size() != 2 || cells.size() != 2 || collision.size() != 4) {
-        Logger::error() << "Invalid json values for charset";
+        Logger::error("Charset") << "addNode, Invalid json values for charset";
         return;
     }
 

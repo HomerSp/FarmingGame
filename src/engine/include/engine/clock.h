@@ -6,6 +6,7 @@
 #include <unordered_map>
 
 #include <engine/listeners.h>
+#include <engine/listenerobject.h>
 #include <engine/script/scriptobject.h>
 #include <engine/types.h>
 
@@ -83,6 +84,10 @@ public:
     static void registerClass(asIScriptEngine* engine);
     static std::string className();
 
+public:
+    ListenerObject DayChanged;
+    ListenerObject DaylightChanged;
+
 protected:
     uint8_t sunMonthMod() const;
 
@@ -94,5 +99,7 @@ private:
 
     std::mutex mListenerMutex;
     std::vector<std::shared_ptr<ChangeListener>> mChangeListeners;
+
+    std::atomic<bool> mChangedDay, mChangedDaylight;
 };
 } 

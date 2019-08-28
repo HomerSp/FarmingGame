@@ -24,7 +24,7 @@ std::unique_ptr<Json::Value> AssetManager::data(Type type, const std::string& na
         try {
             file >> *doc;
         } catch(const Json::RuntimeError &e) {
-            Logger::critical() << "Could not parse file" << path << e.what();
+            Logger::critical("AssetManager") << "data, Could not parse file" << path << e.what();
         }
     }
 
@@ -49,6 +49,20 @@ std::unique_ptr<CollisionMap> AssetManager::collision(Type type, const std::stri
     }
 
     return std::make_unique<CollisionMap>();
+}
+
+std::string AssetManager::script(const std::string& name) const
+{
+    std::string path = scriptPath(name);
+    if (path.length() > 0) {
+        std::ifstream file(path);
+        
+        std::stringstream buffer;
+        buffer << file.rdbuf();
+        return buffer.str();
+    }
+
+    return "";   
 }
 
 std::string AssetManager::dataPath(Type type, const std::string& name) const
@@ -117,4 +131,9 @@ std::string AssetManager::collisionPath(Type type, const std::string& name) cons
 std::string AssetManager::fontPath(const std::string& name) const
 {
     return mBase + "/font/" + name;
+}
+
+std::string AssetManager::scriptPath(const std::string& name) const
+{
+    return mBase + "/script/" + name + ".as";
 }

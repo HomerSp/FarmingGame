@@ -26,6 +26,7 @@ set(HEADERS
 	include/engine/item.h
 	include/engine/keys.h
 	include/engine/listeners.h
+	include/engine/listenerobject.h
 	include/engine/logger.h
 	include/engine/map.h
 	include/engine/maplayer.h
@@ -56,6 +57,7 @@ set(SOURCES
 	item.cpp
 	keys.cpp
 	listeners.cpp
+	listenerobject.cpp
 	logger.cpp
 	map.cpp
 	maplayer.cpp

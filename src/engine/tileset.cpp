@@ -39,7 +39,7 @@ TilesetType::TilesetType(uint32_t index, Types::Dimension<>& tileDimension, cons
         mTileType = TileTypeSingle;
         break;
     default:
-        Logger::critical() << "Invalid tileset node tile" << tileType;
+        Logger::critical("Tileset") << "Invalid tileset node tile" << tileType;
         return;
     }
 
@@ -423,18 +423,18 @@ Tileset::Tileset(std::shared_ptr<Context>& ctx, const std::string& name)
     std::unique_ptr<Json::Value> docPtr = context().assetManager().data(AssetManager::Tileset, name);
     Json::Value doc = *docPtr;
     if (!doc.isObject()) {
-        Logger::critical() << "Could not open tileset JSON file" << name;
+        Logger::critical("Tileset") << "Could not open tileset JSON file" << name;
         return;
     }
 
     if (!doc.isMember("image") || !doc.isMember("nodes") || !doc.isMember("collision")) {
-        Logger::critical() << "Could not find required tileset JSON data for" << name;
+        Logger::critical("Tileset") << "Could not find required tileset JSON data for" << name;
         return;
     }
 
     mImage = context().assetManager().image(AssetManager::Tileset, doc["image"].asString());
     if (!mImage) {
-        Logger::critical() << "Could not load tileset image for" << name;
+        Logger::critical("Tileset") << "Could not load tileset image for" << name;
         return;
     }
 
@@ -464,18 +464,18 @@ Tileset::Tileset(std::shared_ptr<Context>& ctx, const std::string& name)
         if (canAdd && index < nodes.size()) {
             Json::Value nodeObj = nodes[index];
             if (!nodeObj.isMember("index") || !nodeObj.isMember("tile")) {
-                Logger::critical() << "Could not find required tileset node JSON data for" << name;
+                Logger::critical("Tileset") << "Could not find required tileset node JSON data for" << name;
                 return;
             }
 
             if (y >= mImage->height()) {
-                Logger::critical() << "Too many nodes in tileset data for" << name;
+                Logger::critical("Tileset") << "Too many nodes in tileset data for" << name;
                 return;
             }
 
             uint32_t nodeIndex = nodeObj["index"].asInt();
             if (mTypes.find(nodeIndex) != mTypes.end()) {
-                Logger::critical() << "Duplicate index" << nodeIndex << "for" << name;
+                Logger::critical("Tileset") << "Duplicate index" << nodeIndex << "for" << name;
                 return;
             }
 
@@ -496,7 +496,7 @@ Tileset::Tileset(std::shared_ptr<Context>& ctx, const std::string& name)
                     type->setAbove(TilesetAbove::All);
                     break;
                 default:
-                    Logger::warning() << "Unknown above" << nodeObj["above"].asString() << "for tileset" << name;
+                    Logger::warning("Tileset") << "Unknown above" << nodeObj["above"].asString() << "for tileset" << name;
                     break;
                 }
             }
@@ -521,7 +521,7 @@ Tileset::Tileset(std::shared_ptr<Context>& ctx, const std::string& name)
                         attrs[TilesetAttribute::Path] = true;
                         break;
                     default:
-                        Logger::warning() << "Unknown attribute" << key << "for tileset" << name;
+                        Logger::warning("Tileset") << "Unknown attribute" << key << "for tileset" << name;
                         break;
                     }
                 }
@@ -585,7 +585,7 @@ Tileset::Tileset(std::shared_ptr<Context>& ctx, const std::string& name)
     }
 
     if (mTypes.size() != nodes.size()) {
-        Logger::warning() << "Possible missing nodes in tileset data for" << name;
+        Logger::warning("Tileset") << "Possible missing nodes in tileset data for" << name;
     }
 
     mValid = true;
@@ -623,7 +623,7 @@ std::unique_ptr<CollisionMap> Tileset::loadCollisionMap()
 {
     std::unique_ptr<CollisionMap> collisionMap = context().assetManager().collision(AssetManager::Tileset, mCollisionMap);
     if (!collisionMap) {
-        Logger::critical() << "Could not load tileset collision map" << mCollisionMap;
+        Logger::critical("Tileset") << "Could not load tileset collision map" << mCollisionMap;
     }
 
     return collisionMap;
@@ -659,7 +659,7 @@ bool Tileset::updateTiles(Types::Map2D& tiles, std::map<int32_t, std::map<int32_
             if (n > 0) {
                 auto it = mTypes.find(n);
                 if (it == mTypes.end()) {
-                    Logger::critical() << "Found an out of bounds tile node" << (n - 1);
+                    Logger::critical("Tileset") << "Found an out of bounds tile node" << (n - 1);
                     return false;
                 }
 

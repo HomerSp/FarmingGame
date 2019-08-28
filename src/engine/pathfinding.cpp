@@ -31,7 +31,7 @@ std::vector<Types::Point<int32_t>> PathFinding::find(const Map& map, Types::Rect
     Types::Point<int32_t> end = Types::Point<int32_t>(std::floor(dst.x / tileDimen.width), std::floor(dst.y / tileDimen.height));
 
     if (map.isNodeSolid(end.x, end.y, sourceDimen)) {
-        Logger::error() << "Unreachable destination" << dst.x << dst.y;
+        Logger::error("Map") << "Unreachable destination" << dst.x << dst.y;
         return {};
     }
 
@@ -96,7 +96,7 @@ std::vector<Types::Point<int32_t>> PathFinding::find(const Map& map, Types::Rect
 
     // Did we find a valid path?
     if (closed.find({end.x, end.y}) == closed.end()) {
-        Logger::error() << "Could not find destination";
+        Logger::error("Map") << "Could not find destination";
         return {};
     }
 

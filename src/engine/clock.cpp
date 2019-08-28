@@ -14,6 +14,8 @@ Clock::Clock(std::shared_ptr<Context> &ctx)
     , mCurrentMod(0.0f)
     , mDawn(6)
     , mDusk(20)
+    , mChangedDay(false)
+    , mChangedDaylight(false)
 {
 }
 
@@ -169,8 +171,21 @@ bool Clock::processAsync(uint64_t frameDiff, Map* map)
         map->toggleLights(!daylight());
     }
 
+    uint8_t prevDay = day();
+    bool prevDaylight = daylight();
+
     mCurrentMod = mod;
     mCurrent = current;
+
+    if (changed) {
+        if (prevDay != day()) {
+            mChangedDay = true;
+        }
+
+        if (prevDaylight != daylight()) {
+            mChangedDaylight = true;
+        }
+    }
 
     return changed;
 }
@@ -189,6 +204,16 @@ void Clock::processListeners()
     while (it != listeners.end()) {
         (*it)->maybeTrigger(scriptContext());
         it++;
+    }
+
+    if (mChangedDay) {
+        trigger(DayChanged);
+        mChangedDay = false;
+    }
+
+    if (mChangedDaylight) {
+        trigger(DaylightChanged);
+        mChangedDaylight = false;
     }
 }
 
@@ -214,7 +239,7 @@ void Clock::on(const std::string& type, const std::string& format, asIScriptFunc
         std::lock_guard<std::mutex> lock(mListenerMutex);
         mChangeListeners.push_back(std::make_shared<ChangeListener>(func, format));
     } else {
-        Logger::warning() << "Clock on unknown trigger" << type;
+        Logger::warning("Clock") << "on, unknown trigger" << type;
     }
 }
 

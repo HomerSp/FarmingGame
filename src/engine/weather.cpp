@@ -79,22 +79,8 @@ void Weather::drawWeather(graphics::Renderer& renderer, Camera& camera)
     mRainParticles->draw(renderer, camera);
 }
 
-void Weather::dayChanged(Clock& clock)
-{
-    mData[0] = mData[1];
-
-    auto type = randomType(clock);
-    mData[1] = Data(type, Random::range(100) / 100.0f, (Random::range(200) - 100) / 100.0f, Random::range(100) / 100.0f);
-
-    updateParticles(clock);
-}
-
 void Weather::processAsync(uint64_t frameDiff, Camera& camera, Clock& clock)
 {
-    if (mData[0].type == Clear) {
-        mWaterParticles->setEnabled(clock.daylight());
-    }
-
     mWaterParticles->processAsync(frameDiff, camera, *this);
 
     // Rain or snow
@@ -112,7 +98,27 @@ void Weather::setSize(const Types::Dimension<uint32_t>& size)
     updateIntensity();
 }
 
-Weather::Type Weather::randomType(Clock& clock)
+void Weather::dayChanged(const Clock& clock)
+{
+    Logger::debug("Weather") << "dayChanged" << (int) clock.day();
+
+    mData[0] = mData[1];
+
+    auto type = randomType(clock);
+    mData[1] = Data(type, Random::range(100) / 100.0f, (Random::range(200) - 100) / 100.0f, Random::range(100) / 100.0f);
+
+    updateParticles(clock);
+}
+
+void Weather::daylightChanged(const Clock& clock)
+{
+    Logger::debug("Weather") << "daylightChanged" << clock.daylight();
+    if (mData[0].type == Clear) {
+        mWaterParticles->setEnabled(clock.daylight());
+    }
+}
+
+Weather::Type Weather::randomType(const Clock& clock)
 {
     std::array<int8_t, Type::Last + 1> percentages = {40, 80, 97, 100};
 
@@ -137,7 +143,7 @@ void Weather::updateIntensity()
     mRainParticles->setCount(20 * mSizeMod * mData[0].intensity * 10.0f);
 }
 
-void Weather::updateParticles(Clock& clock)
+void Weather::updateParticles(const Clock& clock)
 {
     mWaterParticles->setEnabled(false);
 

@@ -20,11 +20,11 @@ public:
     }
 
 protected:
-    LoggerStream(std::ostream& s, std::string type, std::string tag);
+    LoggerStream(std::ostream& s, char type, std::string tag);
 
 private:
     std::ostream& mOut;
-    std::string mType;
+    char mType;
     std::string mTag;
     std::ostringstream mStream;
 };
@@ -33,28 +33,28 @@ struct Logger {
 public:
     class critical : public LoggerStream {
     public:
-        critical(std::string tag = "");
+        critical(std::string tag);
     };
 
     class error : public LoggerStream {
     public:
-        error(std::string tag = "");
+        error(std::string tag);
     };
 
     class warning : public LoggerStream {
     public:
-        warning(std::string tag = "");
+        warning(std::string tag);
     };
 
     class info : public LoggerStream {
     public:
-        info(std::string tag = "");
+        info(std::string tag);
     };
 
 #ifdef DEBUG
     class debug : public LoggerStream {
     public:
-        debug(std::string tag = "");
+        debug(std::string tag);
     };
 #else
     class debug {
