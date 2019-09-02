@@ -7,22 +7,29 @@
         {
             "index": 1,
             "tile": "single",
-            "base": 7,
-            "count": [7, 9],
+            "base": 4,
+            "count": [5, 5],
             "above": "row"
         },
-        // 2 - Door 1
+        // 2 - Entrance 1
         {
             "index": 2,
             "tile": "single",
             "count": [1, 2]
         },
-        // 3 - Door 1
+        // 3 - Entrance over
         {
             "index": 3,
             "tile": "single",
             "count": [1, 1],
             "above": "all"
+        },
+        // 4 - Door 1
+        {
+            "index": 4,
+            "tile": "single",
+            "count": [1, 2],
+            "above": "row"
         }
     ]
 }
