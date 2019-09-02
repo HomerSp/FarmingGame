@@ -194,7 +194,7 @@ void Engine::processAsync()
                             y = -1;
                         }
                         if (!turned) {
-                            mPlayer->turnTo(engine::character::Character::Direction::Up);
+                            mPlayer->turnToDirection(engine::character::Character::Direction::Up);
                             turned = true;
                         }
                         break;
@@ -203,7 +203,7 @@ void Engine::processAsync()
                             y = 1;
                         }
                         if (!turned) {
-                            mPlayer->turnTo(engine::character::Character::Direction::Down);
+                            mPlayer->turnToDirection(engine::character::Character::Direction::Down);
                             turned = true;
                         }
                         break;
@@ -212,7 +212,7 @@ void Engine::processAsync()
                             x = -1;
                         }
                         if (!turned) {
-                            mPlayer->turnTo(engine::character::Character::Direction::Left);
+                            mPlayer->turnToDirection(engine::character::Character::Direction::Left);
                             turned = true;
                         }
                         break;
@@ -221,7 +221,7 @@ void Engine::processAsync()
                             x = 1;
                         }
                         if (!turned) {
-                            mPlayer->turnTo(engine::character::Character::Direction::Right);
+                            mPlayer->turnToDirection(engine::character::Character::Direction::Right);
                             turned = true;
                         }
                         break;
@@ -232,6 +232,10 @@ void Engine::processAsync()
                     if (x != 0 && y != 0) {
                         break;
                     }
+                }
+
+                if (!turned) {
+                    mPlayer->turnToDirection(engine::character::Character::Direction::None);
                 }
 
                 if (keys.down(engine::Keys::TestFriction)) {
@@ -268,7 +272,7 @@ void Engine::processAsync()
         }
 
         mScreenEffects->processAsync(diff);
-        mWeather->processAsync(diff, *mCamera, *mClock);
+        mWeather->processAsync(diff, *mCamera);
 
         if (!mEnableThreading) {
             break;

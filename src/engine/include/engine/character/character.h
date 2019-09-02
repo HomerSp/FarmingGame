@@ -24,10 +24,11 @@ class Character : public Camera::Target, public script::ScriptObject {
 public:
     struct Direction {
         typedef enum {
-            Down = 0,
+            Down,
             Left,
             Right,
             Up,
+            None,
         } Type;
     };
 
@@ -53,7 +54,8 @@ public:
     bool isMoving();
 
     void moveTo(int32_t x, int32_t y, asIScriptFunction* fun = nullptr);
-    void turnTo(Direction::Type direction);
+    void turnToDirection(Direction::Type direction);
+    void turnTo(const std::string& d);
 
     void setDirection(Direction::Type direction);
     void setSpeed(float_t speed);
@@ -69,7 +71,7 @@ public:
     }
 
     static void registerClass(asIScriptEngine* engine);
-    static std::string className();
+    static const std::string className();
 
 protected:
     void checkCollision(const Character& other, Types::Point<float_t>& dst);

@@ -20,7 +20,7 @@ Character::Character(std::shared_ptr<Context> &ctx, std::string id)
     , mCharsetType(Charset::TypeWalk)
     , mFrame(1)
     , mDirectionTurn(0.0f)
-    , mDirectionTo(Direction::Down)
+    , mDirectionTo(Direction::None)
     , mDirection(Direction::Down)
     , mSpeed(1.0f)
     , mMap("")
@@ -30,12 +30,12 @@ Character::Character(std::shared_ptr<Context> &ctx, std::string id)
     , mTargetPos(-1, -1)
     , mTargetNodesCurrent(0)
 {
-    Logger::debug("Character") << mID;
+    Logger::debug(className()) << mID;
 
     std::unique_ptr<Json::Value> docPtr = context().assetManager().data(AssetManager::Character, mID);
     Json::Value doc = *docPtr;
     if (!doc.isObject() || !doc.isMember("name") || !doc.isMember("charset")) {
-        Logger::critical("Character") << "Invalid JSON data for character" << mID;
+        Logger::critical(className()) << "Invalid JSON data for character" << mID;
         return;
     }
 
@@ -170,21 +170,23 @@ bool Character::processAsync(uint64_t frameDiff, const Map& map, std::unordered_
             updateVelocity(mVelocity.x, x, val, x != 0);
             updateVelocity(mVelocity.y, y, val, y != 0);
 
-            if (x < 0) {
-                mDirectionTo = Direction::Left;
-            } else if(x > 0) {
-                mDirectionTo = Direction::Right;
-            }
+            if (mDirectionTo == Direction::None) {
+                if (x < 0) {
+                    mDirectionTo = Direction::Left;
+                } else if(x > 0) {
+                    mDirectionTo = Direction::Right;
+                }
 
-            if (y < 0) {
-                mDirectionTo = Direction::Up;
-            } else if(y > 0) {
-                mDirectionTo = Direction::Down;
+                if (y < 0) {
+                    mDirectionTo = Direction::Up;
+                } else if(y > 0) {
+                    mDirectionTo = Direction::Down;
+                }
             }
         }
 
         // Check if we need to change the direction of the character.
-        if (mDirectionTo != mDirection && (mVelocity.x != 0.0f || mVelocity.y != 0.0f)) {
+        if (mDirectionTo != Direction::None) {
             mDirectionTurn += frameDiff / 50.0f;
             if (mDirectionTurn >= 1.0f) {
                 mDirectionTurn = 0.0f;
@@ -199,6 +201,7 @@ bool Character::processAsync(uint64_t frameDiff, const Map& map, std::unordered_
                     mDirection = Direction::Down;
                 } else {
                     mDirection = mDirectionTo;
+                    mDirectionTo = Direction::None;
                 }
             }
         }
@@ -360,19 +363,37 @@ void Character::moveTo(int32_t x, int32_t y, asIScriptFunction* fun)
     mTargetPos.y = y;
 }
 
-void Character::turnTo(Direction::Type direction)
+void Character::turnToDirection(Direction::Type direction)
 {
     std::lock_guard<std::mutex> lock(mMovementMutex);
-    if (mDirection != direction && mDirectionTo != direction) {
+    if (mDirection != direction) {
         mDirectionTo = direction;
-        mDirectionTurn = 0.0f;
+        if (mDirectionTo == Direction::None) {
+            mDirectionTurn = 0.0f;
+        }
+    }
+}
+
+void Character::turnTo(const std::string& d)
+{
+    if (d == "down") {
+        turnToDirection(Direction::Down);
+    } else if (d == "up") {
+        turnToDirection(Direction::Up);
+    } else if (d == "left") {
+        turnToDirection(Direction::Left);
+    } else if (d == "right") {
+        turnToDirection(Direction::Right);
+    } else {
+        Logger::error(className()) << "Unknown direction" << d;
     }
 }
 
 void Character::setDirection(Direction::Type direction)
 {
     std::lock_guard<std::mutex> lock(mMovementMutex);
-    mDirection = mDirectionTo = direction;
+    mDirection = direction;
+    mDirectionTo = Direction::None;
     mDirectionTurn = 0.0f;
 }
 
@@ -507,7 +528,7 @@ void Character::updateVelocity(float_t& velocity, float_t direction, float_t val
     }
 }
 
-std::string Character::className()
+const std::string Character::className()
 {
     return "Character";
 }
@@ -519,4 +540,5 @@ void Character::registerClass(asIScriptEngine* engine)
     REGISTER_FUNC(engine, Character, int32_t, y);
     REGISTER_FUNC_ARGS(engine, Character, void, moveTo, int32_t, int32_t);
     REGISTER_FUNC_ARGS(engine, Character, void, moveTo, int32_t, int32_t, script::ScriptCallback&&);
+    REGISTER_FUNC_ARGS(engine, Character, void, turnTo, const std::string);
 }
