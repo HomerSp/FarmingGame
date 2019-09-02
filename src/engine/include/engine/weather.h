@@ -49,7 +49,7 @@ public:
     void drawWater(graphics::Renderer& renderer, Camera& camera);
     void drawWeather(graphics::Renderer& renderer, Camera& camera);
 
-    void processAsync(uint64_t frameDiff, Camera& camera, Clock& clock);
+    void processAsync(uint64_t frameDiff, Camera& camera);
 
     void setSize(const Types::Dimension<uint32_t>& size);
 

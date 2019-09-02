@@ -79,7 +79,7 @@ void Weather::drawWeather(graphics::Renderer& renderer, Camera& camera)
     mRainParticles->draw(renderer, camera);
 }
 
-void Weather::processAsync(uint64_t frameDiff, Camera& camera, Clock& clock)
+void Weather::processAsync(uint64_t frameDiff, Camera& camera)
 {
     mWaterParticles->processAsync(frameDiff, camera, *this);
 
@@ -100,7 +100,7 @@ void Weather::setSize(const Types::Dimension<uint32_t>& size)
 
 void Weather::dayChanged(const Clock& clock)
 {
-    Logger::debug("Weather") << "dayChanged" << (int) clock.day();
+    Logger::debug("Weather") << "dayChanged" << static_cast<int>(clock.day()) << "type" << static_cast<int>(mData[1].type);
 
     mData[0] = mData[1];
 
@@ -120,12 +120,24 @@ void Weather::daylightChanged(const Clock& clock)
 
 Weather::Type Weather::randomType(const Clock& clock)
 {
-    std::array<int8_t, Type::Last + 1> percentages = {40, 80, 97, 100};
+    std::array<int8_t, Type::Last + 1> percentages = {50, 30, 20, 0};
+    switch (clock.month()) {
+    case Clock::Summer:
+        percentages[0] = 55; percentages[1] = 25; percentages[2] = 15; percentages[3] = 5;
+        break;
+    case Clock::Autumn:
+        percentages[0] = 30; percentages[1] = 40; percentages[2] = 20; percentages[3] = 10;
+        break;
+    case Clock::Winter:
+        percentages[0] = 43; percentages[1] = 20; percentages[2] = 30; percentages[3] = 7;
+        break;
+    }
 
-    uint32_t i = 0;
+    uint32_t i = 0, total = 0;
     auto r = Random::range(0, 100);
     for (auto per: percentages) {
-        if (r < per) {
+        total += per;
+        if (r < total) {
             return static_cast<Weather::Type>(i);
             break;
         }
