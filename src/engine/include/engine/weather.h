@@ -30,11 +30,11 @@ public:
 private:
     struct Data {
         Data();
-        Data(Weather::Type type, float_t intensity, uint8_t windDirection, float_t windSpeed);
+        Data(Weather::Type type, float_t intensity, int8_t windDirection, float_t windSpeed);
 
         Weather::Type type;
         float_t intensity;
-        uint8_t windDirection;
+        int8_t windDirection;
         float_t windSpeed;
     };
 
@@ -43,7 +43,7 @@ public:
 
     bool overcast() const;
     Weather::Type type() const;
-    uint8_t windDirection() const;
+    int8_t windDirection() const;
     float_t windSpeed() const;
 
     void drawWater(graphics::Renderer& renderer, Camera& camera);

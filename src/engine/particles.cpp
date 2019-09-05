@@ -72,8 +72,8 @@ void Particles::processAsync(uint64_t frameDiff, Camera& camera, Weather& weathe
     if (mEnabled && mSpawnRect.width >= 0.0f) {
         double m = (frameDiff / mFrameSpeed);
 
-        double_t windSpeed = weather.windSpeed();
-        double_t windDirection = (weather.windDirection() * windSpeed * 45.0f);
+        float_t windSpeed = weather.windSpeed();
+        double_t windDirection = (20.0f * weather.windDirection() * windSpeed);
 
         auto cameraRc = mSpawnRect;
         cameraRc.x += camera.x();

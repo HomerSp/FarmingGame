@@ -13,7 +13,7 @@ Weather::Data::Data()
 {
 }
 
-Weather::Data::Data(Weather::Type type, float_t intensity, uint8_t windDirection, float_t windSpeed)
+Weather::Data::Data(Weather::Type type, float_t intensity, int8_t windDirection, float_t windSpeed)
     : type(type)
     , intensity(intensity)
     , windDirection(windDirection)
@@ -30,8 +30,8 @@ Weather::Weather(std::shared_ptr<Context>& ctx, graphics::Renderer& renderer, Cl
     , mSizeMod(0.0f)
     , mData({})
 {
-    mData[0] = Data(Storm, Random::range(100) / 100.0f, (Random::range(200) - 100) / 100.0f, Random::range(100) / 100.0f);
-    mData[1] = Data(Clear, Random::range(100) / 100.0f, (Random::range(200) - 100) / 100.0f, Random::range(100) / 100.0f);
+    mData[0] = Data(Storm, Random::range(100) / 100.0f, Random::range(2) - 1, Random::range(100) / 100.0f);
+    mData[1] = Data(Clear, Random::range(100) / 100.0f, Random::range(2) - 1, Random::range(100) / 100.0f);
 
     mWaterParticles = std::make_unique<engine::Particles>(renderer, 30, graphics::Color(1, 1, 0.8f, 0.5f), Types::Dimension<>(2, 2));
     mWaterParticles->setMoveSpeed(1.0f);
@@ -58,7 +58,7 @@ Weather::Type Weather::type() const
     return mData[0].type;
 }
 
-uint8_t Weather::windDirection() const
+int8_t Weather::windDirection() const
 {
     return mData[0].windDirection;
 }
@@ -105,7 +105,7 @@ void Weather::dayChanged(const Clock& clock)
     mData[0] = mData[1];
 
     auto type = randomType(clock);
-    mData[1] = Data(type, Random::range(100) / 100.0f, (Random::range(200) - 100) / 100.0f, Random::range(100) / 100.0f);
+    mData[1] = Data(type, Random::range(100) / 100.0f, Random::range(2) - 1, Random::range(100) / 100.0f);
 
     updateParticles(clock);
 }
