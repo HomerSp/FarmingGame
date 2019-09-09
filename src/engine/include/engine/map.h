@@ -8,7 +8,9 @@
 
 #include <engine/collisionmap.h>
 #include <engine/contextobject.h>
+#include <engine/graphics/buffer.h>
 #include <engine/graphics/colorgradient.h>
+#include <engine/graphics/texture.h>
 #include <engine/overlay.h>
 #include <engine/tileset.h>
 #include <engine/types.h>
@@ -20,7 +22,6 @@ class MapLayer;
 class Tileset;
 
 namespace graphics {
-class Buffer;
 class BufferWriter;
 class Renderer;
 }
@@ -56,6 +57,7 @@ public:
 
     void draw(graphics::Renderer& renderer, const Types::Rect<>& dst, TilesetAbove::Type above, bool clip = true);
     void drawRow(graphics::Renderer& renderer, const Types::Rect<>& dst, int32_t row, TilesetAbove::Type above, bool clip = true);
+    void drawBuffer(graphics::Renderer& renderer, const Types::Rect<>& dst, TilesetAbove::Type above, bool clip = true);
 
     void checkCollision(const Types::Point<float_t>& pos, const Types::Dimension<>& size, Types::Point<float_t>& dst, float_t& velocityX, float_t& velocityY) const;
     bool isNodeSolid(int32_t x, int32_t y, const Types::Dimension<>& size) const;
@@ -86,10 +88,14 @@ private:
     std::string mID;
     Map::Type::Val mType;
     std::unordered_map<std::string, std::shared_ptr<Tileset>> mTilesets;
+    std::unordered_map<std::string, uint32_t> mTilesetIndexes;
     std::vector<std::shared_ptr<MapLayer>> mLayers;
     std::unique_ptr<CollisionMap> mCollisionMap;
     Types::Dimension<uint32_t> mDimensions;
     std::vector<std::shared_ptr<MapLightSource>> mLights;
     std::vector<Types::Point<int32_t >> mPaths;
+
+    std::unique_ptr<graphics::Buffer> mBuffer;
+    std::unique_ptr<graphics::Texture> mTexture;
 };
 }

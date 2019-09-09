@@ -19,10 +19,10 @@ public:
 
     const float_t* constData() const;
 
-    Vertex2D& tl(float_t x, float_t y);
-    Vertex2D& bl(float_t x, float_t y);
-    Vertex2D& tr(float_t x, float_t y);
-    Vertex2D& br(float_t x, float_t y);
+    Vertex2D& lt(float_t x, float_t y);
+    Vertex2D& lb(float_t x, float_t y);
+    Vertex2D& rt(float_t x, float_t y);
+    Vertex2D& rb(float_t x, float_t y);
 
 private:
     std::array<std::array<float_t, 2>, 4> mData;

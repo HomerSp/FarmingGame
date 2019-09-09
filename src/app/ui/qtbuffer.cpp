@@ -1,6 +1,7 @@
 #include <QMatrix4x4>
 
 #include <engine/graphics/matrix.h>
+#include <engine/graphics/vector2d.h>
 #include <engine/graphics/vertex2d.h>
 
 #include <ui/qtbuffer.h>
@@ -64,8 +65,26 @@ uint32_t QtBuffer::write(uint32_t offset, const engine::graphics::Transform& tra
     return engine::graphics::Matrix::Size();
 }
 
+uint32_t QtBuffer::write(uint32_t offset, const engine::graphics::Vector2D& vector)
+{
+    mBuffer.write(offset, vector.constData(), engine::graphics::Vector2D::Size());
+    return engine::graphics::Vector2D::Size();
+}
+
 uint32_t QtBuffer::write(uint32_t offset, const engine::graphics::Vertex2D& vertex)
 {
     mBuffer.write(offset, vertex.constData(), engine::graphics::Vertex2D::Size());
     return engine::graphics::Vertex2D::Size();
+}
+
+uint32_t QtBuffer::write(uint32_t offset, float_t val)
+{
+    mBuffer.write(offset, &val, sizeof(float_t));
+    return sizeof(float_t);
+}
+
+uint32_t QtBuffer::write(uint32_t offset, uint32_t val)
+{
+    mBuffer.write(offset, &val, sizeof(uint32_t));
+    return sizeof(uint32_t);
 }

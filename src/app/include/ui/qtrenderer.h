@@ -4,6 +4,7 @@
 #include <QOpenGLFramebufferObject>
 #include <QOpenGLPaintDevice>
 #include <QOpenGLShaderProgram>
+#include <QOpenGLTexture>
 #include <QPainter>
 
 #include <memory>
@@ -12,6 +13,7 @@
 #include <engine/graphics/buffer.h>
 #include <engine/graphics/image.h>
 #include <engine/graphics/matrix.h>
+#include <engine/graphics/texture.h>
 #include <engine/graphics/transform.h>
 #include <engine/graphics/renderer.h>
 #include <engine/overlay.h>
@@ -41,6 +43,7 @@ public:
     void drawText(const engine::Types::Rect<>& dst, const std::string& text, const engine::graphics::Color& color, int32_t size, engine::Types::TextAlign align, std::string type) override;
     void drawOverlay(const engine::Types::Point<>& dst, engine::Overlay& overlay, uint32_t lightsCount, float mod) override;
     void drawParticles(const engine::Types::Point<>& dst, const engine::Particles& particles) override;
+    void drawTextures(const engine::Types::Point<>& dst, engine::graphics::Texture* texture, engine::graphics::Buffer* buffer, uint32_t count) override;
 
     void rotate(float_t deg) override;
     void translate(int32_t x, int32_t y) override;
@@ -52,6 +55,7 @@ public:
 
     std::unique_ptr<engine::graphics::Buffer> createBuffer(uint32_t size) const override;
     std::unique_ptr<engine::graphics::Matrix> createMatrix() const override;
+    std::unique_ptr<engine::graphics::Texture> createTexture(uint32_t w, uint32_t h, uint32_t layers) const override;
     std::unique_ptr<engine::graphics::Transform> createTransform() const override;
 
 public slots:
@@ -61,10 +65,13 @@ protected:
     void initContext() override;
 
 private:
+    void setAttributeBuffer(int location, GLenum type, int offset, int tupleSize, int stride);
+
     std::unique_ptr<QOpenGLPaintDevice> mDevice;
     std::unique_ptr<QPainter> mPainter;
     
     std::unique_ptr<QOpenGLShaderProgram> mTextureShader;
+    std::unique_ptr<QOpenGLShaderProgram> mTextureArrayShader;
     std::unique_ptr<QOpenGLShaderProgram> mPointLightShader;
     std::unique_ptr<QOpenGLShaderProgram> mColorShader;
     std::unique_ptr<QOpenGLShaderProgram> mParticleShader;

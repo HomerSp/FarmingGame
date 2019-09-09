@@ -11,6 +11,7 @@
 #include <engine/collisionmap.h>
 #include <engine/contextobject.h>
 #include <engine/graphics/image.h>
+#include <engine/graphics/transform.h>
 #include <engine/types.h>
 
 namespace engine {
@@ -18,6 +19,7 @@ namespace engine {
 namespace graphics {
 class BufferWriter;
 class Renderer;
+class Transform;
 }
 
 class Context;
@@ -117,6 +119,7 @@ public:
     Tileset(std::shared_ptr<Context>& ctx, const std::string& name);
 
     void draw(graphics::Renderer& renderer, TilesetNode& node, const Types::Point<>& pos);
+    uint32_t drawBuffer(graphics::Renderer& renderer, TilesetNode& node, const Types::Point<>& pos, graphics::BufferWriter& writer, uint32_t texture);
 
     graphics::Image& image() const;
 
@@ -141,5 +144,7 @@ private:
     std::unordered_map<int32_t, std::shared_ptr<TilesetType>> mTypes;
     std::unique_ptr<graphics::Image> mImage;
     std::string mCollisionMap;
+
+    std::unique_ptr<graphics::Matrix> mTestMatrix;
 };
 }

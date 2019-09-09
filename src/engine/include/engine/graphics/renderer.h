@@ -21,6 +21,7 @@ class Buffer;
 class Color;
 class Image;
 class Matrix;
+class Texture;
 class Transform;
 
 class Renderer {
@@ -41,6 +42,7 @@ public:
     virtual void drawText(const Types::Rect<>& dst, const std::string& text, const graphics::Color& color, int32_t size = -1, Types::TextAlign align = Types::TextAlign(), std::string type = "") = 0;
     virtual void drawOverlay(const Types::Point<>& dst, Overlay& overlay, uint32_t lightsCount, float mod) = 0;
     virtual void drawParticles(const engine::Types::Point<>& dst, const engine::Particles& particles) = 0;
+    virtual void drawTextures(const engine::Types::Point<>& dst, engine::graphics::Texture* texture, engine::graphics::Buffer* buffer, uint32_t count = 1) = 0;
 
     virtual void rotate(float_t deg) = 0;
     virtual void translate(int32_t x, int32_t y) = 0;
@@ -52,6 +54,7 @@ public:
 
     virtual std::unique_ptr<graphics::Buffer> createBuffer(uint32_t size) const = 0;
     virtual std::unique_ptr<engine::graphics::Matrix> createMatrix() const = 0;
+    virtual std::unique_ptr<engine::graphics::Texture> createTexture(uint32_t w, uint32_t h, uint32_t layers = 0) const = 0;
     virtual std::unique_ptr<engine::graphics::Transform> createTransform() const = 0;
 
     Context& context();

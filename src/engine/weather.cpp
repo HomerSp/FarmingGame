@@ -21,7 +21,7 @@ Weather::Data::Data(Weather::Type type, float_t intensity, int8_t windDirection,
 {
     if (type == Weather::Storm) {
         this->intensity += 2.0f;
-        this->windSpeed += 2.0f;
+        this->windSpeed *= 2.0f;
     }
 }
 

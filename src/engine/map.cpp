@@ -6,7 +6,10 @@
 #include <engine/assetmanager.h>
 #include <engine/collisionmap.h>
 #include <engine/context.h>
+#include <engine/graphics/bufferwriter.h>
+#include <engine/graphics/matrix.h>
 #include <engine/graphics/renderer.h>
+#include <engine/graphics/vector2d.h>
 #include <engine/logger.h>
 #include <engine/map.h>
 #include <engine/maplayer.h>
@@ -47,6 +50,8 @@ Map::Map(std::shared_ptr<Context>& ctx, graphics::Renderer& renderer, const std:
         }
     }
 
+    uint32_t tilesetIndex = 0;
+
     Json::Value layers = (*doc)["layers"];
     for (auto layerObj : layers) {
         if (!layerObj.isMember("tileset")) {
@@ -64,6 +69,8 @@ Map::Map(std::shared_ptr<Context>& ctx, graphics::Renderer& renderer, const std:
             Logger::critical("Map") << "Could not load tileset for" << id;
             return;
         }
+
+        mTilesetIndexes[name] = tilesetIndex++;
     }
 
     for (auto layerObj : layers) {
@@ -86,7 +93,7 @@ Map::Map(std::shared_ptr<Context>& ctx, graphics::Renderer& renderer, const std:
             }
         }
 
-        std::shared_ptr<MapLayer> layer = std::make_shared<MapLayer>(renderer, data, mTilesets.find(name)->second, mDimensions.width, mDimensions.height);
+        std::shared_ptr<MapLayer> layer = std::make_shared<MapLayer>(renderer, data, mTilesets.find(name)->second, mDimensions.width, mDimensions.height, mTilesetIndexes[name]);
         if (!*layer) {
             Logger::critical("Map") << "Could not load layer for" << id;
             return;
@@ -108,6 +115,25 @@ Map::Map(std::shared_ptr<Context>& ctx, graphics::Renderer& renderer, const std:
         if (!layer->updatePaths(mPaths)) {
             Logger::warning("Map") << "Could not load paths for" << id;
         }
+    }
+
+    auto d = getTileDimension();
+    uint32_t bufferSize = engine::graphics::Vector2D::Size() * 2 + sizeof(float_t) + engine::graphics::Matrix::Size();
+    uint32_t tiles = ((renderer.width() / d.width) + 2) * ((renderer.height() / d.height) + 2);
+    mBuffer = renderer.createBuffer(bufferSize * tiles * 4 * mLayers.size());
+
+    uint32_t w = 0, h = 0;
+    for (auto& t: mTilesets) {
+        auto& i = t.second->image();
+        w = std::max(w, i.width());
+        h = std::max(h, i.height());
+    }
+
+    mTexture = renderer.createTexture(w, h, mTilesets.size());
+
+    for (auto& t: mTilesets) {
+        auto& img = t.second->image();
+        mTexture->setData(img, mTilesetIndexes[t.first]);
     }
 
     mValid = true;
@@ -137,7 +163,29 @@ void Map::draw(graphics::Renderer& renderer, const Types::Rect<>& dst, TilesetAb
     for (const auto& layer : mLayers) {
         layer->draw(renderer, target, above, clip);
     }
+
     renderer.translate((dst.x % tileDimens.width), (dst.y % tileDimens.height));
+}
+
+void Map::drawBuffer(graphics::Renderer& renderer, const Types::Rect<>& dst, TilesetAbove::Type above, bool clip)
+{
+    Types::Dimension<> tileDimens = getTileDimension();
+    Types::Rect<> target;
+    target.x = std::ceil(dst.x / tileDimens.width);
+    target.y = std::ceil(dst.y / tileDimens.height);
+    target.width = std::ceil(dst.width / tileDimens.width);
+    target.height = std::ceil(dst.height / tileDimens.height);
+
+    uint32_t count = 0;
+    graphics::BufferWriter writer(*mBuffer);
+    for (const auto& layer : mLayers) {
+        count += layer->drawBuffer(renderer, target, above, writer, clip);
+    }
+
+    writer.release();
+
+    Types::Point<> dstPoint(-(dst.x % tileDimens.width), -(dst.y % tileDimens.height));
+    renderer.drawTextures(dstPoint, mTexture.get(), mBuffer.get(), count);
 }
 
 void Map::drawRow(graphics::Renderer& renderer, const Types::Rect<>& dst, int32_t row, TilesetAbove::Type above, bool clip)

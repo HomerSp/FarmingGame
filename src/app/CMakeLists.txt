@@ -23,6 +23,7 @@ set(HEADERS
     include/ui/qtbuffer.h
     include/ui/qtimage.h
     include/ui/qtmatrix.h
+    include/ui/qttexture.h
     include/ui/qttransform.h
     include/ui/qtrenderer.h
     include/ui/qtwindow.h
@@ -33,6 +34,7 @@ set(SOURCES
     ui/qtbuffer.cpp
     ui/qtimage.cpp
     ui/qtmatrix.cpp
+    ui/qttexture.cpp
     ui/qttransform.cpp
     ui/qtrenderer.cpp
     ui/qtwindow.cpp

@@ -11,10 +11,11 @@
 
 using namespace engine;
 
-MapLayer::MapLayer(graphics::Renderer& renderer, Types::Map2D data, std::shared_ptr<Tileset> tileset, uint32_t width, uint32_t height)
+MapLayer::MapLayer(graphics::Renderer& renderer, Types::Map2D data, std::shared_ptr<Tileset> tileset, uint32_t width, uint32_t height, uint32_t tilesetIndex)
     : mValid(false)
     , mData(std::move(data))
     , mTileset(std::move(tileset))
+    , mTilesetIndex(tilesetIndex)
     , mDimensions(width, height)
 {
     // Add water nodes
@@ -98,6 +99,39 @@ void MapLayer::drawRow(graphics::Renderer& renderer, const Types::Rect<>& dst, i
             mTileset->draw(renderer, *node.second, { node.first - dst.x, row - dst.y });
         }
     }
+}
+
+uint32_t MapLayer::drawBuffer(graphics::Renderer& renderer, const Types::Rect<>& dst, TilesetAbove::Type above, graphics::BufferWriter& writer, bool clip)
+{
+    uint32_t ret = 0;
+    for (auto &nodeY: mNodes[above]) {
+        if (nodeY.first >= dst.y - 1 && nodeY.first <= dst.y + dst.height + 1) {
+            ret += drawRowBuffer(renderer, dst, nodeY.first, above, writer, clip);
+        }
+    }
+
+    return ret;
+}
+
+uint32_t MapLayer::drawRowBuffer(graphics::Renderer& renderer, const Types::Rect<>& dst, int32_t row, TilesetAbove::Type above, graphics::BufferWriter& writer, bool clip)
+{
+    auto* nodes = &mNodes[above];
+
+    // No nodes at this row, return.
+    if (nodes->find(row) == nodes->end()) {
+        return 0;
+    }
+
+    uint32_t ret = 0;
+
+    auto nodeRow = nodes->at(row);
+    for (auto &node : nodeRow) {
+        if (!clip || (node.first >= dst.x - 1 && node.first <= dst.x + dst.width + 1)) {
+            ret += mTileset->drawBuffer(renderer, *node.second, { node.first - dst.x, row - dst.y }, writer, mTilesetIndex);
+        }
+    }
+
+    return ret;
 }
 
 void MapLayer::toggleLights(bool on)

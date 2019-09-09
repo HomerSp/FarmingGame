@@ -2,6 +2,11 @@
 
 using namespace engine::graphics;
 
+Vector2D::Vector2D(float_t first, float_t second)
+    : mData({first, second})
+{
+}
+
 const float_t* Vector2D::constData() const
 {
     return &mData[0];

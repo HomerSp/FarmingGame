@@ -12,7 +12,7 @@ class Vector2D {
 public:
     static constexpr inline uint32_t Size() { return sizeof(float_t) * 2; }
 
-    Vector2D() = default;
+    Vector2D(float_t first = 0.0f, float_t second = 0.0f);
     virtual ~Vector2D() = default;
 
     const float_t* constData() const;

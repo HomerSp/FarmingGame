@@ -6,6 +6,7 @@ set(HEADERS
     include/engine/graphics/colorgradient.h
     include/engine/graphics/image.h
     include/engine/graphics/matrix.h
+    include/engine/graphics/texture.h
     include/engine/graphics/transform.h
     include/engine/graphics/renderer.h
     include/engine/graphics/vector2d.h
@@ -19,6 +20,7 @@ set(SOURCES
     graphics/colorgradient.cpp
     graphics/image.cpp
     graphics/renderer.cpp
+    graphics/texture.cpp
     graphics/vector2d.cpp
     graphics/vertex2d.cpp
 ) 

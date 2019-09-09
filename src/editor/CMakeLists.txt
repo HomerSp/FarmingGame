@@ -25,6 +25,7 @@ set(HEADERS
     ../app/include/ui/qtbuffer.h
     ../app/include/ui/qtimage.h
     ../app/include/ui/qtmatrix.h
+    ../app/include/ui/qttexture.h
     ../app/include/ui/qttransform.h
     ../app/include/ui/qtrenderer.h
     include/ui/mapitemview.h
@@ -35,6 +36,7 @@ set(SOURCES
     ../app/ui/qtbuffer.cpp
     ../app/ui/qtimage.cpp
     ../app/ui/qtmatrix.cpp
+    ../app/ui/qttexture.cpp
     ../app/ui/qttransform.cpp
     ../app/ui/qtrenderer.cpp
     ui/mapitemview.cpp

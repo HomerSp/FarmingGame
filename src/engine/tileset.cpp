@@ -9,6 +9,7 @@
 #include <engine/graphics/image.h>
 #include <engine/graphics/matrix.h>
 #include <engine/graphics/renderer.h>
+#include <engine/graphics/vector2d.h>
 #include <engine/logger.h>
 #include <engine/tileset.h>
 
@@ -617,6 +618,45 @@ void Tileset::draw(graphics::Renderer& renderer, TilesetNode& node, const Types:
             dy++;
         }
     }
+}
+
+uint32_t Tileset::drawBuffer(graphics::Renderer& renderer, TilesetNode& node, const Types::Point<>& pos, graphics::BufferWriter& writer, uint32_t texture)
+{
+    uint32_t ret = 0;
+
+    Types::Rect<> dst(0, 0, mTileDimension.width / 2, mTileDimension.height / 2);
+    int32_t dx = 0, dy = 0;
+    for (auto& po : node.pos) {
+        dst.x = (pos.x * mTileDimension.width) + (dx * (mTileDimension.width / 2));
+        dst.y = (pos.y * mTileDimension.height) + (dy * (mTileDimension.height / 2));
+
+        Types::Rect<> src(po.x + (node.animSize.x * std::floor(node.current)), po.y + (node.animSize.y * std::floor(node.current)), dst.width, dst.height);
+        if (node.toggled) {
+            src.x += node.toggleWidth;
+        }
+
+        writer += engine::graphics::Vector2D(src.x, src.y);
+        writer += engine::graphics::Vector2D(mTileDimension.width / 2, mTileDimension.height / 2);
+        writer += static_cast<float_t>(texture);
+        
+        if (!mTestMatrix) {
+            mTestMatrix = renderer.createMatrix();
+            mTestMatrix->translate(0, 0);
+            mTestMatrix->scale(mTileDimension.width / 2, mTileDimension.height / 2);
+        }
+
+        writer += *mTestMatrix;
+
+        ret++;
+
+        dx++;
+        if (dx > 1) {
+            dx = 0;
+            dy++;
+        }
+    }
+
+    return ret;
 }
 
 std::unique_ptr<CollisionMap> Tileset::loadCollisionMap()

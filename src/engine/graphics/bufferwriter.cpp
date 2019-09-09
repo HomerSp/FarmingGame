@@ -2,6 +2,7 @@
 #include <engine/graphics/bufferwriter.h> 
 #include <engine/graphics/matrix.h>
 #include <engine/graphics/transform.h>
+#include <engine/graphics/vector2d.h>
 #include <engine/graphics/vertex2d.h>
 
 using namespace engine::graphics;
@@ -36,8 +37,26 @@ BufferWriter& BufferWriter::operator+=(const Transform& transform)
     return *this;
 }
 
+BufferWriter& BufferWriter::operator+=(const Vector2D& vector)
+{
+    mOffset += mBuffer.write(mOffset, vector);
+    return *this;
+}
+
 BufferWriter& BufferWriter::operator+=(const Vertex2D& vertex)
 {
     mOffset += mBuffer.write(mOffset, vertex);
+    return *this;
+}
+
+BufferWriter& BufferWriter::operator+=(float_t val)
+{
+    mOffset += mBuffer.write(mOffset, val);
+    return *this;
+}
+
+BufferWriter& BufferWriter::operator+=(uint32_t val)
+{
+    mOffset += mBuffer.write(mOffset, val);
     return *this;
 }

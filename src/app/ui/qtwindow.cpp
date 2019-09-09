@@ -42,6 +42,8 @@ void QtWindow::resizeGL(int width, int height)
 
 void QtWindow::paintGL()
 {
+    glViewport(0, 0, width(), height());
+
     glClearColor(0, 0, 0, 1);
     glClear(GL_COLOR_BUFFER_BIT);
 
