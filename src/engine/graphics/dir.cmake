@@ -9,8 +9,8 @@ set(HEADERS
     include/engine/graphics/texture.h
     include/engine/graphics/transform.h
     include/engine/graphics/renderer.h
-    include/engine/graphics/vector2d.h
-    include/engine/graphics/vertex2d.h
+    include/engine/graphics/vector.h
+    include/engine/graphics/quad.h
 )
 
 set(SOURCES
@@ -21,6 +21,4 @@ set(SOURCES
     graphics/image.cpp
     graphics/renderer.cpp
     graphics/texture.cpp
-    graphics/vector2d.cpp
-    graphics/vertex2d.cpp
 ) 

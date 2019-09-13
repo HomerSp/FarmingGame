@@ -1,9 +1,9 @@
 #include <engine/graphics/buffer.h>
 #include <engine/graphics/bufferwriter.h> 
 #include <engine/graphics/matrix.h>
+#include <engine/graphics/quad.h>
 #include <engine/graphics/transform.h>
-#include <engine/graphics/vector2d.h>
-#include <engine/graphics/vertex2d.h>
+#include <engine/graphics/vector.h>
 
 using namespace engine::graphics;
 
@@ -12,6 +12,11 @@ BufferWriter::BufferWriter(Buffer& buffer, uint32_t offset)
     , mOffset(offset)
 {
     mBuffer.bind();
+}
+
+void BufferWriter::skip(uint32_t offset)
+{
+    mOffset += offset;
 }
 
 void BufferWriter::release()
@@ -43,9 +48,21 @@ BufferWriter& BufferWriter::operator+=(const Vector2D& vector)
     return *this;
 }
 
-BufferWriter& BufferWriter::operator+=(const Vertex2D& vertex)
+BufferWriter& BufferWriter::operator+=(const Vector3D& vector)
 {
-    mOffset += mBuffer.write(mOffset, vertex);
+    mOffset += mBuffer.write(mOffset, vector);
+    return *this;
+}
+
+BufferWriter& BufferWriter::operator+=(const Vector4D& vector)
+{
+    mOffset += mBuffer.write(mOffset, vector);
+    return *this;
+}
+
+BufferWriter& BufferWriter::operator+=(const Quad<2>& quad)
+{
+    mOffset += mBuffer.write(mOffset, quad);
     return *this;
 }
 

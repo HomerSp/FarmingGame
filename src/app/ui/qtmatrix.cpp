@@ -10,9 +10,19 @@ void QtMatrix::reset()
     mMatrix.setToIdentity();
 }
 
+void QtMatrix::frustum(float_t left, float_t right, float_t top, float_t bottom, float_t near, float_t far)
+{
+    mMatrix.frustum(left, right, top, bottom, near, far);
+}
+
 void QtMatrix::ortho(float_t left, float_t right, float_t top, float_t bottom, float_t near, float_t far)
 {
     mMatrix.ortho(left, right, top, bottom, near, far);
+}
+
+void QtMatrix::viewport(float_t left, float_t right, float_t top, float_t bottom, float_t near, float_t far)
+{
+    mMatrix.viewport(left, right, top, bottom, near, far);
 }
 
 void QtMatrix::rotate(float_t angle, float_t z)

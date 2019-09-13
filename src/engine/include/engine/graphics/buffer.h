@@ -2,6 +2,7 @@
 
 #include <cstdint>
 
+#include <engine/graphics/quad.h>
 #include <engine/types.h>
 
 namespace engine {
@@ -11,7 +12,8 @@ class Color;
 class Matrix;
 class Transform;
 class Vector2D;
-class Vertex2D;
+class Vector3D;
+class Vector4D;
 
 class Buffer {
 public:
@@ -27,7 +29,9 @@ public:
     virtual uint32_t write(uint32_t offset, const Matrix& matrix) = 0;
     virtual uint32_t write(uint32_t offset, const Transform& transform) = 0;
     virtual uint32_t write(uint32_t offset, const Vector2D& vector) = 0;
-    virtual uint32_t write(uint32_t offset, const Vertex2D& vertex) = 0;
+    virtual uint32_t write(uint32_t offset, const Vector3D& vector) = 0;
+    virtual uint32_t write(uint32_t offset, const Vector4D& vector) = 0;
+    virtual uint32_t write(uint32_t offset, const Quad<2>& quad) = 0;
 
     virtual uint32_t write(uint32_t offset, float_t val) = 0;
     virtual uint32_t write(uint32_t offset, uint32_t val) = 0;

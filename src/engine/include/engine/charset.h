@@ -12,6 +12,10 @@
 
 namespace engine {
 
+namespace graphics {
+class BufferWriter;
+}
+
 class Context;
 
 struct CharsetNode {
@@ -31,7 +35,9 @@ public:
 
     Charset(std::shared_ptr<Context>& ctx, const std::string& name);
 
-    void draw(graphics::Renderer& renderer, const Types::Point<>& pos, Charset::Type type, int32_t direction = 0, int32_t frame = 0);
+    void updateBuffer(graphics::Renderer& renderer, const Types::Point<>& pos, Charset::Type type, int32_t direction, int32_t frame, graphics::BufferWriter& writer, uint32_t texture, float_t zOrder);
+
+    graphics::Image& image() const;
 
     int32_t width(Charset::Type type);
     int32_t height(Charset::Type type);

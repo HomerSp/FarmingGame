@@ -16,7 +16,9 @@ public:
 
     virtual void reset() = 0;
 
+    virtual void frustum(float_t left, float_t right, float_t top, float_t bottom, float_t near, float_t far) = 0;
     virtual void ortho(float_t left, float_t right, float_t top, float_t bottom, float_t near, float_t far) = 0;
+    virtual void viewport(float_t left, float_t right, float_t top, float_t bottom, float_t near, float_t far) = 0;
 
     virtual void rotate(float_t angle, float_t z) = 0;
 

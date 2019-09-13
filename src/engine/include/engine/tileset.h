@@ -31,7 +31,6 @@ struct TilesetNode {
     std::array<Types::Point<>, 4> pos;
     Types::Point<> animSize;
     uint8_t frames;
-    std::atomic<float_t> current;
     uint32_t toggleWidth;
     bool toggled;
     TilesetType* type;
@@ -50,12 +49,13 @@ struct TilesetAttribute {
 
 struct TilesetAbove {
     typedef enum {
-        None = 0,
-        Below,
+        Water = 0,
+        None,
         Row,
         All,
-        Water,
     } Type;
+
+    static constexpr Type Types[] = {Water, None, Row, All};
 };
 
 class TilesetType {
@@ -118,8 +118,7 @@ class Tileset : public ContextObject {
 public:
     Tileset(std::shared_ptr<Context>& ctx, const std::string& name);
 
-    void draw(graphics::Renderer& renderer, TilesetNode& node, const Types::Point<>& pos);
-    uint32_t drawBuffer(graphics::Renderer& renderer, TilesetNode& node, const Types::Point<>& pos, graphics::BufferWriter& writer, uint32_t texture);
+    void updateBuffer(graphics::Renderer& renderer, TilesetNode& node, const Types::Point<>& pos, graphics::BufferWriter& writer, uint32_t texture, float_t zOrder);
 
     graphics::Image& image() const;
 
@@ -145,6 +144,6 @@ private:
     std::unique_ptr<graphics::Image> mImage;
     std::string mCollisionMap;
 
-    std::unique_ptr<graphics::Matrix> mTestMatrix;
+    std::map<std::pair<uint32_t, uint32_t>, std::unique_ptr<graphics::Matrix>> mMatrices;
 };
 }

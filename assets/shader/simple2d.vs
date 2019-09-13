@@ -1,7 +1,6 @@
 #version 330 core
 
-uniform mat4 iWorldMatrix;
-uniform mat4 iProjectionMatrix;
+uniform mat4 uWorldMatrix;
 
 layout(location = 0) in vec2 iCoords;
 layout(location = 1) in vec2 iVertex;
@@ -11,6 +10,6 @@ out vec2 vCoords;
 
 void main()
 {
-    gl_Position = iWorldMatrix * iProjectionMatrix * iMatrix * vec4(iVertex, 0.0, 1.0);
+    gl_Position = uWorldMatrix * iMatrix * vec4(iVertex, 0.0, 1.0);
     vCoords = iCoords;
 }

@@ -9,8 +9,8 @@
 
 using namespace engine;
 
-Player::Player(std::shared_ptr<Context> &ctx)
-    : Character(ctx, "player")
+Player::Player(std::shared_ptr<Context> &ctx, graphics::Renderer& renderer)
+    : Character(ctx, renderer, "player")
     , mControl(true)
     , mLevel(1)
     , mStamina(0)

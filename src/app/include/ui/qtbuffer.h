@@ -5,6 +5,7 @@
 #include <QOpenGLBuffer>
 
 #include <engine/graphics/buffer.h>
+#include <engine/graphics/quad.h>
 
 class QtBuffer : public engine::graphics::Buffer
 {
@@ -21,7 +22,9 @@ public:
     virtual uint32_t write(uint32_t offset, const engine::graphics::Matrix& matrix) override;
     virtual uint32_t write(uint32_t offset, const engine::graphics::Transform& transform) override;
     virtual uint32_t write(uint32_t offset, const engine::graphics::Vector2D& vector) override;
-    virtual uint32_t write(uint32_t offset, const engine::graphics::Vertex2D& vertex) override;
+    virtual uint32_t write(uint32_t offset, const engine::graphics::Vector3D& vector) override;
+    virtual uint32_t write(uint32_t offset, const engine::graphics::Vector4D& vector) override;
+    virtual uint32_t write(uint32_t offset, const engine::graphics::Quad<2>& quad) override;
 
     virtual uint32_t write(uint32_t offset, float_t val) override;
     virtual uint32_t write(uint32_t offset, uint32_t val) override;

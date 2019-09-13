@@ -1,17 +1,21 @@
 #version 330 core
 
-uniform mat4 iWorldMatrix;
-uniform mat4 iProjectionMatrix;
+uniform mat4 uWorldMatrix;
+uniform bool uReverseY = false;
 
-layout(location = 0) in vec2 iCoords;
-layout(location = 1) in vec2 iVertex;
-layout(location = 2) in mat4 iCoordsMatrix;
-layout(location = 6) in mat4 iMatrix;
+layout(location = 0) in vec2 iVertex;
+layout(location = 1) in vec4 iPosSize;
+layout(location = 2) in vec4 iTexPosSize;
 
-out vec2 vCoords;
+out vec2 vTexCoords;
 
 void main()
 {
-    gl_Position = iWorldMatrix * iProjectionMatrix * iMatrix * vec4(iVertex, 0.0, 1.0);
-    vCoords = vec4(iCoordsMatrix * vec4(iCoords, 0.0, 1.0)).xy;
+    vec2 pos = iPosSize.xy + iVertex * iPosSize.zw;
+    gl_Position = uWorldMatrix * vec4(pos, 0.0, 1.0);
+
+    vTexCoords = iTexPosSize.xy + (iVertex * iTexPosSize.zw);
+    if (uReverseY) {
+        vTexCoords.y = iTexPosSize.w - vTexCoords.y;
+    }
 }

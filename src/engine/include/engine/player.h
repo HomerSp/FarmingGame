@@ -16,7 +16,7 @@ class Context;
 
 class Player : public character::Character, public Overlay::LightSource {
 public:
-    Player(std::shared_ptr<Context> &ctx);
+    Player(std::shared_ptr<Context> &ctx, graphics::Renderer& renderer);
 
     // Light source
     virtual Types::Point<int32_t> lightPosition() override;

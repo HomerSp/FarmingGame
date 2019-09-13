@@ -4,8 +4,8 @@
 #include <engine/context.h>
 #include <engine/fontmanager.h>
 #include <engine/graphics/bufferwriter.h>
-#include <engine/graphics/vector2d.h>
-#include <engine/graphics/vertex2d.h>
+#include <engine/graphics/quad.h>
+#include <engine/graphics/vector.h>
 #include <engine/logger.h>
 
 #include <ui/qtimage.h>
@@ -27,11 +27,6 @@ QtRenderer::QtRenderer()
     mTextureShader->addShaderFromSourceFile(QOpenGLShader::Fragment, "assets/shader/texture2d.fs");
     mTextureShader->link();
 
-    mTextureArrayShader = std::make_unique<QOpenGLShaderProgram>();
-    mTextureArrayShader->addShaderFromSourceFile(QOpenGLShader::Vertex, "assets/shader/texture2darray.vs");
-    mTextureArrayShader->addShaderFromSourceFile(QOpenGLShader::Fragment, "assets/shader/texture2darray.fs");
-    mTextureArrayShader->link();
-
     mPointLightShader = std::make_unique<QOpenGLShaderProgram>();
     mPointLightShader->addShaderFromSourceFile(QOpenGLShader::Vertex, "assets/shader/pointlight.vs");
     mPointLightShader->addShaderFromSourceFile(QOpenGLShader::Fragment, "assets/shader/pointlight.fs");
@@ -42,32 +37,36 @@ QtRenderer::QtRenderer()
     mColorShader->addShaderFromSourceFile(QOpenGLShader::Fragment, "assets/shader/color2d.fs");
     mColorShader->link();
 
-    mParticleShader = std::make_unique<QOpenGLShaderProgram>();
-    mParticleShader->addShaderFromSourceFile(QOpenGLShader::Vertex, "assets/shader/particle.vs");
-    mParticleShader->addShaderFromSourceFile(QOpenGLShader::Fragment, "assets/shader/particle.fs");
-    mParticleShader->link();
+    mParticle2DShader = std::make_unique<QOpenGLShaderProgram>();
+    mParticle2DShader->addShaderFromSourceFile(QOpenGLShader::Vertex, "assets/shader/particle2d.vs");
+    mParticle2DShader->addShaderFromSourceFile(QOpenGLShader::Fragment, "assets/shader/particle2d.fs");
+    mParticle2DShader->link();
+
+    mCharset2DShader = std::make_unique<QOpenGLShaderProgram>();
+    mCharset2DShader->addShaderFromSourceFile(QOpenGLShader::Vertex, "assets/shader/charset2d.vs");
+    mCharset2DShader->addShaderFromSourceFile(QOpenGLShader::Fragment, "assets/shader/charset2d.fs");
+    mCharset2DShader->link();
+
+    mTiles2DShader = std::make_unique<QOpenGLShaderProgram>();
+    mTiles2DShader->addShaderFromSourceFile(QOpenGLShader::Vertex, "assets/shader/tiles2d.vs");
+    mTiles2DShader->addShaderFromSourceFile(QOpenGLShader::Fragment, "assets/shader/tiles2d.fs");
+    mTiles2DShader->link();
 
     mWorldMatrix = std::make_unique<QtMatrix>();
-    mProjectionMatrix = std::make_unique<QtMatrix>();
     mFBOMatrix = std::make_unique<QtMatrix>();
 
-    mQuadVertexBuffer = std::make_unique<QtBuffer>(engine::graphics::Vertex2D::Size());
-    mCircleTextureBuffer = std::make_unique<QtBuffer>(engine::graphics::Vertex2D::Size());
-    mFBOTextureBuffer = std::make_unique<QtBuffer>(engine::graphics::Vertex2D::Size());
-    mBufferMatrix = std::make_unique<QtBuffer>(engine::graphics::Matrix::Size());
+    mQuadVertexBuffer = std::make_unique<QtBuffer>(engine::graphics::Quad2D::Size());
+    mCircleTextureBuffer = std::make_unique<QtBuffer>(engine::graphics::Quad2D::Size());
+    mFBOTextureBuffer = std::make_unique<QtBuffer>(engine::graphics::Vector4D::Size() * 2);
+    mBufferTexture = std::make_unique<QtBuffer>(engine::graphics::Vector4D::Size() * 2);
 
     engine::graphics::BufferWriter quadWriter(*mQuadVertexBuffer);
-    quadWriter += engine::graphics::Vertex2D().lt(0, 0).lb(0, 1).rt(1, 0).rb(1, 1);
+    quadWriter += engine::graphics::Quad2D().lt(0, 0).lb(0, 1).rt(1, 0).rb(1, 1);
     quadWriter.release();
 
     engine::graphics::BufferWriter vboWriter(*mCircleTextureBuffer);
-    vboWriter += engine::graphics::Vertex2D().lt(-1, -1).lb(-1, 1).rt(1, -1).rb(1, 1);
+    vboWriter += engine::graphics::Quad2D().lt(-1, -1).lb(-1, 1).rt(1, -1).rb(1, 1);
     vboWriter.release();
-
-    // The FBO texture uses opengl coordinates where y starts at the bottom, so we need to reverse it here
-    engine::graphics::BufferWriter fboWriter(*mFBOTextureBuffer);
-    fboWriter += engine::graphics::Vertex2D().lt(0, 1).lb(0, 0).rt(1, 1).rb(1, 0);
-    fboWriter.release();
 }
 
 void QtRenderer::setSize(uint32_t w, uint32_t h, double devicePixelRatio)
@@ -78,10 +77,16 @@ void QtRenderer::setSize(uint32_t w, uint32_t h, double devicePixelRatio)
     mFBO = std::make_unique<QOpenGLFramebufferObject>(w, h);
 
     mWorldMatrix->reset();
-    mWorldMatrix->ortho(0, w, h, 0, 0, 1);
+    mWorldMatrix->ortho(0, w, h, 0, -1, 1);
 
     mFBOMatrix->reset();
     mFBOMatrix->scale(mFBO->width(), mFBO->height());
+
+    // The FBO texture uses opengl coordinates where y starts at the bottom, so we need to reverse it here
+    engine::graphics::BufferWriter fboWriter(*mFBOTextureBuffer);
+    fboWriter += engine::graphics::Vector4D(0, 0, mFBO->width(), mFBO->height());
+    fboWriter += engine::graphics::Vector4D(0, 0, mFBO->width(), mFBO->height());
+    fboWriter.release();
 }
 
 void QtRenderer::paint(std::shared_ptr<engine::Engine>& engine)
@@ -97,8 +102,6 @@ void QtRenderer::paint(std::shared_ptr<engine::Engine>& engine)
     font.setPixelSize(24);
     mPainter->setFont(font);
 
-    mProjectionMatrix->reset();
-
     engine->paint();
     mPainter.reset();
 }
@@ -111,6 +114,16 @@ int32_t QtRenderer::width()
 int32_t QtRenderer::height()
 {
     return mFBO->height();
+}
+
+void QtRenderer::beginNative()
+{
+    mPainter->beginNativePainting();
+}
+
+void QtRenderer::endNative()
+{
+    mPainter->endNativePainting();
 }
 
 void QtRenderer::fillEllipse(const engine::Types::Rect<>& dst, const engine::graphics::Color& color)
@@ -138,6 +151,8 @@ void QtRenderer::fillRect(const engine::Types::Rect<>& dst, const engine::graphi
 
 void QtRenderer::drawImage(const engine::graphics::Image& img, engine::Types::Rect<> dst, engine::Types::Rect<> src)
 {
+    return;
+
     if (mPainter == nullptr) {
         engine::Logger::critical("drawImage") << "No painter set!!!";
         return;
@@ -201,8 +216,6 @@ void QtRenderer::drawText(const engine::Types::Rect<>& dst, const std::string& t
 
 void QtRenderer::drawOverlay(const engine::Types::Point<>& dst, engine::Overlay& overlay, uint32_t lightsCount, float mod)
 {
-    mPainter->beginNativePainting();
-
     mFBO->bind();
 
     glViewport(0, 0, mFBO->width(), mFBO->height());
@@ -216,7 +229,7 @@ void QtRenderer::drawOverlay(const engine::Types::Point<>& dst, engine::Overlay&
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glBlendEquationSeparate(GL_FUNC_ADD, GL_MAX);
 
-    mProjectionMatrix->translate(dst.x, dst.y);
+    mWorldMatrix->translate(dst.x, dst.y);
     mPointLightShader->bind();
 
     mCircleTextureBuffer->bind();
@@ -248,8 +261,7 @@ void QtRenderer::drawOverlay(const engine::Types::Point<>& dst, engine::Overlay&
 
     overlayBuffer.release();
 
-    mPointLightShader->setUniformValue("iWorldMatrix", *mWorldMatrix);
-    mPointLightShader->setUniformValue("iProjectionMatrix", *mProjectionMatrix);
+    mPointLightShader->setUniformValue("uWorldMatrix", *mWorldMatrix);
     mPointLightShader->setUniformValue("iMod", std::abs(mod - 1.0f));
 
     glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, lightsCount);
@@ -269,10 +281,6 @@ void QtRenderer::drawOverlay(const engine::Types::Point<>& dst, engine::Overlay&
 
     mFBO->release();
 
-    engine::graphics::BufferWriter matrixWriter(*mBufferMatrix);
-    matrixWriter += *mFBOMatrix;
-    matrixWriter.release();
-
     glEnable(GL_BLEND);
     glBlendFunc(GL_DST_COLOR, GL_ZERO);
     glBlendEquation(GL_FUNC_ADD);
@@ -281,162 +289,209 @@ void QtRenderer::drawOverlay(const engine::Types::Point<>& dst, engine::Overlay&
 
     glBindTexture(GL_TEXTURE_2D, mFBO->texture());
 
-    mFBOTextureBuffer->bind();
+    mQuadVertexBuffer->bind();
     mTextureShader->enableAttributeArray(0);
     mTextureShader->setAttributeBuffer(0, GL_FLOAT, 0, 2, engine::graphics::Vector2D::Size());
-    mFBOTextureBuffer->release();
-
-    mQuadVertexBuffer->bind();
-    mTextureShader->enableAttributeArray(1);
-    mTextureShader->setAttributeBuffer(1, GL_FLOAT, 0, 2, engine::graphics::Vector2D::Size());
     mQuadVertexBuffer->release();
 
-    mBufferMatrix->bind();
-    for (uint32_t i = 0; i < 4; i++) {
-        mTextureShader->enableAttributeArray(2 + i);
-        mTextureShader->setAttributeBuffer(2 + i, GL_FLOAT, i * engine::graphics::Vector4D::Size(), 4, engine::graphics::Matrix::Size());
-        glVertexAttribDivisor(2 + i, 1);
+    uint32_t stride = engine::graphics::Vector2D::Size() + engine::graphics::Vector4D::Size();
 
-        mTextureShader->enableAttributeArray(6 + i);
-        mTextureShader->setAttributeBuffer(6 + i, GL_FLOAT, i * engine::graphics::Vector4D::Size(), 4, engine::graphics::Matrix::Size());
-        glVertexAttribDivisor(6 + i, 1);
-    }
+    mFBOTextureBuffer->bind();
+    mTextureShader->enableAttributeArray(1);
+    mTextureShader->setAttributeBuffer(1, GL_FLOAT, 0, 4, stride);
+    glVertexAttribDivisor(1, 1);
+    
+    mTextureShader->enableAttributeArray(2);
+    mTextureShader->setAttributeBuffer(2, GL_FLOAT, engine::graphics::Vector4D::Size(), 4, stride);
+    glVertexAttribDivisor(2, 1);
+    mFBOTextureBuffer->release();
 
-    mBufferMatrix->release();
-
-    mTextureShader->setUniformValue("iWorldMatrix", *mWorldMatrix);
-    mTextureShader->setUniformValue("iProjectionMatrix", *mProjectionMatrix);
-    mTextureShader->setUniformValue("iTexture", 0);
+    mTextureShader->setUniformValue("uWorldMatrix", *mWorldMatrix);
+    mTextureShader->setUniformValue("uReverseY", static_cast<GLuint>(true));
+    mTextureShader->setUniformValue("uTexture", 0);
 
     glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, 1);
 
     mTextureShader->disableAttributeArray(0);
     mTextureShader->disableAttributeArray(1);
-    for (uint32_t i = 0; i < 4; i++) {
-        mTextureShader->disableAttributeArray(2 + i);
-        glVertexAttribDivisor(2 + i, 0);
-
-        mTextureShader->disableAttributeArray(6 + i);
-        glVertexAttribDivisor(6 + i, 0);
-    }
+    glVertexAttribDivisor(1, 0);
+    mTextureShader->disableAttributeArray(2);
+    glVertexAttribDivisor(2, 0);
 
     mTextureShader->release();
-    mProjectionMatrix->translate(-dst.x, -dst.y);
-
-    mPainter->endNativePainting();
+    mWorldMatrix->translate(-dst.x, -dst.y);
 }
 
 void QtRenderer::drawParticles(const engine::Types::Point<>& dst, const engine::Particles& particles)
 {
-    mPainter->beginNativePainting();
-    mProjectionMatrix->translate(dst.x, dst.y);
+    mWorldMatrix->translate(dst.x, dst.y);
+
+    glDisable(GL_DEPTH_TEST);
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    mParticleShader->bind();
+    mParticle2DShader->bind();
 
     mQuadVertexBuffer->bind();
-    mParticleShader->enableAttributeArray(0);
-    mParticleShader->setAttributeBuffer(0, GL_FLOAT, 0, 2, engine::graphics::Vector2D::Size());
+    mParticle2DShader->enableAttributeArray(0);
+    mParticle2DShader->setAttributeBuffer(0, GL_FLOAT, 0, 2, engine::graphics::Vector2D::Size());
     mQuadVertexBuffer->release();
 
     auto& particleBuffer = particles.buffer();
+
+    uint32_t stride = engine::graphics::Color::Size() + engine::graphics::Matrix::Size();
+
     particleBuffer.bind();
-    mParticleShader->enableAttributeArray(1);
-    mParticleShader->setAttributeBuffer(1, GL_FLOAT, 0, 4, engine::graphics::Color::Size() + engine::graphics::Matrix::Size());
+    mParticle2DShader->enableAttributeArray(1);
+    mParticle2DShader->setAttributeBuffer(1, GL_FLOAT, 0, 4, stride);
     glVertexAttribDivisor(1, 1);
 
     for (uint32_t i = 0; i < 4; i++) {
-        uint32_t offset = engine::graphics::Color::Size() + i * engine::graphics::Vector4D::Size();
-        mParticleShader->enableAttributeArray(2 + i);
-        mParticleShader->setAttributeBuffer(2 + i, GL_FLOAT, offset, 4, engine::graphics::Color::Size() + engine::graphics::Matrix::Size());
+        mParticle2DShader->enableAttributeArray(2 + i);
+        mParticle2DShader->setAttributeBuffer(2 + i, GL_FLOAT, engine::graphics::Color::Size() + i * engine::graphics::Vector4D::Size(), 4, stride);
         glVertexAttribDivisor(2 + i, 1);
     }
-
     particleBuffer.release();
 
-    mParticleShader->setUniformValue("iWorldMatrix", *mWorldMatrix);
-    mParticleShader->setUniformValue("iProjectionMatrix", *mProjectionMatrix);
+    mParticle2DShader->setUniformValue("uWorldMatrix", *mWorldMatrix);
 
     glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, particles.size());
 
-    mParticleShader->disableAttributeArray(0);
-    mParticleShader->disableAttributeArray(1);
+    mParticle2DShader->disableAttributeArray(0);
+    mParticle2DShader->disableAttributeArray(1);
     glVertexAttribDivisor(1, 0);
+
     for (uint32_t i = 0; i < 4; i++) {
-        mParticleShader->disableAttributeArray(2 + i);
+        mParticle2DShader->disableAttributeArray(2 + i);
         glVertexAttribDivisor(2 + i, 0);
     }
 
-    mParticleShader->release();
+    mParticle2DShader->release();
 
-    mProjectionMatrix->translate(-dst.x, -dst.y);
-    mPainter->endNativePainting();
+    mWorldMatrix->translate(-dst.x, -dst.y);
 }
 
-void QtRenderer::drawTextures(const engine::Types::Point<>& dst, engine::graphics::Texture* texture, engine::graphics::Buffer* buffer, uint32_t count)
+void QtRenderer::drawCharset(const engine::Types::Point<>& dst, engine::graphics::Texture* texture, engine::graphics::Buffer* buffer, float_t animFrame, uint32_t count)
 {
-    mPainter->beginNativePainting();
-    mProjectionMatrix->translate(dst.x, dst.y);
+    mWorldMatrix->translate(dst.x, dst.y);
+
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LEQUAL);
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    uint32_t matrixStride = engine::graphics::Vector2D::Size() * 2 + sizeof(float_t) + engine::graphics::Matrix::Size();
+    uint32_t matrixStride = engine::graphics::Vector3D::Size() + engine::graphics::Vector4D::Size() + engine::graphics::Vector2D::Size() + sizeof(float_t);
 
-    mTextureArrayShader->bind();
+    mCharset2DShader->bind();
 
     texture->bind(0);
 
     mQuadVertexBuffer->bind();
-    mTextureArrayShader->enableAttributeArray(0);
-    mTextureArrayShader->setAttributeBuffer(0, GL_FLOAT, 0, 2, engine::graphics::Vector2D::Size());
+    mCharset2DShader->enableAttributeArray(0);
+    mCharset2DShader->setAttributeBuffer(0, GL_FLOAT, 0, 2, engine::graphics::Vector2D::Size());
     mQuadVertexBuffer->release();
-
+    
     buffer->bind();
-    mTextureArrayShader->enableAttributeArray(1);
-    mTextureArrayShader->setAttributeBuffer(1, GL_FLOAT, 0, 2, matrixStride);
+    mCharset2DShader->enableAttributeArray(1);
+    mCharset2DShader->setAttributeBuffer(1, GL_FLOAT, 0, 3, matrixStride);
     glVertexAttribDivisor(1, 1);
 
-    mTextureArrayShader->enableAttributeArray(2);
-    mTextureArrayShader->setAttributeBuffer(2, GL_FLOAT, engine::graphics::Vector2D::Size(), 2, matrixStride);
+    mCharset2DShader->enableAttributeArray(2);
+    mCharset2DShader->setAttributeBuffer(2, GL_FLOAT, engine::graphics::Vector3D::Size(), 4, matrixStride);
     glVertexAttribDivisor(2, 1);
 
-    mTextureArrayShader->enableAttributeArray(3);
-    mTextureArrayShader->setAttributeBuffer(3, GL_FLOAT, engine::graphics::Vector2D::Size() * 2, 1, matrixStride);
+    mCharset2DShader->enableAttributeArray(3);
+    mCharset2DShader->setAttributeBuffer(3, GL_FLOAT, engine::graphics::Vector3D::Size() + engine::graphics::Vector4D::Size(), 2, matrixStride);
     glVertexAttribDivisor(3, 1);
 
-    for (uint32_t i = 0; i < 4; i++) {
-        mTextureArrayShader->enableAttributeArray(4 + i);
-        mTextureArrayShader->setAttributeBuffer(4 + i, GL_FLOAT, sizeof(float_t) + engine::graphics::Vector2D::Size() * 2 + i * engine::graphics::Vector4D::Size(), 4, matrixStride);
-        glVertexAttribDivisor(4 + i, 1);
-    }
-
+    mCharset2DShader->enableAttributeArray(4);
+    mCharset2DShader->setAttributeBuffer(4, GL_FLOAT, engine::graphics::Vector3D::Size() + engine::graphics::Vector4D::Size() + engine::graphics::Vector2D::Size(), 1, matrixStride);
+    glVertexAttribDivisor(4, 1);
     buffer->release();
 
-    mTextureArrayShader->setUniformValue("iWorldMatrix", *mWorldMatrix);
-    mTextureArrayShader->setUniformValue("iProjectionMatrix", *mProjectionMatrix);
-    mTextureArrayShader->setUniformValue("iTexture", 0);
+    mCharset2DShader->setUniformValue("uWorldMatrix", *mWorldMatrix);
+    mCharset2DShader->setUniformValue("uTexture", 0);
+    mCharset2DShader->setUniformValue("uAnimFrame", animFrame);
 
     glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, count);
 
-    mTextureArrayShader->disableAttributeArray(0);
-    glVertexAttribDivisor(0, 0);
-    mTextureArrayShader->disableAttributeArray(1);
+    mCharset2DShader->disableAttributeArray(0);
+    mCharset2DShader->disableAttributeArray(1);
     glVertexAttribDivisor(1, 0);
-    mTextureArrayShader->disableAttributeArray(2);
+    mCharset2DShader->disableAttributeArray(2);
     glVertexAttribDivisor(2, 0);
-    for (uint32_t i = 0; i < 4; i++) {
-        mTextureArrayShader->disableAttributeArray(3 + i);
-        glVertexAttribDivisor(3 + i, 0);
-    }
+    mCharset2DShader->disableAttributeArray(3);
+    glVertexAttribDivisor(3, 0);
+    mCharset2DShader->disableAttributeArray(4);
+    glVertexAttribDivisor(4, 0);
 
     texture->release();
-    mTextureArrayShader->release();
+    mCharset2DShader->release();
 
-    mProjectionMatrix->translate(-dst.x, -dst.y);
-    mPainter->endNativePainting();
+    mWorldMatrix->translate(-dst.x, -dst.y);
+}
+
+void QtRenderer::drawTiles(const engine::Types::Point<>& dst, engine::graphics::Texture* texture, engine::graphics::Buffer* buffer, float_t animFrame, uint32_t count)
+{
+    mWorldMatrix->translate(dst.x, dst.y);
+
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LEQUAL);
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    uint32_t matrixStride = engine::graphics::Vector3D::Size() + engine::graphics::Vector4D::Size() + engine::graphics::Vector2D::Size() + sizeof(float_t);
+
+    mTiles2DShader->bind();
+
+    texture->bind(0);
+
+    mQuadVertexBuffer->bind();
+    mTiles2DShader->enableAttributeArray(0);
+    mTiles2DShader->setAttributeBuffer(0, GL_FLOAT, 0, 2, engine::graphics::Vector2D::Size());
+    mQuadVertexBuffer->release();
+    
+    buffer->bind();
+    mTiles2DShader->enableAttributeArray(1);
+    mTiles2DShader->setAttributeBuffer(1, GL_FLOAT, 0, 3, matrixStride);
+    glVertexAttribDivisor(1, 1);
+
+    mTiles2DShader->enableAttributeArray(2);
+    mTiles2DShader->setAttributeBuffer(2, GL_FLOAT, engine::graphics::Vector3D::Size(), 4, matrixStride);
+    glVertexAttribDivisor(2, 1);
+
+    mTiles2DShader->enableAttributeArray(3);
+    mTiles2DShader->setAttributeBuffer(3, GL_FLOAT, engine::graphics::Vector3D::Size() + engine::graphics::Vector4D::Size(), 2, matrixStride);
+    glVertexAttribDivisor(3, 1);
+
+    mTiles2DShader->enableAttributeArray(4);
+    mTiles2DShader->setAttributeBuffer(4, GL_FLOAT, engine::graphics::Vector3D::Size() + engine::graphics::Vector4D::Size() + engine::graphics::Vector2D::Size(), 1, matrixStride);
+    glVertexAttribDivisor(4, 1);
+    buffer->release();
+
+    mTiles2DShader->setUniformValue("uWorldMatrix", *mWorldMatrix);
+    mTiles2DShader->setUniformValue("uTexture", 0);
+    mTiles2DShader->setUniformValue("uAnimFrame", animFrame);
+
+    glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, count);
+
+    mTiles2DShader->disableAttributeArray(0);
+    mTiles2DShader->disableAttributeArray(1);
+    glVertexAttribDivisor(1, 0);
+    mTiles2DShader->disableAttributeArray(2);
+    glVertexAttribDivisor(2, 0);
+    mTiles2DShader->disableAttributeArray(3);
+    glVertexAttribDivisor(3, 0);
+    mTiles2DShader->disableAttributeArray(4);
+    glVertexAttribDivisor(4, 0);
+
+    texture->release();
+    mTiles2DShader->release();
+
+    mWorldMatrix->translate(-dst.x, -dst.y);
 }
 
 void QtRenderer::rotate(float_t deg)
@@ -456,8 +511,8 @@ void QtRenderer::translate(int32_t x, int32_t y)
         return;
     }
 
-    mPainter->translate(x, y);
-    //mProjectionMatrix->translate(x, y);
+    //mPainter->translate(x, y);
+    //mWorldMatrix->translate(x, y);
 }
 
 void QtRenderer::save()

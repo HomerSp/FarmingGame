@@ -55,9 +55,8 @@ public:
 
     bool animate(uint64_t frameDiff);
 
-    void draw(graphics::Renderer& renderer, const Types::Rect<>& dst, TilesetAbove::Type above, bool clip = true);
-    void drawRow(graphics::Renderer& renderer, const Types::Rect<>& dst, int32_t row, TilesetAbove::Type above, bool clip = true);
-    void drawBuffer(graphics::Renderer& renderer, const Types::Rect<>& dst, TilesetAbove::Type above, bool clip = true);
+    void drawBuffer(graphics::Renderer& renderer, const Types::Point<>& dst, TilesetAbove::Type above);
+    void updateBuffers(graphics::Renderer& renderer);
 
     void checkCollision(const Types::Point<float_t>& pos, const Types::Dimension<>& size, Types::Point<float_t>& dst, float_t& velocityX, float_t& velocityY) const;
     bool isNodeSolid(int32_t x, int32_t y, const Types::Dimension<>& size) const;
@@ -83,6 +82,8 @@ public:
 protected:
     bool isColliding(const Types::Point<float_t>& pos, const Types::Dimension<>& size, Types::Pair& diff, int8_t& rDiff, bool vertical) const;
 
+    uint32_t tilesCount(TilesetAbove::Type above);
+
 private:
     bool mValid;
     std::string mID;
@@ -95,7 +96,11 @@ private:
     std::vector<std::shared_ptr<MapLightSource>> mLights;
     std::vector<Types::Point<int32_t >> mPaths;
 
-    std::unique_ptr<graphics::Buffer> mBuffer;
+    std::atomic<bool> mNeedUpdate;
+    std::unordered_map<TilesetAbove::Type, std::unique_ptr<graphics::Buffer>> mBuffer;
+    std::unordered_map<TilesetAbove::Type, uint32_t> mBufferCount;
     std::unique_ptr<graphics::Texture> mTexture;
+
+    std::atomic<float_t> mAnimFrame;
 };
 }

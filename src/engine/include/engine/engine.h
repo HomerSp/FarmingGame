@@ -39,6 +39,7 @@ public:
 
     void process();
     void paint();
+    void update();
 
     void setKeyMap(const std::unordered_map<int32_t, Keys::Type>& keys);
     void setKeyDown(int32_t key);

@@ -9,7 +9,7 @@
 #include <engine/graphics/bufferwriter.h>
 #include <engine/graphics/matrix.h>
 #include <engine/graphics/renderer.h>
-#include <engine/graphics/vector2d.h>
+#include <engine/graphics/vector.h>
 #include <engine/logger.h>
 #include <engine/map.h>
 #include <engine/maplayer.h>
@@ -22,6 +22,9 @@ Map::Map(std::shared_ptr<Context>& ctx, graphics::Renderer& renderer, const std:
     , mID(id)
     , mType(Map::Type::Outside)
     , mDimensions(0, 0)
+    , mNeedUpdate(true)
+    , mBufferCount(0)
+    , mAnimFrame(0)
 {
     Logger::debug("Map") << "Loading Map" << id;
 
@@ -117,10 +120,11 @@ Map::Map(std::shared_ptr<Context>& ctx, graphics::Renderer& renderer, const std:
         }
     }
 
-    auto d = getTileDimension();
-    uint32_t bufferSize = engine::graphics::Vector2D::Size() * 2 + sizeof(float_t) + engine::graphics::Matrix::Size();
-    uint32_t tiles = ((renderer.width() / d.width) + 2) * ((renderer.height() / d.height) + 2);
-    mBuffer = renderer.createBuffer(bufferSize * tiles * 4 * mLayers.size());
+    uint32_t bufferSize = engine::graphics::Vector3D::Size() + engine::graphics::Vector2D::Size() * 3 + sizeof(float_t);
+    for (auto above: TilesetAbove::Types) {
+        mBufferCount[above] = tilesCount(above);
+        mBuffer[above] = renderer.createBuffer(bufferSize * mBufferCount[above]);
+    }
 
     uint32_t w = 0, h = 0;
     for (auto& t: mTilesets) {
@@ -141,67 +145,38 @@ Map::Map(std::shared_ptr<Context>& ctx, graphics::Renderer& renderer, const std:
 
 bool Map::animate(uint64_t frameDiff)
 {
-    bool changed = false;
-    for (const auto& layer : mLayers) {
-        if (layer->animate(frameDiff)) {
-            changed = true;
-        }
+    float_t c = mAnimFrame;
+    c += frameDiff / 200.0f;
+    if (c >= 3) {
+        c = 0;
     }
+
+    bool changed = std::floor(c) != std::floor(mAnimFrame);
+    mAnimFrame = c;
     return changed;
 }
 
-void Map::draw(graphics::Renderer& renderer, const Types::Rect<>& dst, TilesetAbove::Type above, bool clip)
+void Map::drawBuffer(graphics::Renderer& renderer, const Types::Point<>& dst, TilesetAbove::Type above)
 {
-    Types::Dimension<> tileDimens = getTileDimension();
-    Types::Rect<> target;
-    target.x = std::ceil(dst.x / tileDimens.width);
-    target.y = std::ceil(dst.y / tileDimens.height);
-    target.width = std::ceil(dst.width / tileDimens.width);
-    target.height = std::ceil(dst.height / tileDimens.height);
-
-    renderer.translate(-(dst.x % tileDimens.width), -(dst.y % tileDimens.height));
-    for (const auto& layer : mLayers) {
-        layer->draw(renderer, target, above, clip);
-    }
-
-    renderer.translate((dst.x % tileDimens.width), (dst.y % tileDimens.height));
+    renderer.drawTiles(dst, mTexture.get(), mBuffer[above].get(), std::floor(mAnimFrame), mBufferCount[above]);
 }
 
-void Map::drawBuffer(graphics::Renderer& renderer, const Types::Rect<>& dst, TilesetAbove::Type above, bool clip)
+void Map::updateBuffers(graphics::Renderer& renderer)
 {
-    Types::Dimension<> tileDimens = getTileDimension();
-    Types::Rect<> target;
-    target.x = std::ceil(dst.x / tileDimens.width);
-    target.y = std::ceil(dst.y / tileDimens.height);
-    target.width = std::ceil(dst.width / tileDimens.width);
-    target.height = std::ceil(dst.height / tileDimens.height);
-
-    uint32_t count = 0;
-    graphics::BufferWriter writer(*mBuffer);
-    for (const auto& layer : mLayers) {
-        count += layer->drawBuffer(renderer, target, above, writer, clip);
+    if (!mNeedUpdate) {
+        return;
     }
 
-    writer.release();
+    for (auto above: TilesetAbove::Types) {
+        graphics::BufferWriter writer(*mBuffer[above]);
+        for (const auto& layer : mLayers) {
+            layer->updateBuffer(renderer, above, writer);
+        }
 
-    Types::Point<> dstPoint(-(dst.x % tileDimens.width), -(dst.y % tileDimens.height));
-    renderer.drawTextures(dstPoint, mTexture.get(), mBuffer.get(), count);
-}
-
-void Map::drawRow(graphics::Renderer& renderer, const Types::Rect<>& dst, int32_t row, TilesetAbove::Type above, bool clip)
-{
-    Types::Dimension<> tileDimens = getTileDimension();
-    Types::Rect<> target;
-    target.x = std::ceil(dst.x / tileDimens.width);
-    target.y = std::ceil(dst.y / tileDimens.height);
-    target.width = std::ceil(dst.width / tileDimens.width);
-    target.height = std::ceil(dst.height / tileDimens.height);
-
-    renderer.translate(-(dst.x % tileDimens.width), -(dst.y % tileDimens.height));
-    for (const auto& layer : mLayers) {
-        layer->drawRow(renderer, target, row, above, clip);
+        writer.release();
     }
-    renderer.translate((dst.x % tileDimens.width), (dst.y % tileDimens.height));
+
+    mNeedUpdate = false;
 }
 
 void Map::checkCollision(const Types::Point<float_t>& pos, const Types::Dimension<>& size, Types::Point<float_t>& dst, float_t& velocityX, float_t& velocityY) const
@@ -297,7 +272,9 @@ void Map::addLightSources(std::vector<std::shared_ptr<Overlay::LightSource>>& so
 void Map::toggleLights(bool on)
 {
     for (auto& layer : mLayers) {
-        layer->toggleLights(on);
+        if (layer->toggleLights(on)) {
+            mNeedUpdate = true;
+        }
     }
 }
 
@@ -332,6 +309,16 @@ bool Map::isColliding(const Types::Point<float_t>& pos, const Types::Dimension<>
     }
 
     return found;
+}
+
+uint32_t Map::tilesCount(TilesetAbove::Type above)
+{
+    uint32_t ret = 0;
+    for (const auto& layer : mLayers) {
+        ret += layer->tilesCount(above);
+    }
+
+    return ret;
 }
 
 const std::string& Map::id() const

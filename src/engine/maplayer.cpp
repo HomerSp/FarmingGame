@@ -52,39 +52,14 @@ MapLayer::MapLayer(graphics::Renderer& renderer, Types::Map2D data, std::shared_
     mValid = true;
 }
 
-bool MapLayer::animate(uint64_t frameDiff)
-{
-    bool changed = false;
-    for (auto& above: mNodes) {
-        for (auto &nodeY: above.second) {
-            for (auto &nodeX: nodeY.second) {
-                if (nodeX.second->frames > 0) {
-                    float_t c = nodeX.second->current;
-                    c += frameDiff / 200.0f;
-                    if (c >= nodeX.second->frames) {
-                        c = 0;
-                    }
-
-                    changed = std::floor(c) != std::floor(nodeX.second->current);
-                    nodeX.second->current = c;
-                }
-            }
-        }
-    }
-
-    return changed;
-}
-
-void MapLayer::draw(graphics::Renderer& renderer, const Types::Rect<>& dst, TilesetAbove::Type above, bool clip)
+void MapLayer::updateBuffer(graphics::Renderer& renderer, TilesetAbove::Type above, graphics::BufferWriter& writer)
 {
     for (auto &nodeY: mNodes[above]) {
-        if (nodeY.first >= dst.y - 1 && nodeY.first <= dst.y + dst.height + 1) {
-            drawRow(renderer, dst, nodeY.first, above, clip);
-        }
+        updateRowBuffer(renderer, nodeY.first, above, writer);
     }
 }
 
-void MapLayer::drawRow(graphics::Renderer& renderer, const Types::Rect<>& dst, int32_t row, TilesetAbove::Type above, bool clip)
+void MapLayer::updateRowBuffer(graphics::Renderer& renderer, int32_t row, TilesetAbove::Type above, graphics::BufferWriter& writer)
 {
     auto* nodes = &mNodes[above];
 
@@ -93,52 +68,42 @@ void MapLayer::drawRow(graphics::Renderer& renderer, const Types::Rect<>& dst, i
         return;
     }
 
+    float_t zOrder = 1.0f;
+    if (above == TilesetAbove::All) {
+        zOrder = -1.0f;
+    } else if (above == TilesetAbove::Row) {
+        zOrder = 1.0f - ((row + 1) / static_cast<float_t>(mDimensions.height));
+    }
+
     auto nodeRow = nodes->at(row);
     for (auto &node : nodeRow) {
-        if (!clip || (node.first >= dst.x - 1 && node.first <= dst.x + dst.width + 1)) {
-            mTileset->draw(renderer, *node.second, { node.first - dst.x, row - dst.y });
-        }
+        mTileset->updateBuffer(renderer, *node.second, { node.first, row }, writer, mTilesetIndex, zOrder);
     }
 }
 
-uint32_t MapLayer::drawBuffer(graphics::Renderer& renderer, const Types::Rect<>& dst, TilesetAbove::Type above, graphics::BufferWriter& writer, bool clip)
+uint32_t MapLayer::tilesCount(TilesetAbove::Type above)
 {
     uint32_t ret = 0;
     for (auto &nodeY: mNodes[above]) {
-        if (nodeY.first >= dst.y - 1 && nodeY.first <= dst.y + dst.height + 1) {
-            ret += drawRowBuffer(renderer, dst, nodeY.first, above, writer, clip);
-        }
+        ret += nodeY.second.size() * 4;
     }
 
     return ret;
 }
 
-uint32_t MapLayer::drawRowBuffer(graphics::Renderer& renderer, const Types::Rect<>& dst, int32_t row, TilesetAbove::Type above, graphics::BufferWriter& writer, bool clip)
+bool MapLayer::toggleLights(bool on)
 {
-    auto* nodes = &mNodes[above];
-
-    // No nodes at this row, return.
-    if (nodes->find(row) == nodes->end()) {
-        return 0;
-    }
-
-    uint32_t ret = 0;
-
-    auto nodeRow = nodes->at(row);
-    for (auto &node : nodeRow) {
-        if (!clip || (node.first >= dst.x - 1 && node.first <= dst.x + dst.width + 1)) {
-            ret += mTileset->drawBuffer(renderer, *node.second, { node.first - dst.x, row - dst.y }, writer, mTilesetIndex);
-        }
-    }
-
-    return ret;
-}
-
-void MapLayer::toggleLights(bool on)
-{
+    bool changed = false;
     for (auto node: mLightNodes) {
+        if (node->toggled == on) {
+            continue;
+        }
+
         node->toggled = on;
+        changed = true;
     }
+
+    return changed;
 }
 
 bool MapLayer::updateCollisionMap(CollisionMap& outMap)

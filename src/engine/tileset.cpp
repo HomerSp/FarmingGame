@@ -9,11 +9,13 @@
 #include <engine/graphics/image.h>
 #include <engine/graphics/matrix.h>
 #include <engine/graphics/renderer.h>
-#include <engine/graphics/vector2d.h>
+#include <engine/graphics/vector.h>
 #include <engine/logger.h>
 #include <engine/tileset.h>
 
 using namespace engine;
+
+constexpr TilesetAbove::Type TilesetAbove::Types[];
 
 TilesetType::TilesetType(uint32_t index, Types::Dimension<>& tileDimension, const std::string& tileType, uint32_t x, uint32_t y)
     : mValid(false)
@@ -184,7 +186,6 @@ std::shared_ptr<TilesetNode> TilesetType::toNode(Types::Map2D& tiles, uint32_t x
     node->id = x + (y * width);
     node->animSize = Types::Point<>(mTileDimension.width, 0);
     node->frames = mFrames;
-    node->current = 0;
     node->toggleWidth = (mAttributes[TilesetAttribute::Toggle]) ? (mSize.width / 2) : 0;
     node->toggled = false;
     node->type = this;
@@ -194,6 +195,10 @@ std::shared_ptr<TilesetNode> TilesetType::toNode(Types::Map2D& tiles, uint32_t x
     } else if (mTileType == TileTypeAutoHoriz) {
         node->animSize.x = 0;
         node->animSize.y = mTileDimension.height;
+    }
+
+    if (node->frames <= 1) {
+        node->animSize = Types::Point<>(0, 0);
     }
 
     uint32_t chunkWidth = (mTileDimension.width / 2);
@@ -487,9 +492,6 @@ Tileset::Tileset(std::shared_ptr<Context>& ctx, const std::string& name)
 
             if (nodeObj.isMember("above")) {
                 switch (Types::hash(nodeObj["above"].asString().c_str())) {
-                case Types::hash("below"):
-                    type->setAbove(TilesetAbove::Below);
-                    break;
                 case Types::hash("row"):
                     type->setAbove(TilesetAbove::Row);
                     break;
@@ -597,7 +599,7 @@ graphics::Image& Tileset::image() const
     return *mImage;
 }
 
-void Tileset::draw(graphics::Renderer& renderer, TilesetNode& node, const Types::Point<>& pos)
+void Tileset::updateBuffer(graphics::Renderer& renderer, TilesetNode& node, const Types::Point<>& pos, graphics::BufferWriter& writer, uint32_t texture, float_t zOrder)
 {
     Types::Rect<> dst(0, 0, mTileDimension.width / 2, mTileDimension.height / 2);
     int32_t dx = 0, dy = 0;
@@ -605,49 +607,15 @@ void Tileset::draw(graphics::Renderer& renderer, TilesetNode& node, const Types:
         dst.x = (pos.x * mTileDimension.width) + (dx * (mTileDimension.width / 2));
         dst.y = (pos.y * mTileDimension.height) + (dy * (mTileDimension.height / 2));
 
-        Types::Rect<> src(po.x + (node.animSize.x * std::floor(node.current)), po.y + (node.animSize.y * std::floor(node.current)), dst.width, dst.height);
+        Types::Rect<> src(po.x, po.y, dst.width, dst.height);
         if (node.toggled) {
             src.x += node.toggleWidth;
         }
 
-        renderer.drawImage(*mImage, dst, src);
-
-        dx++;
-        if (dx > 1) {
-            dx = 0;
-            dy++;
-        }
-    }
-}
-
-uint32_t Tileset::drawBuffer(graphics::Renderer& renderer, TilesetNode& node, const Types::Point<>& pos, graphics::BufferWriter& writer, uint32_t texture)
-{
-    uint32_t ret = 0;
-
-    Types::Rect<> dst(0, 0, mTileDimension.width / 2, mTileDimension.height / 2);
-    int32_t dx = 0, dy = 0;
-    for (auto& po : node.pos) {
-        dst.x = (pos.x * mTileDimension.width) + (dx * (mTileDimension.width / 2));
-        dst.y = (pos.y * mTileDimension.height) + (dy * (mTileDimension.height / 2));
-
-        Types::Rect<> src(po.x + (node.animSize.x * std::floor(node.current)), po.y + (node.animSize.y * std::floor(node.current)), dst.width, dst.height);
-        if (node.toggled) {
-            src.x += node.toggleWidth;
-        }
-
-        writer += engine::graphics::Vector2D(src.x, src.y);
-        writer += engine::graphics::Vector2D(mTileDimension.width / 2, mTileDimension.height / 2);
+        writer += engine::graphics::Vector3D(dst.x, dst.y, zOrder);
+        writer += engine::graphics::Vector4D(src.x, src.y, mTileDimension.width / 2.0f, mTileDimension.height / 2.0f);
+        writer += engine::graphics::Vector2D(node.animSize.x, node.animSize.y);
         writer += static_cast<float_t>(texture);
-        
-        if (!mTestMatrix) {
-            mTestMatrix = renderer.createMatrix();
-            mTestMatrix->translate(0, 0);
-            mTestMatrix->scale(mTileDimension.width / 2, mTileDimension.height / 2);
-        }
-
-        writer += *mTestMatrix;
-
-        ret++;
 
         dx++;
         if (dx > 1) {
@@ -655,8 +623,6 @@ uint32_t Tileset::drawBuffer(graphics::Renderer& renderer, TilesetNode& node, co
             dy++;
         }
     }
-
-    return ret;
 }
 
 std::unique_ptr<CollisionMap> Tileset::loadCollisionMap()

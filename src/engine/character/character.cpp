@@ -5,14 +5,16 @@
 #include <engine/assetmanager.h>
 #include <engine/character/character.h>
 #include <engine/context.h>
+#include <engine/graphics/bufferwriter.h>
 #include <engine/graphics/renderer.h>
+#include <engine/graphics/vector.h>
 #include <engine/logger.h>
 #include <engine/map.h>
 
 using namespace engine;
 using namespace engine::character;
 
-Character::Character(std::shared_ptr<Context> &ctx, std::string id)
+Character::Character(std::shared_ptr<Context> &ctx, graphics::Renderer& renderer, std::string id)
     : ScriptObject(ctx)
     , mValid(false)
     , mID(std::move(id))
@@ -41,6 +43,12 @@ Character::Character(std::shared_ptr<Context> &ctx, std::string id)
 
     mName = doc["name"].asString();
     mCharset = std::make_shared<Charset>(ctx, doc["charset"].asString());
+
+    mBuffer = renderer.createBuffer(engine::graphics::Vector3D::Size() + engine::graphics::Vector4D::Size() + engine::graphics::Vector2D::Size() + sizeof(float_t));
+
+    auto& img = mCharset->image();
+    mTexture = renderer.createTexture(img.width(), img.height(), 1);
+    mTexture->setData(img, 0);
 
     mValid = true;
 }
@@ -84,7 +92,12 @@ Types::Rect<float_t> Character::rect()
     return {mPos.x, mPos.y, static_cast<float_t>(mCharset->width(mCharsetType)), static_cast<float_t>(mCharset->height(mCharsetType))};
 }
 
-void Character::draw(graphics::Renderer& renderer, const Types::Point<>& camera)
+void Character::drawBuffer(graphics::Renderer& renderer, const Types::Point<>& dst)
+{
+    renderer.drawCharset(dst, mTexture.get(), mBuffer.get(), 0, 1);
+}
+
+void Character::updateBuffers(graphics::Renderer& renderer, uint32_t mapHeight)
 {
     std::lock_guard<std::mutex> lock(mMovementMutex);
     int32_t cols = mCharset->columns(mCharsetType);
@@ -93,8 +106,13 @@ void Character::draw(graphics::Renderer& renderer, const Types::Point<>& camera)
         frame = frame + 1 - cols;
     }
 
-    Types::Point<> pos(mPos.x - camera.x, mPos.y - camera.y);
-    mCharset->draw(renderer, pos, mCharsetType, mDirection, frame);
+    int32_t height = mCharset->height(mCharsetType);
+    float_t zOrder = 1.0f - ((mPos.y + height) / static_cast<float_t>(mapHeight));
+
+    Types::Point<> pos(mPos.x, mPos.y);
+
+    graphics::BufferWriter writer(*mBuffer);
+    mCharset->updateBuffer(renderer, pos, mCharsetType, mDirection, frame, writer, 0, zOrder);
 }
 
 bool Character::animate(uint64_t frameDiff, bool reset)

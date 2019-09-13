@@ -4,7 +4,9 @@
 
 #include <engine/context.h>
 #include <engine/engine.h>
+#include <engine/graphics/bufferwriter.h>
 #include <engine/graphics/renderer.h>
+#include <engine/graphics/vector.h>
 #include <engine/logger.h>
 
 using namespace engine;
@@ -33,7 +35,7 @@ Engine::Engine(uint32_t width, uint32_t height, std::shared_ptr<graphics::Render
     mCamera = std::make_unique<engine::Camera>(mContext, mWidth, mHeight);
     mClock = std::make_unique<engine::Clock>(mContext);
     mMap = std::make_unique<engine::Map>(mContext, *mRenderer, "map");
-    mPlayer = std::make_shared<engine::Player>(mContext);
+    mPlayer = std::make_shared<engine::Player>(mContext, *mRenderer);
     mWeather = std::make_unique<engine::Weather>(mContext, *mRenderer, *mClock);
 
     mClock->connect(mClock->DayChanged, std::bind(&Weather::dayChanged, std::ref(*mWeather), std::cref(*mClock)));
@@ -43,12 +45,12 @@ Engine::Engine(uint32_t width, uint32_t height, std::shared_ptr<graphics::Render
 
     mCharacters.emplace("player", mPlayer);
 
-    std::shared_ptr<character::Character> dude = std::make_shared<character::Character>(mContext, "dude");
+    std::shared_ptr<character::Character> dude = std::make_shared<character::Character>(mContext, *mRenderer, "dude");
     dude->setPosition("map", 10 * 48, (9 * 48) - 24);
     dude->setDirection(Character::Direction::Down);
     mCharacters.emplace("dude", std::move(dude));
 
-    std::shared_ptr<character::Character> horse = std::make_shared<Character>(mContext, "horse");
+    std::shared_ptr<character::Character> horse = std::make_shared<Character>(mContext, *mRenderer, "horse");
     horse->setPosition("map", 48, 96);
     horse->setDirection(Character::Direction::Right);
     mCharacters.emplace("horse", std::move(horse));
@@ -287,7 +289,11 @@ void Engine::paint()
     mDrawingTimer.start();
 
     auto& renderer = *mRenderer;
-    renderer.fillRect(Types::Rect<>(0, 0, mWidth, mHeight), graphics::Color(0, 0, 0));
+
+    mMap->updateBuffers(renderer);
+    for (auto& i: mCharacters) {
+        i.second->updateBuffers(renderer, mMap->pixelHeight());
+    }
 
     // Centre small maps.
     float_t translateX = 0.0f, translateY = 0.0f;
@@ -303,49 +309,28 @@ void Engine::paint()
         renderer.translate(translateX, translateY);
     }
 
-    Types::Rect<> dst(mCamera->x(), mCamera->y(), mWidth, mHeight);
+    Types::Point<> dst(-mCamera->x(), -mCamera->y());
+
+    renderer.beginNative();
 
     // Draw water tiles
-    mMap->draw(renderer, dst, TilesetAbove::Water);
-
+    mMap->drawBuffer(renderer, dst, TilesetAbove::Water);
     mWeather->drawWater(renderer, *mCamera);
 
-    // Draw ground tiles
-    mMap->draw(renderer, dst, TilesetAbove::None);
+    mMap->drawBuffer(renderer, dst, TilesetAbove::None);
 
-    Types::Dimension<> d = mMap->getTileDimension();
-    int32_t startY = std::ceil(mCamera->y() / d.height);
-
-    // Select what characters we need to draw
-    std::multimap<int32_t, Character*> drawCharacters;
     for (auto& i: mCharacters) {
-        auto rc = i.second->rect();
-        if (i.second->map() == mMap->id() && mCamera->contains(rc, d)) {
-            drawCharacters.emplace(rc.y + rc.height - d.height, i.second.get());
-        }
+        i.second->drawBuffer(renderer, dst);
     }
 
-    for (int32_t row = startY - 1; (row <= startY + std::ceil(mHeight / d.height) + 1) || !drawCharacters.empty(); row++) {
-        auto it = drawCharacters.begin();
-        while (it != drawCharacters.end()) {
-            if (row * d.height >= it->first) {
-                it->second->draw(renderer, Types::Point<>(mCamera->x(), mCamera->y()));
-                it = drawCharacters.erase(it);
-            } else {
-                it++;
-            }
-        }
-
-        mMap->drawRow(renderer, dst, row, TilesetAbove::Row);
-    }
-
-    for (int32_t row = startY - 1; row <= startY + std::ceil(mHeight / d.height); row++) {
-        mMap->drawRow(renderer, dst, row, TilesetAbove::All);
-    }
+    mMap->drawBuffer(renderer, dst, TilesetAbove::Row);
+    mMap->drawBuffer(renderer, dst, TilesetAbove::All);
 
     mWeather->drawWeather(renderer, *mCamera);
 
     mScreenEffects->draw(renderer, *mClock, *mCamera, mLights, *mWeather);
+
+    renderer.endNative();
 
     if (translateX != 0.0f || translateY != 0.0f) {
         renderer.translate(-translateX, -translateY);

@@ -45,7 +45,8 @@ void QtWindow::paintGL()
     glViewport(0, 0, width(), height());
 
     glClearColor(0, 0, 0, 1);
-    glClear(GL_COLOR_BUFFER_BIT);
+    glClearDepthf(1.0f);
+    glClear(static_cast<uint32_t>(GL_COLOR_BUFFER_BIT) | static_cast<uint32_t>(GL_DEPTH_BUFFER_BIT));
 
     mRenderer->paint(mEngine);
 }

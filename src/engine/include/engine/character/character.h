@@ -5,6 +5,8 @@
 
 #include <engine/camera.h>
 #include <engine/charset.h>
+#include <engine/graphics/buffer.h>
+#include <engine/graphics/texture.h>
 #include <engine/listeners.h>
 #include <engine/pathfinding.h>
 #include <engine/script/scriptobject.h>
@@ -32,9 +34,11 @@ public:
         } Type;
     };
 
-    Character(std::shared_ptr<Context> &ctx, std::string id);
+    Character(std::shared_ptr<Context> &ctx, graphics::Renderer& renderer, std::string id);
 
-    void draw(graphics::Renderer& renderer, const Types::Point<>& camera);
+    void drawBuffer(graphics::Renderer& renderer, const Types::Point<>& dst);
+
+    void updateBuffers(graphics::Renderer& renderer, uint32_t mapHeight);
 
     bool animate(uint64_t frameDiff, bool reset = false);
     bool processAsync(uint64_t frameDiff, const Map& map, std::unordered_map<std::string, std::shared_ptr<Character>> *characters = nullptr, Camera* camera = nullptr);
@@ -104,6 +108,9 @@ private:
 
     std::mutex mListenerMutex;
     std::vector<std::shared_ptr<Listeners::MoveListener>> mMoveListeners;
+
+    std::unique_ptr<graphics::Buffer> mBuffer;
+    std::unique_ptr<graphics::Texture> mTexture;
 };
 }
 }

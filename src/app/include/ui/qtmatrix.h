@@ -15,7 +15,9 @@ public:
 
     virtual void reset() override;
 
+    virtual void frustum(float_t left, float_t right, float_t top, float_t bottom, float_t near, float_t far) override;
     virtual void ortho(float_t left, float_t right, float_t top, float_t bottom, float_t near, float_t far) override;
+    virtual void viewport(float_t left, float_t right, float_t top, float_t bottom, float_t near, float_t far) override;
 
     virtual void rotate(float_t angle, float_t z) override;
 

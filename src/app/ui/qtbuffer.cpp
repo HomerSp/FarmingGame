@@ -1,8 +1,8 @@
 #include <QMatrix4x4>
 
 #include <engine/graphics/matrix.h>
-#include <engine/graphics/vector2d.h>
-#include <engine/graphics/vertex2d.h>
+#include <engine/graphics/quad.h>
+#include <engine/graphics/vector.h>
 
 #include <ui/qtbuffer.h>
 #include <ui/qttransform.h>
@@ -71,10 +71,22 @@ uint32_t QtBuffer::write(uint32_t offset, const engine::graphics::Vector2D& vect
     return engine::graphics::Vector2D::Size();
 }
 
-uint32_t QtBuffer::write(uint32_t offset, const engine::graphics::Vertex2D& vertex)
+uint32_t QtBuffer::write(uint32_t offset, const engine::graphics::Vector3D& vector)
 {
-    mBuffer.write(offset, vertex.constData(), engine::graphics::Vertex2D::Size());
-    return engine::graphics::Vertex2D::Size();
+    mBuffer.write(offset, vector.constData(), engine::graphics::Vector3D::Size());
+    return engine::graphics::Vector3D::Size();
+}
+
+uint32_t QtBuffer::write(uint32_t offset, const engine::graphics::Vector4D& vector)
+{
+    mBuffer.write(offset, vector.constData(), engine::graphics::Vector4D::Size());
+    return engine::graphics::Vector4D::Size();
+}
+
+uint32_t QtBuffer::write(uint32_t offset, const engine::graphics::Quad<2>& quad)
+{
+    mBuffer.write(offset, quad.constData(), engine::graphics::Quad<2>::Size());
+    return engine::graphics::Quad<2>::Size();
 }
 
 uint32_t QtBuffer::write(uint32_t offset, float_t val)

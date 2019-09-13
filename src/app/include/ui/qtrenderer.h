@@ -36,6 +36,9 @@ public:
     int32_t width() override;
     int32_t height() override;
 
+    void beginNative() override;
+    void endNative() override;
+
     void fillEllipse(const engine::Types::Rect<>& dst, const engine::graphics::Color& color) override;
     void fillRect(const engine::Types::Rect<>& dst, const engine::graphics::Color& color) override;
 
@@ -43,7 +46,8 @@ public:
     void drawText(const engine::Types::Rect<>& dst, const std::string& text, const engine::graphics::Color& color, int32_t size, engine::Types::TextAlign align, std::string type) override;
     void drawOverlay(const engine::Types::Point<>& dst, engine::Overlay& overlay, uint32_t lightsCount, float mod) override;
     void drawParticles(const engine::Types::Point<>& dst, const engine::Particles& particles) override;
-    void drawTextures(const engine::Types::Point<>& dst, engine::graphics::Texture* texture, engine::graphics::Buffer* buffer, uint32_t count) override;
+    void drawCharset(const engine::Types::Point<>& dst, engine::graphics::Texture* texture, engine::graphics::Buffer* buffer, float_t animFrame, uint32_t count) override;
+    void drawTiles(const engine::Types::Point<>& dst, engine::graphics::Texture* texture, engine::graphics::Buffer* buffer, float_t animFrame, uint32_t count) override;
 
     void rotate(float_t deg) override;
     void translate(int32_t x, int32_t y) override;
@@ -71,12 +75,13 @@ private:
     std::unique_ptr<QPainter> mPainter;
     
     std::unique_ptr<QOpenGLShaderProgram> mTextureShader;
-    std::unique_ptr<QOpenGLShaderProgram> mTextureArrayShader;
     std::unique_ptr<QOpenGLShaderProgram> mPointLightShader;
     std::unique_ptr<QOpenGLShaderProgram> mColorShader;
-    std::unique_ptr<QOpenGLShaderProgram> mParticleShader;
+    std::unique_ptr<QOpenGLShaderProgram> mParticle2DShader;
+    std::unique_ptr<QOpenGLShaderProgram> mCharset2DShader;
+    std::unique_ptr<QOpenGLShaderProgram> mTiles2DShader;
 
-    std::unique_ptr<QtMatrix> mWorldMatrix, mProjectionMatrix, mFBOMatrix;
+    std::unique_ptr<QtMatrix> mWorldMatrix, mFBOMatrix;
     std::unique_ptr<QOpenGLFramebufferObject> mFBO;
-    std::unique_ptr<QtBuffer> mQuadVertexBuffer, mCircleTextureBuffer, mFBOTextureBuffer, mBufferMatrix;
+    std::unique_ptr<QtBuffer> mQuadVertexBuffer, mCircleTextureBuffer, mFBOTextureBuffer, mBufferTexture;
 };

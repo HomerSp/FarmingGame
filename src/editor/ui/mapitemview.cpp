@@ -22,7 +22,7 @@ MapItemView::MapItemView(QQuickItem* parent)
 void MapItemView::paint(QPainter* painter)
 {
     engine::Types::Rect<> dst(0, 0, width(), height());
-    mMap->draw(mRenderer, dst, engine::TilesetAbove::None, false);
+    //mMap->draw(mRenderer, dst, engine::TilesetAbove::None, false);
 
     if (mSquare.x >= 0) {
         mRenderer.fillRect(mSquare, engine::graphics::Color(0, 0, 0, 50));
