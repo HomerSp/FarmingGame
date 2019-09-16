@@ -1,5 +1,6 @@
 #include <QFontDatabase>
 #include <QOpenGLPixelTransferOptions>
+#include <QOpenGLVertexArrayObject>
 
 #include <engine/context.h>
 #include <engine/fontmanager.h>
@@ -57,8 +58,8 @@ QtRenderer::QtRenderer()
 
     mQuadVertexBuffer = std::make_unique<QtBuffer>(engine::graphics::Quad2D::Size());
     mCircleTextureBuffer = std::make_unique<QtBuffer>(engine::graphics::Quad2D::Size());
-    mFBOTextureBuffer = std::make_unique<QtBuffer>(engine::graphics::Vector4D::Size() * 2);
-    mBufferTexture = std::make_unique<QtBuffer>(engine::graphics::Vector4D::Size() * 2);
+
+    mOverlayVAO.create();
 
     engine::graphics::BufferWriter quadWriter(*mQuadVertexBuffer);
     quadWriter += engine::graphics::Quad2D().lt(0, 0).lb(0, 1).rt(1, 0).rb(1, 1);
@@ -82,11 +83,31 @@ void QtRenderer::setSize(uint32_t w, uint32_t h, double devicePixelRatio)
     mFBOMatrix->reset();
     mFBOMatrix->scale(mFBO->width(), mFBO->height());
 
-    // The FBO texture uses opengl coordinates where y starts at the bottom, so we need to reverse it here
-    engine::graphics::BufferWriter fboWriter(*mFBOTextureBuffer);
+    QtBuffer overlayBuffer(engine::graphics::Vector4D::Size() * 2);
+    engine::graphics::BufferWriter fboWriter(overlayBuffer);
     fboWriter += engine::graphics::Vector4D(0, 0, mFBO->width(), mFBO->height());
     fboWriter += engine::graphics::Vector4D(0, 0, mFBO->width(), mFBO->height());
     fboWriter.release();
+
+    mOverlayVAO.bind();
+
+    mQuadVertexBuffer->bind();
+    mTextureShader->enableAttributeArray(0);
+    mTextureShader->setAttributeBuffer(0, GL_FLOAT, 0, 2, engine::graphics::Vector2D::Size());
+    mQuadVertexBuffer->release();
+
+    uint32_t stride = engine::graphics::Vector2D::Size() + engine::graphics::Vector4D::Size();
+
+    overlayBuffer.bind();
+    mTextureShader->enableAttributeArray(1);
+    mTextureShader->setAttributeBuffer(1, GL_FLOAT, 0, 4, stride);
+    glVertexAttribDivisor(1, 1);
+
+    mTextureShader->enableAttributeArray(2);
+    mTextureShader->setAttributeBuffer(2, GL_FLOAT, engine::graphics::Vector4D::Size(), 4, stride);
+    glVertexAttribDivisor(2, 1);
+    overlayBuffer.release();
+    mOverlayVAO.release();
 }
 
 void QtRenderer::paint(std::shared_ptr<engine::Engine>& engine)
@@ -225,11 +246,10 @@ void QtRenderer::drawOverlay(const engine::Types::Point<>& dst, engine::Overlay&
     glClearColor(overlayBackground.r(), overlayBackground.g(), overlayBackground.b(), 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glBlendEquationSeparate(GL_FUNC_ADD, GL_MAX);
+    QOpenGLVertexArrayObject vao;
+    vao.create();
+    vao.bind();
 
-    mWorldMatrix->translate(dst.x, dst.y);
     mPointLightShader->bind();
 
     mCircleTextureBuffer->bind();
@@ -260,51 +280,33 @@ void QtRenderer::drawOverlay(const engine::Types::Point<>& dst, engine::Overlay&
     }
 
     overlayBuffer.release();
+    vao.release();
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glBlendEquationSeparate(GL_FUNC_ADD, GL_MAX);
+
+    vao.bind();
 
     mPointLightShader->setUniformValue("uWorldMatrix", *mWorldMatrix);
     mPointLightShader->setUniformValue("iMod", std::abs(mod - 1.0f));
 
     glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, lightsCount);
 
-    mPointLightShader->disableAttributeArray(0);
-    mPointLightShader->disableAttributeArray(1);
-    mPointLightShader->disableAttributeArray(2);
-    glVertexAttribDivisor(2, 0);
-    mPointLightShader->disableAttributeArray(3);
-    glVertexAttribDivisor(3, 0);
-    for (uint32_t i = 0; i < 4; i++) {
-        mPointLightShader->disableAttributeArray(4 + i);
-        glVertexAttribDivisor(4 + i, 0);
-    }
-
+    vao.release();
     mPointLightShader->release();
 
     mFBO->release();
 
+    mWorldMatrix->translate(dst.x, dst.y);
+    mTextureShader->bind();
+    mOverlayVAO.bind();
+
     glEnable(GL_BLEND);
     glBlendFunc(GL_DST_COLOR, GL_ZERO);
     glBlendEquation(GL_FUNC_ADD);
-    
-    mTextureShader->bind();
 
     glBindTexture(GL_TEXTURE_2D, mFBO->texture());
-
-    mQuadVertexBuffer->bind();
-    mTextureShader->enableAttributeArray(0);
-    mTextureShader->setAttributeBuffer(0, GL_FLOAT, 0, 2, engine::graphics::Vector2D::Size());
-    mQuadVertexBuffer->release();
-
-    uint32_t stride = engine::graphics::Vector2D::Size() + engine::graphics::Vector4D::Size();
-
-    mFBOTextureBuffer->bind();
-    mTextureShader->enableAttributeArray(1);
-    mTextureShader->setAttributeBuffer(1, GL_FLOAT, 0, 4, stride);
-    glVertexAttribDivisor(1, 1);
-    
-    mTextureShader->enableAttributeArray(2);
-    mTextureShader->setAttributeBuffer(2, GL_FLOAT, engine::graphics::Vector4D::Size(), 4, stride);
-    glVertexAttribDivisor(2, 1);
-    mFBOTextureBuffer->release();
 
     mTextureShader->setUniformValue("uWorldMatrix", *mWorldMatrix);
     mTextureShader->setUniformValue("uReverseY", static_cast<GLuint>(true));
@@ -312,12 +314,7 @@ void QtRenderer::drawOverlay(const engine::Types::Point<>& dst, engine::Overlay&
 
     glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, 1);
 
-    mTextureShader->disableAttributeArray(0);
-    mTextureShader->disableAttributeArray(1);
-    glVertexAttribDivisor(1, 0);
-    mTextureShader->disableAttributeArray(2);
-    glVertexAttribDivisor(2, 0);
-
+    mOverlayVAO.release();
     mTextureShader->release();
     mWorldMatrix->translate(-dst.x, -dst.y);
 }
@@ -326,10 +323,9 @@ void QtRenderer::drawParticles(const engine::Types::Point<>& dst, const engine::
 {
     mWorldMatrix->translate(dst.x, dst.y);
 
-    glDisable(GL_DEPTH_TEST);
-
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    QOpenGLVertexArrayObject vao;
+    vao.create();
+    vao.bind();
 
     mParticle2DShader->bind();
 
@@ -338,9 +334,8 @@ void QtRenderer::drawParticles(const engine::Types::Point<>& dst, const engine::
     mParticle2DShader->setAttributeBuffer(0, GL_FLOAT, 0, 2, engine::graphics::Vector2D::Size());
     mQuadVertexBuffer->release();
 
-    auto& particleBuffer = particles.buffer();
-
     uint32_t stride = engine::graphics::Color::Size() + engine::graphics::Matrix::Size();
+    auto& particleBuffer = particles.buffer();
 
     particleBuffer.bind();
     mParticle2DShader->enableAttributeArray(1);
@@ -354,18 +349,20 @@ void QtRenderer::drawParticles(const engine::Types::Point<>& dst, const engine::
     }
     particleBuffer.release();
 
+    vao.release();
+
+    glDisable(GL_DEPTH_TEST);
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    vao.bind();
+
     mParticle2DShader->setUniformValue("uWorldMatrix", *mWorldMatrix);
 
     glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, particles.size());
 
-    mParticle2DShader->disableAttributeArray(0);
-    mParticle2DShader->disableAttributeArray(1);
-    glVertexAttribDivisor(1, 0);
-
-    for (uint32_t i = 0; i < 4; i++) {
-        mParticle2DShader->disableAttributeArray(2 + i);
-        glVertexAttribDivisor(2 + i, 0);
-    }
+    vao.release();
 
     mParticle2DShader->release();
 
@@ -376,17 +373,13 @@ void QtRenderer::drawCharset(const engine::Types::Point<>& dst, engine::graphics
 {
     mWorldMatrix->translate(dst.x, dst.y);
 
-    glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LEQUAL);
-
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    QOpenGLVertexArrayObject vao;
+    vao.create();
+    vao.bind();
 
     uint32_t matrixStride = engine::graphics::Vector3D::Size() + engine::graphics::Vector4D::Size() + engine::graphics::Vector2D::Size() + sizeof(float_t);
 
     mCharset2DShader->bind();
-
-    texture->bind(0);
 
     mQuadVertexBuffer->bind();
     mCharset2DShader->enableAttributeArray(0);
@@ -411,23 +404,25 @@ void QtRenderer::drawCharset(const engine::Types::Point<>& dst, engine::graphics
     glVertexAttribDivisor(4, 1);
     buffer->release();
 
+    vao.release();
+
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LEQUAL);
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    vao.bind();
+    texture->bind(0);
+
     mCharset2DShader->setUniformValue("uWorldMatrix", *mWorldMatrix);
     mCharset2DShader->setUniformValue("uTexture", 0);
     mCharset2DShader->setUniformValue("uAnimFrame", animFrame);
 
     glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, count);
 
-    mCharset2DShader->disableAttributeArray(0);
-    mCharset2DShader->disableAttributeArray(1);
-    glVertexAttribDivisor(1, 0);
-    mCharset2DShader->disableAttributeArray(2);
-    glVertexAttribDivisor(2, 0);
-    mCharset2DShader->disableAttributeArray(3);
-    glVertexAttribDivisor(3, 0);
-    mCharset2DShader->disableAttributeArray(4);
-    glVertexAttribDivisor(4, 0);
-
     texture->release();
+    vao.release();
     mCharset2DShader->release();
 
     mWorldMatrix->translate(-dst.x, -dst.y);
@@ -437,17 +432,13 @@ void QtRenderer::drawTiles(const engine::Types::Point<>& dst, engine::graphics::
 {
     mWorldMatrix->translate(dst.x, dst.y);
 
-    glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LEQUAL);
-
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    QOpenGLVertexArrayObject vao;
+    vao.create();
+    vao.bind();
 
     uint32_t matrixStride = engine::graphics::Vector3D::Size() + engine::graphics::Vector4D::Size() + engine::graphics::Vector2D::Size() + sizeof(float_t);
 
     mTiles2DShader->bind();
-
-    texture->bind(0);
 
     mQuadVertexBuffer->bind();
     mTiles2DShader->enableAttributeArray(0);
@@ -472,23 +463,25 @@ void QtRenderer::drawTiles(const engine::Types::Point<>& dst, engine::graphics::
     glVertexAttribDivisor(4, 1);
     buffer->release();
 
+    vao.release();
+
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LEQUAL);
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    vao.bind();
+    texture->bind(0);
+
     mTiles2DShader->setUniformValue("uWorldMatrix", *mWorldMatrix);
     mTiles2DShader->setUniformValue("uTexture", 0);
     mTiles2DShader->setUniformValue("uAnimFrame", animFrame);
 
     glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, count);
 
-    mTiles2DShader->disableAttributeArray(0);
-    mTiles2DShader->disableAttributeArray(1);
-    glVertexAttribDivisor(1, 0);
-    mTiles2DShader->disableAttributeArray(2);
-    glVertexAttribDivisor(2, 0);
-    mTiles2DShader->disableAttributeArray(3);
-    glVertexAttribDivisor(3, 0);
-    mTiles2DShader->disableAttributeArray(4);
-    glVertexAttribDivisor(4, 0);
-
     texture->release();
+    vao.release();
     mTiles2DShader->release();
 
     mWorldMatrix->translate(-dst.x, -dst.y);

@@ -5,6 +5,7 @@
 #include <QOpenGLPaintDevice>
 #include <QOpenGLShaderProgram>
 #include <QOpenGLTexture>
+#include <QOpenGLVertexArrayObject>
 #include <QPainter>
 
 #include <memory>
@@ -83,5 +84,6 @@ private:
 
     std::unique_ptr<QtMatrix> mWorldMatrix, mFBOMatrix;
     std::unique_ptr<QOpenGLFramebufferObject> mFBO;
-    std::unique_ptr<QtBuffer> mQuadVertexBuffer, mCircleTextureBuffer, mFBOTextureBuffer, mBufferTexture;
+    std::unique_ptr<QtBuffer> mQuadVertexBuffer, mCircleTextureBuffer;
+    QOpenGLVertexArrayObject mOverlayVAO;
 };

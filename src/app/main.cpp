@@ -15,8 +15,8 @@ int main(int argc, char** argv)
     QSurfaceFormat format = QSurfaceFormat::defaultFormat();
     format.setDepthBufferSize(24);
 
-    //format.setProfile(QSurfaceFormat::CoreProfile);
-    //format.setVersion(3, 3);
+    format.setProfile(QSurfaceFormat::CoreProfile);
+    format.setVersion(3, 3);
     QSurfaceFormat::setDefaultFormat(format);
 
     QApplication app(argc, argv);
