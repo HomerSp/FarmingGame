@@ -23,9 +23,10 @@ public:
     Overlay(graphics::Renderer& renderer, uint32_t lightsCount);
 
     const graphics::Color& background() const;
-    graphics::Buffer& buffer();
 
-    void draw(graphics::Renderer& renderer, Camera& camera, const std::vector<std::shared_ptr<LightSource>> &sources);
+    graphics::Buffer& lightsBuffer();
+
+    void draw(graphics::Renderer& renderer, const Types::Point<> dst, const std::vector<std::shared_ptr<LightSource>> &sources);
 
     bool processAsync(uint64_t frameDiff);
 
@@ -35,6 +36,6 @@ private:
     float_t mRadiusMod;
     graphics::Color mBackground;
     std::vector<Types::FilledEllipse> mLights;
-    std::unique_ptr<graphics::Buffer> mBuffer;
+    std::unique_ptr<graphics::Buffer> mLightsBuffer;
 };
 }

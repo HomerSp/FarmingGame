@@ -13,7 +13,7 @@ ScreenEffects::ScreenEffects(std::shared_ptr<Context>& ctx, graphics::Renderer& 
     mOverlay = std::make_unique<Overlay>(renderer, lightsCount);
 }
 
-void ScreenEffects::draw(graphics::Renderer& renderer, Clock& clock, Camera& camera, const std::vector<std::shared_ptr<Overlay::LightSource>> &sources, Weather& weather)
+void ScreenEffects::draw(graphics::Renderer& renderer, const Types::Point<> dst, Clock& clock, const std::vector<std::shared_ptr<Overlay::LightSource>> &sources, Weather& weather)
 {
     uint32_t h = clock.hour();
 
@@ -55,7 +55,7 @@ void ScreenEffects::draw(graphics::Renderer& renderer, Clock& clock, Camera& cam
     }
 
     mOverlay->setBackground(color);
-    mOverlay->draw(renderer, camera, sources);
+    mOverlay->draw(renderer, dst, sources);
 }
 
 bool ScreenEffects::processAsync(uint64_t frameDiff)

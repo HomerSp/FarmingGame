@@ -46,8 +46,8 @@ public:
     int8_t windDirection() const;
     float_t windSpeed() const;
 
-    void drawWater(graphics::Renderer& renderer, Camera& camera);
-    void drawWeather(graphics::Renderer& renderer, Camera& camera);
+    void drawWater(graphics::Renderer& renderer, const Types::Point<> dst);
+    void drawWeather(graphics::Renderer& renderer, const Types::Point<> dst);
 
     void processAsync(uint64_t frameDiff, Camera& camera);
 

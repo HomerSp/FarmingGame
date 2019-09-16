@@ -42,7 +42,7 @@ Particles::Particles(graphics::Renderer& renderer, uint32_t count, const graphic
     mBuffer = renderer.createBuffer((graphics::Matrix::Size() + graphics::Color::Size()) * count);
 }
 
-void Particles::draw(graphics::Renderer& renderer, Camera& camera)
+void Particles::draw(graphics::Renderer& renderer, const Types::Point<> dst)
 {
     std::lock_guard<std::mutex> locker(mMutex);
     if (mEnabled && mSpawnRect.width >= 0.0f) {
@@ -62,7 +62,7 @@ void Particles::draw(graphics::Renderer& renderer, Camera& camera)
 
         writer.release();
 
-        renderer.drawParticles({-camera.x(), -camera.y()}, *this);
+        renderer.drawParticles(dst, *this);
     }
 }
 

@@ -68,15 +68,15 @@ float_t Weather::windSpeed() const
     return mData[0].windSpeed;
 }
 
-void Weather::drawWater(graphics::Renderer& renderer, Camera& camera)
+void Weather::drawWater(graphics::Renderer& renderer, const Types::Point<> dst)
 {
-    mWaterParticles->draw(renderer, camera);
+    mWaterParticles->draw(renderer, dst);
 }
 
-void Weather::drawWeather(graphics::Renderer& renderer, Camera& camera)
+void Weather::drawWeather(graphics::Renderer& renderer, const Types::Point<> dst)
 {
-    mSnowParticles->draw(renderer, camera);
-    mRainParticles->draw(renderer, camera);
+    mSnowParticles->draw(renderer, dst);
+    mRainParticles->draw(renderer, dst);
 }
 
 void Weather::processAsync(uint64_t frameDiff, Camera& camera)

@@ -315,7 +315,7 @@ void Engine::paint()
 
     // Draw water tiles
     mMap->drawBuffer(renderer, dst, TilesetAbove::Water);
-    mWeather->drawWater(renderer, *mCamera);
+    mWeather->drawWater(renderer, dst);
 
     mMap->drawBuffer(renderer, dst, TilesetAbove::None);
 
@@ -326,9 +326,9 @@ void Engine::paint()
     mMap->drawBuffer(renderer, dst, TilesetAbove::Row);
     mMap->drawBuffer(renderer, dst, TilesetAbove::All);
 
-    mWeather->drawWeather(renderer, *mCamera);
+    mWeather->drawWeather(renderer, dst);
 
-    mScreenEffects->draw(renderer, *mClock, *mCamera, mLights, *mWeather);
+    mScreenEffects->draw(renderer, dst, *mClock, mLights, *mWeather);
 
     renderer.endNative();
 

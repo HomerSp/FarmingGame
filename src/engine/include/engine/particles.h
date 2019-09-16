@@ -36,7 +36,7 @@ public:
     void lock();
     void unlock();
 
-    void draw(graphics::Renderer& renderer, Camera& camera);
+    void draw(graphics::Renderer& renderer, const Types::Point<> dst);
 
     void processAsync(uint64_t frameDiff, Camera& camera, Weather& weather);
 

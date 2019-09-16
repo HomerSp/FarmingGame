@@ -1,6 +1,6 @@
 #include <engine/graphics/bufferwriter.h>
 #include <engine/graphics/colorgradient.h>
-#include <engine/graphics/matrix.h>
+#include <engine/graphics/vector.h>
 #include <engine/overlay.h>
 
 using namespace engine;
@@ -14,7 +14,7 @@ Overlay::Overlay(graphics::Renderer& renderer, uint32_t lightsCount)
     : mRadiusMod(2.0f)
     , mBackground({0, 0, 0, 0})
 {
-    mBuffer = renderer.createBuffer((graphics::ColorGradient::Size() + graphics::Matrix::Size()) * lightsCount);
+    mLightsBuffer = renderer.createBuffer((graphics::ColorGradient::Size() + graphics::Vector4D::Size()) * lightsCount);
 }
 
 const graphics::Color& Overlay::background() const
@@ -22,16 +22,16 @@ const graphics::Color& Overlay::background() const
     return mBackground;
 }
 
-graphics::Buffer& Overlay::buffer()
+graphics::Buffer& Overlay::lightsBuffer()
 {
-    return *mBuffer;
+    return *mLightsBuffer;
 }
 
-void Overlay::draw(graphics::Renderer& renderer, Camera& camera, const std::vector<std::shared_ptr<LightSource>> &sources)
+void Overlay::draw(graphics::Renderer& renderer, const Types::Point<> dst, const std::vector<std::shared_ptr<LightSource>> &sources)
 {
     uint32_t lightsCount = 0;
 
-    graphics::BufferWriter writer(*mBuffer);
+    graphics::BufferWriter writer(*mLightsBuffer);
     for (auto& source: sources) {
         auto radius = source->lightRadius();
         if (radius == 0.0f) {
@@ -43,15 +43,12 @@ void Overlay::draw(graphics::Renderer& renderer, Camera& camera, const std::vect
         writer += engine::graphics::Color::max(l.outer(), mBackground);
 
         auto pos = source->lightPosition();
-        auto matrix = renderer.createMatrix();
-        matrix->translate(pos.x - (radius / 2.0f) - camera.x(), pos.y - (radius / 2.0f) - camera.y());
-        matrix->scale(radius, radius);
-        writer += *matrix;
+        writer += engine::graphics::Vector4D(pos.x - (radius / 2.0f), pos.y - (radius / 2.0f), radius, radius);
 
         lightsCount++;
     }
 
-    renderer.drawOverlay({0, 0}, *this, lightsCount, mRadiusMod);
+    renderer.drawOverlay(dst, *this, lightsCount, mRadiusMod);
 }
 
 bool Overlay::processAsync(uint64_t frameDiff)

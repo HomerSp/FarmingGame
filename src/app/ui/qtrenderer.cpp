@@ -237,6 +237,7 @@ void QtRenderer::drawText(const engine::Types::Rect<>& dst, const std::string& t
 
 void QtRenderer::drawOverlay(const engine::Types::Point<>& dst, engine::Overlay& overlay, uint32_t lightsCount, float mod)
 {
+    mWorldMatrix->translate(dst.x, dst.y);
     mFBO->bind();
 
     glViewport(0, 0, mFBO->width(), mFBO->height());
@@ -262,24 +263,23 @@ void QtRenderer::drawOverlay(const engine::Types::Point<>& dst, engine::Overlay&
     mPointLightShader->setAttributeBuffer(1, GL_FLOAT, 0, 2, engine::graphics::Vector2D::Size());
     mQuadVertexBuffer->release();
 
-    auto& overlayBuffer = overlay.buffer();
-    overlayBuffer.bind();
+    uint32_t stride = engine::graphics::ColorGradient::Size() + engine::graphics::Vector4D::Size();
+
+    auto& lightsBuffer = overlay.lightsBuffer();
+    lightsBuffer.bind();
     mPointLightShader->enableAttributeArray(2);
-    mPointLightShader->setAttributeBuffer(2, GL_FLOAT, 0, 4, engine::graphics::ColorGradient::Size() + engine::graphics::Matrix::Size());
+    mPointLightShader->setAttributeBuffer(2, GL_FLOAT, 0, 4, stride);
     glVertexAttribDivisor(2, 1);
 
     mPointLightShader->enableAttributeArray(3);
-    mPointLightShader->setAttributeBuffer(3, GL_FLOAT, engine::graphics::Color::Size(), 4, engine::graphics::ColorGradient::Size() + engine::graphics::Matrix::Size());
+    mPointLightShader->setAttributeBuffer(3, GL_FLOAT, engine::graphics::Color::Size(), 4, stride);
     glVertexAttribDivisor(3, 1);
 
-    for (uint32_t i = 0; i < 4; i++) {
-        uint32_t offset = engine::graphics::ColorGradient::Size() + (engine::graphics::Vector4D::Size() * i);
-        mPointLightShader->enableAttributeArray(4 + i);
-        mPointLightShader->setAttributeBuffer(4 + i, GL_FLOAT, offset, 4, engine::graphics::ColorGradient::Size() + engine::graphics::Matrix::Size());
-        glVertexAttribDivisor(4 + i, 1);
-    }
+    mPointLightShader->enableAttributeArray(4);
+    mPointLightShader->setAttributeBuffer(4, GL_FLOAT, engine::graphics::ColorGradient::Size(), 4, engine::graphics::ColorGradient::Size() + engine::graphics::Vector4D::Size());
+    glVertexAttribDivisor(4, 1);
 
-    overlayBuffer.release();
+    lightsBuffer.release();
     vao.release();
 
     glEnable(GL_BLEND);
@@ -297,8 +297,8 @@ void QtRenderer::drawOverlay(const engine::Types::Point<>& dst, engine::Overlay&
     mPointLightShader->release();
 
     mFBO->release();
+    mWorldMatrix->translate(-dst.x, -dst.y);
 
-    mWorldMatrix->translate(dst.x, dst.y);
     mTextureShader->bind();
     mOverlayVAO.bind();
 
@@ -316,7 +316,6 @@ void QtRenderer::drawOverlay(const engine::Types::Point<>& dst, engine::Overlay&
 
     mOverlayVAO.release();
     mTextureShader->release();
-    mWorldMatrix->translate(-dst.x, -dst.y);
 }
 
 void QtRenderer::drawParticles(const engine::Types::Point<>& dst, const engine::Particles& particles)
