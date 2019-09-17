@@ -17,10 +17,14 @@ public:
 
     virtual void setData(const Image& image, uint32_t layer = 0) = 0;
     
+    uint32_t layers() const;
     virtual uint32_t width() const = 0;
     virtual uint32_t height() const = 0;
 
     bool operator!() const;
+
+private:
+    uint32_t mLayers;
 };
 }
 }

@@ -45,16 +45,14 @@ public:
     virtual void drawText(const Types::Rect<>& dst, const std::string& text, const graphics::Color& color, int32_t size = -1, Types::TextAlign align = Types::TextAlign(), std::string type = "") = 0;
     virtual void drawOverlay(const Types::Point<>& dst, Overlay& overlay, uint32_t lightsCount, float mod) = 0;
     virtual void drawParticles(const engine::Types::Point<>& dst, const engine::Particles& particles) = 0;
-    virtual void drawCharset(const engine::Types::Point<>& dst, engine::graphics::Texture* texture, engine::graphics::Buffer* buffer, float_t animFrame, uint32_t count = 1) = 0;
-    virtual void drawTiles(const engine::Types::Point<>& dst, engine::graphics::Texture* texture, engine::graphics::Buffer* buffer, float_t animFrame, uint32_t count = 1) = 0;
+    virtual void drawTexture(const engine::Types::Point<>& dst, engine::graphics::Texture* texture, engine::graphics::Buffer* buffer, uint32_t count = 1) = 0;
+    virtual void drawTextureAnim(const engine::Types::Point<>& dst, engine::graphics::Texture* texture, engine::graphics::Buffer* buffer, float_t animFrame, uint32_t count = 1) = 0;
 
     virtual void rotate(float_t deg) = 0;
     virtual void translate(int32_t x, int32_t y) = 0;
 
     virtual void save() = 0;
     virtual void restore() = 0;
-
-    virtual std::unique_ptr<graphics::Image> loadImage(const std::string& path) const = 0;
 
     virtual std::unique_ptr<graphics::Buffer> createBuffer(uint32_t size) const = 0;
     virtual std::unique_ptr<engine::graphics::Matrix> createMatrix() const = 0;

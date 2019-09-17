@@ -4,13 +4,14 @@
 #include <engine/frametimer.h>
 #include <engine/graphics/image.h>
 #include <engine/graphics/renderer.h>
+#include <engine/graphics/texturewriter.h>
 #include <engine/hud.h>
 #include <engine/item.h>
 #include <engine/player.h>
 
 using namespace engine;
 
-Hud::Hud(std::shared_ptr<Context>& ctx)
+Hud::Hud(std::shared_ptr<Context>& ctx, graphics::Renderer& renderer)
     : ContextObject(ctx)
     , mBoxSize(32, 32)
     , mHealthStaminaWidth(96)
@@ -22,6 +23,15 @@ Hud::Hud(std::shared_ptr<Context>& ctx)
     mBarSmall = context().assetManager().image(AssetManager::Ui, "hud_bar_small");
     mHealthStamina = context().assetManager().image(AssetManager::Ui, "hud_health_stamina");
     mSeasonsImage = context().assetManager().image(AssetManager::Ui, "seasons");
+
+    graphics::TextureWriter writer(renderer);
+    writer += context().assetManager().image(AssetManager::Ui, "hud_clock");
+    writer += context().assetManager().image(AssetManager::Ui, "hud_bar_left");
+    writer += context().assetManager().image(AssetManager::Ui, "hud_item");
+    writer += context().assetManager().image(AssetManager::Ui, "hud_bar_small");
+    writer += context().assetManager().image(AssetManager::Ui, "hud_health_stamina");
+    writer += context().assetManager().image(AssetManager::Ui, "seasons");
+    writer.finish(mTextures);
 }
 
 void Hud::draw(graphics::Renderer& renderer, Clock& clock, Player& player, FrameTimer& frameTimer)

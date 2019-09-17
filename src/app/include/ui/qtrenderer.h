@@ -47,16 +47,14 @@ public:
     void drawText(const engine::Types::Rect<>& dst, const std::string& text, const engine::graphics::Color& color, int32_t size, engine::Types::TextAlign align, std::string type) override;
     void drawOverlay(const engine::Types::Point<>& dst, engine::Overlay& overlay, uint32_t lightsCount, float mod) override;
     void drawParticles(const engine::Types::Point<>& dst, const engine::Particles& particles) override;
-    void drawCharset(const engine::Types::Point<>& dst, engine::graphics::Texture* texture, engine::graphics::Buffer* buffer, float_t animFrame, uint32_t count) override;
-    void drawTiles(const engine::Types::Point<>& dst, engine::graphics::Texture* texture, engine::graphics::Buffer* buffer, float_t animFrame, uint32_t count) override;
+    void drawTexture(const engine::Types::Point<>& dst, engine::graphics::Texture* texture, engine::graphics::Buffer* buffer, uint32_t count) override;
+    void drawTextureAnim(const engine::Types::Point<>& dst, engine::graphics::Texture* texture, engine::graphics::Buffer* buffer, float_t animFrame, uint32_t count) override;
 
     void rotate(float_t deg) override;
     void translate(int32_t x, int32_t y) override;
 
     void save() override;
     void restore() override;
-
-    std::unique_ptr<engine::graphics::Image> loadImage(const std::string& path) const override;
 
     std::unique_ptr<engine::graphics::Buffer> createBuffer(uint32_t size) const override;
     std::unique_ptr<engine::graphics::Matrix> createMatrix() const override;
@@ -74,13 +72,12 @@ private:
 
     std::unique_ptr<QOpenGLPaintDevice> mDevice;
     std::unique_ptr<QPainter> mPainter;
-    
-    std::unique_ptr<QOpenGLShaderProgram> mTextureShader;
+
+    std::unique_ptr<QOpenGLShaderProgram> mTexture2DShader, mTextureAnim2DShader;
     std::unique_ptr<QOpenGLShaderProgram> mPointLightShader;
     std::unique_ptr<QOpenGLShaderProgram> mColorShader;
     std::unique_ptr<QOpenGLShaderProgram> mParticle2DShader;
-    std::unique_ptr<QOpenGLShaderProgram> mCharset2DShader;
-    std::unique_ptr<QOpenGLShaderProgram> mTiles2DShader;
+    std::unique_ptr<QOpenGLShaderProgram> mFBO2DShader;
 
     std::unique_ptr<QtMatrix> mWorldMatrix, mFBOMatrix;
     std::unique_ptr<QOpenGLFramebufferObject> mFBO;

@@ -8,9 +8,8 @@
 
 using namespace engine;
 
-AssetManager::AssetManager(const graphics::Renderer& renderer)
+AssetManager::AssetManager()
     : mBase("assets")
-    , mRenderer(renderer)
 {
 }
 
@@ -35,7 +34,7 @@ std::unique_ptr<graphics::Image> AssetManager::image(Type type, const std::strin
 {
     std::string path = AssetManager::imagePath(type, name);
     if (path.length() > 0) {
-        return mRenderer.loadImage(path);
+        return std::make_unique<graphics::Image>(path);
     }
 
     return nullptr;

@@ -57,7 +57,8 @@ void Charset::updateBuffer(graphics::Renderer& renderer, const Types::Point<>& p
     Types::Rect<> dst(pos.x, pos.y, node->rect.width, node->rect.height);
     Types::Rect<> src(node->rect.x + (node->rect.width * frame), node->rect.y + (node->rect.height * direction), node->rect.width, node->rect.height);
 
-    writer += engine::graphics::Vector3D(dst.x, dst.y, zOrder);
+    writer += engine::graphics::Vector4D(dst.x, dst.y, dst.width, dst.height);
+    writer += zOrder;
     writer += engine::graphics::Vector4D(src.x, src.y, src.width, src.height);
     writer += engine::graphics::Vector2D(src.width, src.height);
     writer += static_cast<float_t>(texture);

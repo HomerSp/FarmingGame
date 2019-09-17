@@ -44,7 +44,7 @@ Character::Character(std::shared_ptr<Context> &ctx, graphics::Renderer& renderer
     mName = doc["name"].asString();
     mCharset = std::make_shared<Charset>(ctx, doc["charset"].asString());
 
-    mBuffer = renderer.createBuffer(engine::graphics::Vector3D::Size() + engine::graphics::Vector4D::Size() + engine::graphics::Vector2D::Size() + sizeof(float_t));
+    mBuffer = renderer.createBuffer(engine::graphics::Vector4D::Size() * 2 + engine::graphics::Vector2D::Size() + sizeof(float_t) * 2);
 
     auto& img = mCharset->image();
     mTexture = renderer.createTexture(img.width(), img.height(), 1);
@@ -94,7 +94,7 @@ Types::Rect<float_t> Character::rect()
 
 void Character::drawBuffer(graphics::Renderer& renderer, const Types::Point<>& dst)
 {
-    renderer.drawCharset(dst, mTexture.get(), mBuffer.get(), 0, 1);
+    renderer.drawTextureAnim(dst, mTexture.get(), mBuffer.get(), 0, 1);
 }
 
 void Character::updateBuffers(graphics::Renderer& renderer, uint32_t mapHeight)

@@ -91,8 +91,8 @@ void Weather::processAsync(uint64_t frameDiff, Camera& camera)
 void Weather::setSize(const Types::Dimension<uint32_t>& size)
 {
     mWaterParticles->setSpawnRect(Types::Rect<float_t>(-16, -16, size.width + 32, size.height + 32));
-    mSnowParticles->setSpawnRect(Types::Rect<float_t>(-static_cast<int32_t>(size.width / 2), -static_cast<int32_t>(size.height / 2), size.width * 2, size.height * 2));
-    mRainParticles->setSpawnRect(Types::Rect<float_t>(-16, -static_cast<int32_t>(size.height / 2), size.width + 32, size.height * 2));
+    mSnowParticles->setSpawnRect(Types::Rect<float_t>(-static_cast<int32_t>(size.width / 2), -static_cast<int32_t>(size.height / 2), size.width * 2, size.height * 1.5f));
+    mRainParticles->setSpawnRect(Types::Rect<float_t>(-static_cast<int32_t>(size.width / 2), -static_cast<int32_t>(size.height / 2), size.width * 2, size.height * 1.5f));
 
     mSizeMod = (size.width + size.height) / 1000.0f;
     updateIntensity();

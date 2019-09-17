@@ -6,7 +6,7 @@ Context::Context(Engine& engine, std::shared_ptr<script::ScriptEngine>& scriptEn
     : mEngine(engine)
     , mScriptEngine(scriptEngine)
 {
-    mAssetManager = std::make_unique<AssetManager>(renderer);
+    mAssetManager = std::make_unique<AssetManager>();
     mFontManager = std::make_unique<FontManager>(*this);
 }
 

@@ -612,7 +612,8 @@ void Tileset::updateBuffer(graphics::Renderer& renderer, TilesetNode& node, cons
             src.x += node.toggleWidth;
         }
 
-        writer += engine::graphics::Vector3D(dst.x, dst.y, zOrder);
+        writer += engine::graphics::Vector4D(dst.x, dst.y, dst.width, dst.height);
+        writer += zOrder;
         writer += engine::graphics::Vector4D(src.x, src.y, mTileDimension.width / 2.0f, mTileDimension.height / 2.0f);
         writer += engine::graphics::Vector2D(node.animSize.x, node.animSize.y);
         writer += static_cast<float_t>(texture);

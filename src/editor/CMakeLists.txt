@@ -23,7 +23,6 @@ include_directories(
 
 set(HEADERS
     ../app/include/ui/qtbuffer.h
-    ../app/include/ui/qtimage.h
     ../app/include/ui/qtmatrix.h
     ../app/include/ui/qttexture.h
     ../app/include/ui/qttransform.h
@@ -34,7 +33,6 @@ set(HEADERS
 set(SOURCES
     main.cpp
     ../app/ui/qtbuffer.cpp
-    ../app/ui/qtimage.cpp
     ../app/ui/qtmatrix.cpp
     ../app/ui/qttexture.cpp
     ../app/ui/qttransform.cpp

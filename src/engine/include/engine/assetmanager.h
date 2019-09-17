@@ -28,7 +28,7 @@ public:
         Schedule,
     };
 
-    AssetManager(const graphics::Renderer& renderer);
+    AssetManager();
 
     std::unique_ptr<Json::Value> data(Type type, const std::string& name) const;
     std::unique_ptr<graphics::Image> image(Type type, const std::string& name) const;
@@ -43,6 +43,5 @@ public:
 
 private:
     std::string mBase;
-    const graphics::Renderer& mRenderer;
 };
 }

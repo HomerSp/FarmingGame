@@ -13,13 +13,15 @@ class Item;
 class Player;
 
 namespace graphics {
+class Buffer;
 class Image;
 class Renderer;
+class Texture;
 }
 
 class Hud : public ContextObject {
 public:
-    Hud(std::shared_ptr<Context>& ctx);
+    Hud(std::shared_ptr<Context>& ctx, graphics::Renderer& renderer);
 
     void draw(graphics::Renderer& renderer, Clock& clock, Player& player, FrameTimer& frameTimer);
 
@@ -46,5 +48,8 @@ private:
     std::unique_ptr<graphics::Image> mSeasonsImage;
 
     std::atomic<bool> mExpanded;
+
+    std::unique_ptr<graphics::Buffer> mBuffer;
+    std::unique_ptr<graphics::Texture> mTextures;
 };
 }

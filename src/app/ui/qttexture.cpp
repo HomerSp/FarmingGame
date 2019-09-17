@@ -2,7 +2,6 @@
 #include <QOpenGLPixelTransferOptions>
 #include <QString>
 
-#include <ui/qtimage.h>
 #include <ui/qttexture.h>
 
 QtTexture::QtTexture(uint32_t w, uint32_t h, uint32_t layers)
@@ -32,12 +31,10 @@ void QtTexture::release()
 
 void QtTexture::setData(const engine::graphics::Image& image, uint32_t layer)
 {
-    const auto& native = dynamic_cast<const QtImage&>(image);
-
-    QImage glImage = native.image().convertToFormat(QImage::Format_RGBA8888).copy({0, 0, mTexture->width(), mTexture->height()});
+    auto copied = image.copy({0, 0, mTexture->width(), mTexture->height()});
     QOpenGLPixelTransferOptions uploadOptions;
     uploadOptions.setAlignment(1);
-    mTexture->setData(0, layer, QOpenGLTexture::RGBA, QOpenGLTexture::UInt8, glImage.constBits(), &uploadOptions);
+    mTexture->setData(0, layer, QOpenGLTexture::RGBA, QOpenGLTexture::UInt8, copied.data(), &uploadOptions);
 }
 
 uint32_t QtTexture::width() const

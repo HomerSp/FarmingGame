@@ -7,6 +7,7 @@ set(HEADERS
     include/engine/graphics/image.h
     include/engine/graphics/matrix.h
     include/engine/graphics/texture.h
+    include/engine/graphics/texturewriter.h
     include/engine/graphics/transform.h
     include/engine/graphics/renderer.h
     include/engine/graphics/vector.h
@@ -21,4 +22,5 @@ set(SOURCES
     graphics/image.cpp
     graphics/renderer.cpp
     graphics/texture.cpp
+    graphics/texturewriter.cpp
 ) 

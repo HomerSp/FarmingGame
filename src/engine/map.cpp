@@ -120,7 +120,7 @@ Map::Map(std::shared_ptr<Context>& ctx, graphics::Renderer& renderer, const std:
         }
     }
 
-    uint32_t bufferSize = engine::graphics::Vector3D::Size() + engine::graphics::Vector2D::Size() * 3 + sizeof(float_t);
+    uint32_t bufferSize = engine::graphics::Vector4D::Size() * 2 + engine::graphics::Vector2D::Size() + sizeof(float_t) * 2;
     for (auto above: TilesetAbove::Types) {
         mBufferCount[above] = tilesCount(above);
         mBuffer[above] = renderer.createBuffer(bufferSize * mBufferCount[above]);
@@ -158,7 +158,7 @@ bool Map::animate(uint64_t frameDiff)
 
 void Map::drawBuffer(graphics::Renderer& renderer, const Types::Point<>& dst, TilesetAbove::Type above)
 {
-    renderer.drawTiles(dst, mTexture.get(), mBuffer[above].get(), std::floor(mAnimFrame), mBufferCount[above]);
+    renderer.drawTextureAnim(dst, mTexture.get(), mBuffer[above].get(), std::floor(mAnimFrame), mBufferCount[above]);
 }
 
 void Map::updateBuffers(graphics::Renderer& renderer)
