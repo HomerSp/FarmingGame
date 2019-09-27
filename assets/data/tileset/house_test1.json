@@ -3,7 +3,7 @@
     "dimen": [48, 48],
     "collision": "house_test1",
     "nodes": [
-        // House 1
+        // 1 - House 1
         {
             "index": 1,
             "tile": "single",
@@ -17,16 +17,9 @@
             "tile": "single",
             "count": [1, 2]
         },
-        // 3 - Entrance over
+        // 3 - Door 1
         {
             "index": 3,
-            "tile": "single",
-            "count": [1, 1],
-            "above": "all"
-        },
-        // 4 - Door 1
-        {
-            "index": 4,
             "tile": "single",
             "count": [1, 2],
             "above": "row"

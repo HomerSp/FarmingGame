@@ -27,6 +27,7 @@ struct Particle {
     Types::Point<float_t> speed;
     float_t startLife, life;
     float_t angle;
+    bool needInit;
 };
 
 class Particles {
@@ -51,6 +52,7 @@ public:
     void setLifeRange(uint8_t minLife, uint8_t maxLife);
     void setAngle(float_t angle);
     void setSpawnRect(const Types::Rect<float_t> &rc);
+    void setRound(bool round);
 
     const Particle &operator[](int index) const;
 
@@ -69,6 +71,7 @@ private:
     Types::Point<float_t> mMinSpeed, mMaxSpeed;
     float_t mAngle;
     Types::Rect<float_t> mSpawnRect;
+    bool mRound;
 
     std::unique_ptr<graphics::Buffer> mBuffer;
 };

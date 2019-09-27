@@ -1,17 +1,17 @@
 #include <engine/graphics/image.h>
 #include <engine/graphics/renderer.h>
 #include <engine/graphics/texture.h>
-#include <engine/graphics/texturewriter.h>
+#include <engine/graphics/textureloader.h>
 
 using namespace engine;
 using namespace engine::graphics;
 
-TextureWriter::TextureWriter(Renderer& renderer)
+TextureLoader::TextureLoader(Renderer& renderer)
     : mRenderer(renderer)
 {
 }
 
-void TextureWriter::finish(std::unique_ptr<graphics::Texture>& ret)
+void TextureLoader::finish(std::unique_ptr<graphics::Texture>& ret)
 {
     uint32_t w = 0, h = 0;
     for (auto& i: mImages) {
@@ -23,10 +23,12 @@ void TextureWriter::finish(std::unique_ptr<graphics::Texture>& ret)
     for (uint32_t i = 0; i < mImages.size(); i++) {
         ret->setData(*mImages[i], i);
     }
+
+    mImages.clear();
 }
 
-TextureWriter& TextureWriter::operator+=(std::unique_ptr<graphics::Image> img)
+TextureLoader& TextureLoader::operator+=(const graphics::Image& img)
 {
-    mImages.emplace_back(std::move(img));
+    mImages.emplace_back(std::make_unique<graphics::Image>(img));
     return *this;
 }

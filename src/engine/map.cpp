@@ -6,7 +6,6 @@
 #include <engine/assetmanager.h>
 #include <engine/collisionmap.h>
 #include <engine/context.h>
-#include <engine/graphics/bufferwriter.h>
 #include <engine/graphics/matrix.h>
 #include <engine/graphics/renderer.h>
 #include <engine/graphics/vector.h>
@@ -158,7 +157,7 @@ bool Map::animate(uint64_t frameDiff)
 
 void Map::drawBuffer(graphics::Renderer& renderer, const Types::Point<>& dst, TilesetAbove::Type above)
 {
-    renderer.drawTextureAnim(dst, mTexture.get(), mBuffer[above].get(), std::floor(mAnimFrame), mBufferCount[above]);
+    renderer.drawTexturesAnim(dst, mTexture.get(), mBuffer[above].get(), std::floor(mAnimFrame), mBufferCount[above]);
 }
 
 void Map::updateBuffers(graphics::Renderer& renderer)
@@ -168,7 +167,7 @@ void Map::updateBuffers(graphics::Renderer& renderer)
     }
 
     for (auto above: TilesetAbove::Types) {
-        graphics::BufferWriter writer(*mBuffer[above]);
+        auto writer = mBuffer[above]->writer();
         for (const auto& layer : mLayers) {
             layer->updateBuffer(renderer, above, writer);
         }

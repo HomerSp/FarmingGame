@@ -4,7 +4,6 @@
 
 #include <engine/context.h>
 #include <engine/engine.h>
-#include <engine/graphics/bufferwriter.h>
 #include <engine/graphics/renderer.h>
 #include <engine/graphics/vector.h>
 #include <engine/logger.h>
@@ -359,12 +358,13 @@ void Engine::setKeyUp(int32_t key)
     mKeys.setUp(key);
 }
 
-void Engine::setSize(uint32_t width, uint32_t height)
+void Engine::setSize(uint32_t width, uint32_t height, double devicePixelRatio)
 {
     mWidth = width;
     mHeight = height;
     mCamera->setViewport({mWidth, mHeight});
     mWeather->setSize({mWidth, mHeight});
+    mRenderer->setSize(width, height, devicePixelRatio);
 }
 
 bool Engine::registerScript()

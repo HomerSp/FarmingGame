@@ -11,6 +11,13 @@ Image::Image()
 {
 }
 
+Image::Image(const Image& other)
+    : mWidth(other.mWidth)
+    , mHeight(other.mHeight)
+{
+    std::copy(other.mData.begin(), other.mData.end(), std::back_inserter(mData));
+}
+
 Image::Image(const std::string& path)
     : Image()
 {
@@ -25,7 +32,7 @@ Image::Image(const std::vector<uint8_t>& data)
     initData(data);
 }
 
-Image Image::copy(const Types::Rect<>& rc) const
+Image Image::copy(const Types::Rect<> &rc) const
 {
     if (rc.top() >= rc.bottom() || rc.left() >= rc.right()) {
         return Image();

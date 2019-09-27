@@ -21,7 +21,6 @@ class Tileset;
 
 namespace graphics {
 class Buffer;
-class BufferWriter;
 class Renderer;
 }
 
@@ -29,8 +28,8 @@ class MapLayer {
 public:
     MapLayer(graphics::Renderer& renderer, Types::Map2D data, std::shared_ptr<Tileset> tileset, uint32_t width, uint32_t height, uint32_t tilesetIndex);
 
-    void updateBuffer(graphics::Renderer& renderer, TilesetAbove::Type above, graphics::BufferWriter& writer);
-    void updateRowBuffer(graphics::Renderer& renderer, int32_t row, TilesetAbove::Type above, graphics::BufferWriter& writer);
+    void updateBuffer(graphics::Renderer& renderer, TilesetAbove::Type above, graphics::Buffer::Writer& writer);
+    void updateRowBuffer(graphics::Renderer& renderer, int32_t row, TilesetAbove::Type above, graphics::Buffer::Writer& writer);
 
     uint32_t tilesCount(TilesetAbove::Type above);
 

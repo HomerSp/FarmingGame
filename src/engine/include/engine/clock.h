@@ -8,6 +8,7 @@
 #include <engine/listeners.h>
 #include <engine/listenerobject.h>
 #include <engine/script/scriptobject.h>
+#include <engine/time.h>
 #include <engine/types.h>
 
 namespace engine {
@@ -31,25 +32,16 @@ private:
 
         bool check(uint64_t val);
 
-    protected:
-        void parseBlock(const std::string& block);
-
     private:
         bool mTriggered;
-        int8_t mYear;
-        int8_t mMonth;
-        int8_t mDay;
-        int8_t mWeek;
-        int8_t mWeekDay;
-        int8_t mHour;
-        int8_t mMinute;
+        Time mTime;
     };
 
 public:
     Clock(std::shared_ptr<Context> &ctx);
- 
-    uint64_t current() const;
+
     float_t currentHour() const;
+    uint64_t current() const;
 
     uint8_t year() const;
     uint8_t month() const;

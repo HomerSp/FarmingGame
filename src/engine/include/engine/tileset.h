@@ -11,15 +11,12 @@
 #include <engine/collisionmap.h>
 #include <engine/contextobject.h>
 #include <engine/graphics/image.h>
-#include <engine/graphics/transform.h>
 #include <engine/types.h>
 
 namespace engine {
 
 namespace graphics {
-class BufferWriter;
 class Renderer;
-class Transform;
 }
 
 class Context;
@@ -28,6 +25,7 @@ class Tileset;
 
 struct TilesetNode {
     uint32_t id;
+    uint32_t baseY;
     std::array<Types::Point<>, 4> pos;
     Types::Point<> animSize;
     uint8_t frames;
@@ -118,7 +116,7 @@ class Tileset : public ContextObject {
 public:
     Tileset(std::shared_ptr<Context>& ctx, const std::string& name);
 
-    void updateBuffer(graphics::Renderer& renderer, TilesetNode& node, const Types::Point<>& pos, graphics::BufferWriter& writer, uint32_t texture, float_t zOrder);
+    void updateBuffer(graphics::Renderer& renderer, TilesetNode& node, const Types::Point<>& pos, graphics::Buffer::Writer& writer, uint32_t texture, float_t zOrder);
 
     graphics::Image& image() const;
 

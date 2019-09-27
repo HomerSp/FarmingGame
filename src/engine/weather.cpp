@@ -13,7 +13,7 @@ Weather::Data::Data()
 {
 }
 
-Weather::Data::Data(Weather::Type type, float_t intensity, int8_t windDirection, float_t windSpeed)
+Weather::Data::Data(Weather::Type type, float_t intensity, float_t windDirection, float_t windSpeed)
     : type(type)
     , intensity(intensity)
     , windDirection(windDirection)
@@ -30,16 +30,17 @@ Weather::Weather(std::shared_ptr<Context>& ctx, graphics::Renderer& renderer, Cl
     , mSizeMod(0.0f)
     , mData({})
 {
-    mData[0] = Data(Storm, Random::range(100) / 100.0f, Random::range(2) - 1, Random::range(100) / 100.0f);
-    mData[1] = Data(Clear, Random::range(100) / 100.0f, Random::range(2) - 1, Random::range(100) / 100.0f);
+    mData[0] = Data(randomType(clock), Random::range(10, 100) / 100.0f, Random::range(3600) / 10.0f, Random::range(100) / 100.0f);
+    mData[1] = Data(randomType(clock), Random::range(10, 100) / 100.0f, Random::range(3600) / 10.0f, Random::range(100) / 100.0f);
 
     mWaterParticles = std::make_unique<engine::Particles>(renderer, 30, graphics::Color(1, 1, 0.8f, 0.5f), Types::Dimension<>(2, 2));
     mWaterParticles->setMoveSpeed(1.0f);
-    mSnowParticles = std::make_unique<engine::Particles>(renderer, 30, graphics::Color(1, 1, 1, 1.0f), Types::Dimension<>(4, 4), false);
+    mSnowParticles = std::make_unique<engine::Particles>(renderer, 30, graphics::Color(1, 1, 1, 1.0f), Types::Dimension<>(10, 10), false);
     mSnowParticles->setFrameSpeed(500.0f);
     mSnowParticles->setMoveSpeed(100.0f);
     mSnowParticles->setLifeRange(50, 100);
-    mRainParticles = std::make_unique<engine::Particles>(renderer, 30, graphics::Color(1, 1, 1, 1.0f), Types::Dimension<>(2, 40), true);
+    mSnowParticles->setRound(true);
+    mRainParticles = std::make_unique<engine::Particles>(renderer, 30, graphics::Color(1, 1, 1, 1.0f), Types::Dimension<>(3, 60), true);
     mRainParticles->setFrameSpeed(100.0f);
     mRainParticles->setMoveSpeed(100.0f);
     mRainParticles->setLifeRange(50, 100);
@@ -58,7 +59,7 @@ Weather::Type Weather::type() const
     return mData[0].type;
 }
 
-int8_t Weather::windDirection() const
+float_t Weather::windDirection() const
 {
     return mData[0].windDirection;
 }
@@ -91,8 +92,8 @@ void Weather::processAsync(uint64_t frameDiff, Camera& camera)
 void Weather::setSize(const Types::Dimension<uint32_t>& size)
 {
     mWaterParticles->setSpawnRect(Types::Rect<float_t>(-16, -16, size.width + 32, size.height + 32));
-    mSnowParticles->setSpawnRect(Types::Rect<float_t>(-static_cast<int32_t>(size.width / 2), -static_cast<int32_t>(size.height / 2), size.width * 2, size.height * 1.5f));
-    mRainParticles->setSpawnRect(Types::Rect<float_t>(-static_cast<int32_t>(size.width / 2), -static_cast<int32_t>(size.height / 2), size.width * 2, size.height * 1.5f));
+    mSnowParticles->setSpawnRect(Types::Rect<float_t>(-static_cast<int32_t>(size.width / 2), -static_cast<int32_t>(size.height / 2), size.width * 2, size.height * 2));
+    mRainParticles->setSpawnRect(Types::Rect<float_t>(-static_cast<int32_t>(size.width / 2), -static_cast<int32_t>(size.height / 2), size.width * 2, size.height * 2));
 
     mSizeMod = (size.width + size.height) / 1000.0f;
     updateIntensity();
@@ -100,19 +101,14 @@ void Weather::setSize(const Types::Dimension<uint32_t>& size)
 
 void Weather::dayChanged(const Clock& clock)
 {
-    Logger::debug("Weather") << "dayChanged" << static_cast<int>(clock.day()) << "type" << static_cast<int>(mData[1].type);
-
     mData[0] = mData[1];
-
-    auto type = randomType(clock);
-    mData[1] = Data(type, Random::range(100) / 100.0f, Random::range(2) - 1, Random::range(100) / 100.0f);
+    mData[1] = Data(randomType(clock), Random::range(10, 100) / 100.0f, Random::range(3600) / 10.0f, Random::range(100) / 100.0f);
 
     updateParticles(clock);
 }
 
 void Weather::daylightChanged(const Clock& clock)
 {
-    Logger::debug("Weather") << "daylightChanged" << clock.daylight();
     if (mData[0].type == Clear) {
         mWaterParticles->setEnabled(clock.daylight());
     }
@@ -151,7 +147,7 @@ Weather::Type Weather::randomType(const Clock& clock)
 void Weather::updateIntensity()
 {
     mWaterParticles->setCount(40 * mSizeMod);
-    mSnowParticles->setCount(70 * mSizeMod * mData[0].intensity * 10.0f);
+    mSnowParticles->setCount(20 * mSizeMod * mData[0].intensity * 10.0f);
     mRainParticles->setCount(20 * mSizeMod * mData[0].intensity * 10.0f);
 }
 

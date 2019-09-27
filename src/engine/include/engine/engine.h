@@ -50,7 +50,7 @@ public:
         mHasFocus = focus;
     }
 
-    void setSize(uint32_t width, uint32_t height);
+    void setSize(uint32_t width, uint32_t height, double devicePixelRatio);
 
 protected:
     void animateAsync();

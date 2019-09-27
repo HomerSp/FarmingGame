@@ -22,7 +22,6 @@ class MapLayer;
 class Tileset;
 
 namespace graphics {
-class BufferWriter;
 class Renderer;
 }
 

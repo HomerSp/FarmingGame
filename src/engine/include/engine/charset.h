@@ -35,7 +35,7 @@ public:
 
     Charset(std::shared_ptr<Context>& ctx, const std::string& name);
 
-    void updateBuffer(graphics::Renderer& renderer, const Types::Point<>& pos, Charset::Type type, int32_t direction, int32_t frame, graphics::BufferWriter& writer, uint32_t texture, float_t zOrder);
+    void updateBuffer(graphics::Renderer& renderer, const Types::Point<>& pos, Charset::Type type, int32_t direction, int32_t frame, graphics::Buffer::Writer& writer, uint32_t texture, float_t zOrder);
 
     graphics::Image& image() const;
 

@@ -52,14 +52,14 @@ MapLayer::MapLayer(graphics::Renderer& renderer, Types::Map2D data, std::shared_
     mValid = true;
 }
 
-void MapLayer::updateBuffer(graphics::Renderer& renderer, TilesetAbove::Type above, graphics::BufferWriter& writer)
+void MapLayer::updateBuffer(graphics::Renderer& renderer, TilesetAbove::Type above, graphics::Buffer::Writer& writer)
 {
     for (auto &nodeY: mNodes[above]) {
         updateRowBuffer(renderer, nodeY.first, above, writer);
     }
 }
 
-void MapLayer::updateRowBuffer(graphics::Renderer& renderer, int32_t row, TilesetAbove::Type above, graphics::BufferWriter& writer)
+void MapLayer::updateRowBuffer(graphics::Renderer& renderer, int32_t row, TilesetAbove::Type above, graphics::Buffer::Writer& writer)
 {
     auto* nodes = &mNodes[above];
 
@@ -71,12 +71,14 @@ void MapLayer::updateRowBuffer(graphics::Renderer& renderer, int32_t row, Tilese
     float_t zOrder = 1.0f;
     if (above == TilesetAbove::All) {
         zOrder = -1.0f;
-    } else if (above == TilesetAbove::Row) {
-        zOrder = 1.0f - ((row + 1) / static_cast<float_t>(mDimensions.height));
     }
 
     auto nodeRow = nodes->at(row);
     for (auto &node : nodeRow) {
+        if (above == TilesetAbove::Row) {
+            zOrder = 1.0f - ((node.second->baseY) / static_cast<float_t>(mDimensions.height));
+        }
+
         mTileset->updateBuffer(renderer, *node.second, { node.first, row }, writer, mTilesetIndex, zOrder);
     }
 }

@@ -38,18 +38,16 @@ protected:
     void drawBarSmall(graphics::Renderer& renderer, uint32_t width, graphics::Color fillColor, float_t fillPercent, uint32_t indicatorX);
 
 private:
-    Types::Point<> mBoxSize;
-    uint32_t mHealthStaminaWidth;
+    void loadClockTextures(graphics::Renderer& renderer);
+    void loadItemTextures(graphics::Renderer& renderer);
 
-    std::unique_ptr<graphics::Image> mClockImage;
-    std::unique_ptr<graphics::Image> mHudItemEquipped, mHudItem;
-    std::unique_ptr<graphics::Image> mBarSmall;
-    std::unique_ptr<graphics::Image> mHealthStamina;
-    std::unique_ptr<graphics::Image> mSeasonsImage;
+    Types::Dimension<> mBoxSize;
+    uint32_t mHealthStaminaWidth;
 
     std::atomic<bool> mExpanded;
 
-    std::unique_ptr<graphics::Buffer> mBuffer;
-    std::unique_ptr<graphics::Texture> mTextures;
+    const uint32_t mClockBackgroundBufferCount, mClockForegroundBufferCount;
+    std::unique_ptr<graphics::Buffer> mClockBackgroundBuffer, mClockForegroundBuffer;
+    std::unique_ptr<graphics::Texture> mClockTextures;
 };
 }

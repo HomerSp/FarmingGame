@@ -11,11 +11,12 @@ namespace graphics {
 class Image {
 public:
     Image();
+    Image(const Image& other);
     Image(const std::string& path);
     Image(const std::vector<uint8_t>& data);
     ~Image() = default;
 
-    Image copy(const Types::Rect<>& rc) const;
+    Image copy(const Types::Rect<> &rc) const;
 
     const uint8_t *data() const;
     

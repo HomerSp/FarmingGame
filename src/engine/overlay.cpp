@@ -1,4 +1,3 @@
-#include <engine/graphics/bufferwriter.h>
 #include <engine/graphics/colorgradient.h>
 #include <engine/graphics/vector.h>
 #include <engine/overlay.h>
@@ -31,7 +30,7 @@ void Overlay::draw(graphics::Renderer& renderer, const Types::Point<> dst, const
 {
     uint32_t lightsCount = 0;
 
-    graphics::BufferWriter writer(*mLightsBuffer);
+    auto writer = mLightsBuffer->writer();
     for (auto& source: sources) {
         auto radius = source->lightRadius();
         if (radius == 0.0f) {
@@ -39,14 +38,16 @@ void Overlay::draw(graphics::Renderer& renderer, const Types::Point<> dst, const
         }
 
         auto l = source->lightColor();
-        writer += engine::graphics::Color::max(l.inner(), mBackground);
-        writer += engine::graphics::Color::max(l.outer(), mBackground);
+        writer.append(engine::graphics::Color::max(l.inner(), mBackground));
+        writer.append(engine::graphics::Color::max(l.outer(), mBackground));
 
         auto pos = source->lightPosition();
-        writer += engine::graphics::Vector4D(pos.x - (radius / 2.0f), pos.y - (radius / 2.0f), radius, radius);
+        writer.append(engine::graphics::Vector4D(pos.x - (radius / 2.0f), pos.y - (radius / 2.0f), radius, radius));
 
         lightsCount++;
     }
+
+    writer.release();
 
     renderer.drawOverlay(dst, *this, lightsCount, mRadiusMod);
 }

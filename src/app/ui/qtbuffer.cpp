@@ -5,7 +5,6 @@
 #include <engine/graphics/vector.h>
 
 #include <ui/qtbuffer.h>
-#include <ui/qttransform.h>
 
 QtBuffer::QtBuffer(uint32_t size)
 {
@@ -57,14 +56,6 @@ uint32_t QtBuffer::write(uint32_t offset, const engine::graphics::Matrix& matrix
     return engine::graphics::Matrix::Size();
 }
 
-uint32_t QtBuffer::write(uint32_t offset, const engine::graphics::Transform& transform)
-{
-    const auto& native = dynamic_cast<const QtTransform&>(transform);
-    auto matrix = static_cast<QMatrix4x4>(native);
-    mBuffer.write(offset, matrix.constData(), engine::graphics::Matrix::Size());
-    return engine::graphics::Matrix::Size();
-}
-
 uint32_t QtBuffer::write(uint32_t offset, const engine::graphics::Vector2D& vector)
 {
     mBuffer.write(offset, vector.constData(), engine::graphics::Vector2D::Size());
@@ -87,6 +78,12 @@ uint32_t QtBuffer::write(uint32_t offset, const engine::graphics::Quad<2>& quad)
 {
     mBuffer.write(offset, quad.constData(), engine::graphics::Quad<2>::Size());
     return engine::graphics::Quad<2>::Size();
+}
+
+uint32_t QtBuffer::write(uint32_t offset, int val)
+{
+    mBuffer.write(offset, &val, sizeof(int));
+    return sizeof(float_t);
 }
 
 uint32_t QtBuffer::write(uint32_t offset, float_t val)

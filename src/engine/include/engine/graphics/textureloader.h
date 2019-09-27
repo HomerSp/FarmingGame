@@ -7,14 +7,16 @@ namespace engine {
 namespace graphics {
 
 class Image;
+class Renderer;
+class Texture;
 
-class TextureWriter {
+class TextureLoader {
 public:
-    TextureWriter(Renderer& renderer);
+    TextureLoader(Renderer& renderer);
 
     void finish(std::unique_ptr<graphics::Texture>& ret);
 
-    TextureWriter& operator+=(std::unique_ptr<graphics::Image> img);
+    TextureLoader& operator+=(const graphics::Image& img);
 
 private:
     Renderer& mRenderer;

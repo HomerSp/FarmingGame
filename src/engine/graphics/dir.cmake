@@ -1,13 +1,13 @@
 set(HEADERS
     ${HEADERS}
     include/engine/graphics/buffer.h
-    include/engine/graphics/bufferwriter.h
     include/engine/graphics/color.h
     include/engine/graphics/colorgradient.h
     include/engine/graphics/image.h
     include/engine/graphics/matrix.h
+    include/engine/graphics/shaderprogram.h
     include/engine/graphics/texture.h
-    include/engine/graphics/texturewriter.h
+    include/engine/graphics/textureloader.h
     include/engine/graphics/transform.h
     include/engine/graphics/renderer.h
     include/engine/graphics/vector.h
@@ -16,11 +16,13 @@ set(HEADERS
 
 set(SOURCES
     ${SOURCES}
-    graphics/bufferwriter.cpp
+    graphics/buffer.cpp
     graphics/color.cpp
     graphics/colorgradient.cpp
     graphics/image.cpp
+    graphics/matrix.cpp
     graphics/renderer.cpp
+    graphics/shaderprogram.cpp
     graphics/texture.cpp
-    graphics/texturewriter.cpp
+    graphics/textureloader.cpp
 ) 

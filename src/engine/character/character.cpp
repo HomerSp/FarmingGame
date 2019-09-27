@@ -5,7 +5,6 @@
 #include <engine/assetmanager.h>
 #include <engine/character/character.h>
 #include <engine/context.h>
-#include <engine/graphics/bufferwriter.h>
 #include <engine/graphics/renderer.h>
 #include <engine/graphics/vector.h>
 #include <engine/logger.h>
@@ -94,7 +93,7 @@ Types::Rect<float_t> Character::rect()
 
 void Character::drawBuffer(graphics::Renderer& renderer, const Types::Point<>& dst)
 {
-    renderer.drawTextureAnim(dst, mTexture.get(), mBuffer.get(), 0, 1);
+    renderer.drawTexturesAnim(dst, mTexture.get(), mBuffer.get(), 0, 1);
 }
 
 void Character::updateBuffers(graphics::Renderer& renderer, uint32_t mapHeight)
@@ -111,8 +110,9 @@ void Character::updateBuffers(graphics::Renderer& renderer, uint32_t mapHeight)
 
     Types::Point<> pos(mPos.x, mPos.y);
 
-    graphics::BufferWriter writer(*mBuffer);
+    auto writer = mBuffer->writer();
     mCharset->updateBuffer(renderer, pos, mCharsetType, mDirection, frame, writer, 0, zOrder);
+    writer.release();
 }
 
 bool Character::animate(uint64_t frameDiff, bool reset)

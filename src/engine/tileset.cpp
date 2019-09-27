@@ -5,7 +5,6 @@
 #include <engine/assetmanager.h>
 #include <engine/collisionmap.h>
 #include <engine/context.h>
-#include <engine/graphics/bufferwriter.h>
 #include <engine/graphics/image.h>
 #include <engine/graphics/matrix.h>
 #include <engine/graphics/renderer.h>
@@ -179,11 +178,11 @@ void TilesetType::setLightColor(const graphics::ColorGradient& color)
     mLightColor = color;
 }
 
-
 std::shared_ptr<TilesetNode> TilesetType::toNode(Types::Map2D& tiles, uint32_t x, uint32_t y, uint32_t width, uint32_t height)
 {
     std::shared_ptr<TilesetNode> node = std::make_shared<TilesetNode>();
     node->id = x + (y * width);
+    node->baseY = y + 1;
     node->animSize = Types::Point<>(mTileDimension.width, 0);
     node->frames = mFrames;
     node->toggleWidth = (mAttributes[TilesetAttribute::Toggle]) ? (mSize.width / 2) : 0;
@@ -204,6 +203,17 @@ std::shared_ptr<TilesetNode> TilesetType::toNode(Types::Map2D& tiles, uint32_t x
     uint32_t chunkWidth = (mTileDimension.width / 2);
     uint32_t chunkHeight = (mTileDimension.height / 2);
 
+    if (mTileAbove == TilesetAbove::Row) {
+        for(uint32_t iy = 1; iy < mCount.rows; iy++) {
+            if (y + iy < height - 1 && tiles[x][y + iy] == tiles[x][y]) {
+                node->baseY = y + iy + 1;
+                continue;
+            }
+
+            break;
+        }
+    }
+
     switch (mTileType) {
     case TileTypeSingle: {
         // The id of the tile is the top-left corner of the tile block
@@ -211,19 +221,19 @@ std::shared_ptr<TilesetNode> TilesetType::toNode(Types::Map2D& tiles, uint32_t x
 
         Types::Point<uint32_t> pos(mSize.x, mSize.y);
         for(uint32_t iy = 1; iy < mCount.rows; iy++) {
-            if (y - iy >= 0) {
-                if (tiles[x][y - iy] == tiles[x][y]) {
-                    pos.y += mTileDimension.height;
-                    startY = y - iy;
-                }
+            if (y - iy >= 0 && tiles[x][y - iy] == tiles[x][y]) {
+                pos.y += mTileDimension.height;
+                startY = y - iy;
+            } else {
+                break;
             }
         }
         for(uint32_t ix = 1; ix < mCount.cols; ix++) {
-            if (x - ix >= 0) {
-                if (tiles[x - ix][y] == tiles[x][y]) {
-                    pos.x += mTileDimension.width;
-                    startX = x - ix;
-                }
+            if (x - ix >= 0 && tiles[x - ix][y] == tiles[x][y]) {
+                pos.x += mTileDimension.width;
+                startX = x - ix;
+            } else {
+                break;
             }
         }
 
@@ -599,7 +609,7 @@ graphics::Image& Tileset::image() const
     return *mImage;
 }
 
-void Tileset::updateBuffer(graphics::Renderer& renderer, TilesetNode& node, const Types::Point<>& pos, graphics::BufferWriter& writer, uint32_t texture, float_t zOrder)
+void Tileset::updateBuffer(graphics::Renderer& renderer, TilesetNode& node, const Types::Point<>& pos, graphics::Buffer::Writer& writer, uint32_t texture, float_t zOrder)
 {
     Types::Rect<> dst(0, 0, mTileDimension.width / 2, mTileDimension.height / 2);
     int32_t dx = 0, dy = 0;
@@ -612,11 +622,11 @@ void Tileset::updateBuffer(graphics::Renderer& renderer, TilesetNode& node, cons
             src.x += node.toggleWidth;
         }
 
-        writer += engine::graphics::Vector4D(dst.x, dst.y, dst.width, dst.height);
-        writer += zOrder;
-        writer += engine::graphics::Vector4D(src.x, src.y, mTileDimension.width / 2.0f, mTileDimension.height / 2.0f);
-        writer += engine::graphics::Vector2D(node.animSize.x, node.animSize.y);
-        writer += static_cast<float_t>(texture);
+        writer.append(engine::graphics::Vector4D(dst.x, dst.y, dst.width, dst.height));
+        writer.append(zOrder);
+        writer.append(engine::graphics::Vector4D(src.x, src.y, mTileDimension.width / 2.0f, mTileDimension.height / 2.0f));
+        writer.append(engine::graphics::Vector2D(node.animSize.x, node.animSize.y));
+        writer.append(static_cast<float_t>(texture));
 
         dx++;
         if (dx > 1) {
@@ -671,7 +681,7 @@ bool Tileset::updateTiles(Types::Map2D& tiles, std::map<int32_t, std::map<int32_
                 }
 
                 auto tileType = (*it).second;
-                if (tileType->above() == above || tileType->checkBase(tiles, above, x, y)) {
+                if (tileType->above() == above) {
                     map[y][x] = tileType->toNode(tiles, x, y, width, height);
                 }
             }

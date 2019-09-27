@@ -26,9 +26,9 @@ void QtWindow::initializeGL()
     initializeOpenGLFunctions();
 
     mRenderer = std::make_shared<QtRenderer>();
-    mRenderer->setSize(width(), height(), devicePixelRatio());
     mEngine = std::make_shared<engine::Engine>(width(), height(), mRenderer);
     mEngine->setKeyMap(mKeys);
+    mEngine->setSize(width(), height(), devicePixelRatio());
 
     connect(&mIdleTimer, &QTimer::timeout, this, &QtWindow::process);
     mIdleTimer.start(0);
@@ -36,8 +36,7 @@ void QtWindow::initializeGL()
 
 void QtWindow::resizeGL(int width, int height)
 {
-    mEngine->setSize(width, height);
-    mRenderer->setSize(width, height, devicePixelRatio());
+    mEngine->setSize(width, height, devicePixelRatio());
 }
 
 void QtWindow::paintGL()

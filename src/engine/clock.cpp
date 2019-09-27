@@ -264,82 +264,16 @@ void Clock::registerClass(asIScriptEngine* engine)
 Clock::ChangeListener::ChangeListener(asIScriptFunction* fun, const std::string& format)
     : Listener(fun)
     , mTriggered(false)
-    , mYear(-1)
-    , mMonth(-1)
-    , mDay(-1)
-    , mWeek(-1)
-    , mWeekDay(-1)
-    , mHour(-1)
-    , mMinute(-1)
 {
-    std::unordered_map<Time::Type, int8_t> data;
-    Time::parseString(format, data);
-
-    mYear = (data.find(Time::Year) != data.end()) ? data.find(Time::Year)->second : -1;
-    mMonth = (data.find(Time::Month) != data.end()) ? data.find(Time::Month)->second : -1;
-    mDay = (data.find(Time::Day) != data.end()) ? data.find(Time::Day)->second : -1;
-    mWeek = (data.find(Time::Week) != data.end()) ? data.find(Time::Week)->second : -1;
-    mWeekDay = (data.find(Time::WeekDay) != data.end()) ? data.find(Time::WeekDay)->second : -1;
-    mHour = (data.find(Time::Hour) != data.end()) ? data.find(Time::Hour)->second : -1;
-    mMinute = (data.find(Time::Minute) != data.end()) ? data.find(Time::Minute)->second : -1;
+    mTime = Time::fromString(format);
 }
 
 bool Clock::ChangeListener::check(uint64_t val)
 {
-    if (mYear != -1) {
-        auto v = static_cast<int8_t>(std::floor(val / 60.0f / 24.0f / 28.0f / 4.0f));
-        if (mYear != v + 1) {
-            mTriggered = false;
-            return false;
-        }
-    }
-
-    if (mMonth != -1) {
-        auto v = static_cast<int8_t>(std::floor(val / 60.0f / 24.0f / 28.0f)) % 4;
-        if (mMonth != v + 1) {
-            mTriggered = false;
-            return false;
-        }
-    }
-
-    if (mDay != -1) {
-        auto v = static_cast<int8_t>(std::floor(val / 60.0f / 24.0f)) % 28;
-        if (mDay != v + 1) {
-            mTriggered = false;
-            return false;
-        }
-    }
-
-    if (mWeek != -1) {
-        auto v = static_cast<int8_t>(std::floor(val / 60.0f / 24.0f / 7.0f)) % 4;
-        if (mWeek != v + 1) {
-            mTriggered = false;
-            return false;
-        }
-    }
-
-    if (mWeekDay != -1) {
-        auto v = static_cast<int8_t>(std::floor(val / 60.0f / 24.0f)) % 7;
-        if (mWeekDay != v + 1) {
-            mTriggered = false;
-            return false;
-        }
-    }
-
-    if (mHour != -1) {
-        auto v = static_cast<int8_t>(std::floor(val / 60.0f)) % 24;
-        if (mHour != v) {
-            mTriggered = false;
-            return false;
-        }
-    }
-
-    if (mMinute != -1) {
-        auto v = static_cast<int8_t>(val % 60);
-        if (mMinute != v) {
-            mTriggered = false;
-            return false;
-        }
+    Time current = Time::fromCurrent(val);
+    if (!mTime.equals(current)) {
+        mTriggered = false;
+        return false;
     }
 
     bool t = mTriggered;

@@ -1,7 +1,6 @@
-#include <engine/graphics/bufferwriter.h>
 #include <engine/graphics/matrix.h>
 #include <engine/graphics/renderer.h>
-#include <engine/graphics/transform.h>
+#include <engine/graphics/vector.h>
 #include <engine/logger.h>
 #include <engine/particles.h>
 #include <engine/random.h>
@@ -16,6 +15,7 @@ Particle::Particle(const graphics::Color& color, const Types::Dimension<>& size)
     , startLife(0.0f)
     , life(0.0f)
     , angle(0.0f)
+    , needInit(true)
 {
 }
 
@@ -36,33 +36,41 @@ Particles::Particles(graphics::Renderer& renderer, uint32_t count, const graphic
     , mMaxLife(100)
     , mAngle(-1.0f)
     , mSpawnRect(-1, -1, -1, -1)
+    , mRound(false)
 {
     mParticles.resize(mCount, mOriginParticle);
 
-    mBuffer = renderer.createBuffer((graphics::Matrix::Size() + graphics::Color::Size()) * count);
+    mBuffer = renderer.createBuffer((graphics::Color::Size() + graphics::Vector2D::Size() * 3) * count);
 }
 
 void Particles::draw(graphics::Renderer& renderer, const Types::Point<> dst)
 {
     std::lock_guard<std::mutex> locker(mMutex);
     if (mEnabled && mSpawnRect.width >= 0.0f) {
-        auto transform = renderer.createTransform();
+        auto writer = mBuffer->writer();
+        for (auto& p: mParticles) {
+            if (p.needInit) {
+                float a = -(180.0f - p.angle);
+                float r = a * Types::PI() / 180.0f;
 
-        engine::graphics::BufferWriter writer(*mBuffer);
-        for (const auto& p: mParticles) {
-            writer += engine::graphics::Color(p.color.r(), p.color.g(), p.color.b(), p.alpha());
-
-            transform->reset();
-            transform->translate(p.rect.x, p.rect.y);
-            transform->rotate(180.0f - p.angle);
-            transform->scale(p.rect.width, p.rect.height);
-
-            writer += *transform;
+                writer.append(engine::graphics::Color(p.color.r(), p.color.g(), p.color.b()));
+                writer.append(p.alpha());
+                writer.append(engine::graphics::Vector2D(p.rect.x, p.rect.y));
+                writer.append(engine::graphics::Vector2D(p.rect.width, p.rect.height));
+                writer.append(engine::graphics::Vector2D(std::sin(r), std::cos(r)));
+                p.needInit = false;
+            } else {
+                writer.skip(engine::graphics::Color::Size());
+                writer.append(p.alpha());
+                writer.append(engine::graphics::Vector2D(p.rect.x, p.rect.y));
+                writer.skip(engine::graphics::Vector2D::Size());
+                writer.skip(engine::graphics::Vector2D::Size());
+            }
         }
 
         writer.release();
 
-        renderer.drawParticles(dst, *this);
+        renderer.drawParticles(dst, *this, mRound);
     }
 }
 
@@ -73,7 +81,7 @@ void Particles::processAsync(uint64_t frameDiff, Camera& camera, Weather& weathe
         double m = (frameDiff / mFrameSpeed);
 
         float_t windSpeed = weather.windSpeed();
-        double_t windDirection = (20.0f * weather.windDirection() * windSpeed);
+        double_t windDirection = ((20.0f - (weather.windDirection() / 9.0f)) * windSpeed);
 
         auto cameraRc = mSpawnRect;
         cameraRc.x += camera.x();
@@ -83,7 +91,9 @@ void Particles::processAsync(uint64_t frameDiff, Camera& camera, Weather& weathe
         for (Particle& p: mParticles) {
             if (p.life > 0.0f) {
                 if (cameraRc.intersects(p.rect)) {
-                    float_t r = ((180.0f - p.angle) * Types::PI()) / 180.0f;
+                    p.angle = windDirection;
+                    float_t angle = p.angle;
+                    float_t r = ((180.0f - angle) * Types::PI()) / 180.0f;
                     float_t windX = sin(r) * m;
                     float_t windY = -cos(r) * m;
                     p.rect.x += windX * p.speed.x * mMoveSpeed;
@@ -185,6 +195,11 @@ void Particles::setSpawnRect(const Types::Rect<float_t>& rc)
     mSpawnRect = rc;
 }
 
+void Particles::setRound(bool round)
+{
+    mRound = round;
+}
+
 const Particle &Particles::operator[](int index) const
 {
     return mParticles.at(index);
@@ -194,11 +209,11 @@ void Particles::initNew(Particle& particle, Camera& camera, float_t angle)
 {
     float_t x = Random::range(mSpawnRect.left(), mSpawnRect.right());
     float_t y = Random::range(mSpawnRect.top(), mSpawnRect.bottom());
-    float_t r = (Random::range(100) - 50) / 10.0f;
 
     float_t life = Random::range(mMinLife, mMaxLife) / 100.0f;
     particle.startLife = particle.life = life;
     particle.rect.x = camera.x() + x;
     particle.rect.y = camera.y() + y;
-    particle.angle = angle + r;
+    particle.angle = angle;
+    particle.needInit = true;
 }

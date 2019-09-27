@@ -2,7 +2,6 @@
 #include <engine/charset.h>
 #include <engine/context.h>
 #include <engine/graphics/buffer.h>
-#include <engine/graphics/bufferwriter.h>
 #include <engine/graphics/texture.h>
 #include <engine/graphics/vector.h>
 #include <engine/logger.h>
@@ -45,7 +44,7 @@ Charset::Charset(std::shared_ptr<Context>& ctx, const std::string& name)
     mValid = !mNodes.empty();
 }
 
-void Charset::updateBuffer(graphics::Renderer& renderer, const Types::Point<>& pos, Charset::Type type, int32_t direction, int32_t frame, graphics::BufferWriter& writer, uint32_t texture, float_t zOrder)
+void Charset::updateBuffer(graphics::Renderer& renderer, const Types::Point<>& pos, Charset::Type type, int32_t direction, int32_t frame, graphics::Buffer::Writer& writer, uint32_t texture, float_t zOrder)
 {
     // Couldn't find the node, return...
     if (mNodes.find(type) == mNodes.end()) {
@@ -57,11 +56,11 @@ void Charset::updateBuffer(graphics::Renderer& renderer, const Types::Point<>& p
     Types::Rect<> dst(pos.x, pos.y, node->rect.width, node->rect.height);
     Types::Rect<> src(node->rect.x + (node->rect.width * frame), node->rect.y + (node->rect.height * direction), node->rect.width, node->rect.height);
 
-    writer += engine::graphics::Vector4D(dst.x, dst.y, dst.width, dst.height);
-    writer += zOrder;
-    writer += engine::graphics::Vector4D(src.x, src.y, src.width, src.height);
-    writer += engine::graphics::Vector2D(src.width, src.height);
-    writer += static_cast<float_t>(texture);
+    writer.append(engine::graphics::Vector4D(dst.x, dst.y, dst.width, dst.height));
+    writer.append(zOrder);
+    writer.append(engine::graphics::Vector4D(src.x, src.y, src.width, src.height));
+    writer.append(engine::graphics::Vector2D(src.width, src.height));
+    writer.append(static_cast<float_t>(texture));
     writer.release();
 }
 

@@ -35,6 +35,8 @@ void QtTexture::setData(const engine::graphics::Image& image, uint32_t layer)
     QOpenGLPixelTransferOptions uploadOptions;
     uploadOptions.setAlignment(1);
     mTexture->setData(0, layer, QOpenGLTexture::RGBA, QOpenGLTexture::UInt8, copied.data(), &uploadOptions);
+
+    setDimensions(engine::Types::Dimension<>(image.width(), image.height()), layer);
 }
 
 uint32_t QtTexture::width() const

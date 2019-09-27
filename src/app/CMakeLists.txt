@@ -21,9 +21,8 @@ include_directories(
 
 set(HEADERS
     include/ui/qtbuffer.h
-    include/ui/qtmatrix.h
+    include/ui/qtshaderprogram.h
     include/ui/qttexture.h
-    include/ui/qttransform.h
     include/ui/qtrenderer.h
     include/ui/qtwindow.h
 )
@@ -31,9 +30,8 @@ set(HEADERS
 set(SOURCES
     main.cpp
     ui/qtbuffer.cpp
-    ui/qtmatrix.cpp
+    ui/qtshaderprogram.cpp
     ui/qttexture.cpp
-    ui/qttransform.cpp
     ui/qtrenderer.cpp
     ui/qtwindow.cpp
 )

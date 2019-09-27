@@ -13,6 +13,7 @@ namespace engine {
 namespace graphics {
 class Image;
 class Renderer;
+class ShaderProgram;
 }
 
 class AssetManager {
@@ -34,12 +35,14 @@ public:
     std::unique_ptr<graphics::Image> image(Type type, const std::string& name) const;
     std::unique_ptr<CollisionMap> collision(Type type, const std::string& name) const;
     std::string script(const std::string& name) const;
+    std::unique_ptr<graphics::ShaderProgram> shader(const graphics::Renderer& renderer, const std::string& vertex, const std::string& fragment) const;
 
     std::string dataPath(Type type, const std::string& name) const;
     std::string imagePath(Type type, const std::string& name) const;
     std::string collisionPath(Type type, const std::string& name) const;
     std::string fontPath(const std::string& name) const;
     std::string scriptPath(const std::string& name) const;
+    std::string shaderPath(const std::string& name, const std::string& ext) const;
 
 private:
     std::string mBase;
