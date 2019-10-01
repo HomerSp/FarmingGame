@@ -31,27 +31,27 @@ float_t Clock::currentHour() const
 
 uint8_t Clock::year() const
 {
-    return 1 + static_cast<uint8_t>(std::floor(mCurrent / 60.0f / 24.0f / 30.0f / 4.0f));
+    return static_cast<uint8_t>(std::floor(mCurrent / 60.0f / 24.0f / 30.0f / 4.0f));
 }
 
 uint8_t Clock::month() const
 {
-    return 1 + static_cast<uint8_t>(std::floor(mCurrent / 60.0f / 24.0f / 30.0f)) % 4;
+    return static_cast<uint8_t>(std::floor(mCurrent / 60.0f / 24.0f / 30.0f)) % 4;
 }
 
 uint8_t Clock::day() const
 {
-    return 1 + static_cast<uint8_t>(std::floor(mCurrent / 60.0f / 24.0f)) % 30;
+    return static_cast<uint8_t>(std::floor(mCurrent / 60.0f / 24.0f)) % 30;
 }
 
 uint8_t Clock::week() const
 {
-    return 1 + static_cast<uint8_t>(std::floor(mCurrent / 60.0f / 24.0f / 7.0f)) % 4;
+    return static_cast<uint8_t>(std::floor(mCurrent / 60.0f / 24.0f / 7.0f)) % 4;
 }
 
 uint8_t Clock::weekDay() const
 {
-    return 1 + static_cast<uint8_t>(std::floor(mCurrent / 60.0f / 24.0f)) % 7;
+    return static_cast<uint8_t>(std::floor(mCurrent / 60.0f / 24.0f)) % 7;
 }
 
 uint8_t Clock::hour() const
@@ -68,6 +68,31 @@ uint8_t Clock::minuteRounded() const
 {
     auto m = static_cast<uint8_t>(mCurrent % 60);
     return (std::floor(m / 10) * 10) + ((m % 10 < 5) ? 0 : 5);
+}
+
+uint8_t Clock::yearDisplay() const
+{
+    return 1 + year();
+}
+
+uint8_t Clock::monthDisplay() const
+{
+    return 1 + month();
+}
+
+uint8_t Clock::dayDisplay() const
+{
+    return 1 + day();
+}
+
+uint8_t Clock::weekDisplay() const
+{
+    return 1 + week();
+}
+
+uint8_t Clock::weekDayDisplay() const
+{
+    return 1 + weekDay();
 }
 
 uint8_t Clock::dawn() const
@@ -125,28 +150,14 @@ std::string Clock::timeFormatted() const
 std::string Clock::dayFormatted() const
 {
     std::stringstream str;
-    str << std::setw(2) << std::setfill('0') << static_cast<int32_t>(day());
+    str << std::setw(2) << std::setfill('0') << static_cast<int32_t>(dayDisplay());
     return str.str();
 }
 
 std::string Clock::weekDayFormattedShort() const
 {
-    switch (weekDay()) {
-    case 2:
-        return "Tue";
-    case 3:
-        return "Wed";
-    case 4:
-        return "Thu";
-    case 5:
-        return "Fri";
-    case 6:
-        return "Sat";
-    case 7:
-        return "Sun";
-    }
-
-    return "Mon";
+    static std::array<std::string, 8> svalues = {"Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"};
+    return svalues.at(weekDay());
 }
 
 bool Clock::processAsync(uint64_t frameDiff, Map* map)

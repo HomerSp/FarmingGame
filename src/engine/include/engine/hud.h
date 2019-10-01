@@ -47,7 +47,7 @@ private:
     std::atomic<bool> mExpanded;
 
     const uint32_t mClockBackgroundBufferCount, mClockForegroundBufferCount;
-    std::unique_ptr<graphics::Buffer> mClockBackgroundBuffer, mClockForegroundBuffer;
-    std::unique_ptr<graphics::Texture> mClockTextures;
+    std::unique_ptr<graphics::Buffer> mClockBackgroundBuffer, mClockForegroundBuffer, mSeasonsBuffer;
+    std::unique_ptr<graphics::Texture> mHudTextures;
 };
 }

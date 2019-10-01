@@ -92,6 +92,9 @@ std::string AssetManager::dataPath(Type type, const std::string& name) const
     case Item:
         ret += "item";
         break;
+    case Config:
+        ret += "config";
+        break;
     default:
         return "";
     }

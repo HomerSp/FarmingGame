@@ -19,10 +19,11 @@ class Map;
 class Clock : public script::ScriptObject {
 public:
     typedef enum {
-        Spring = 1,
-        Summer = 2,
-        Autumn = 3,
-        Winter = 4,
+        Spring = 0,
+        Summer,
+        Autumn,
+        Winter,
+        Last = Winter,
     } Month;
 
 private:
@@ -51,6 +52,12 @@ public:
     uint8_t hour() const;
     uint8_t minute() const;
     uint8_t minuteRounded() const;
+
+    uint8_t yearDisplay() const;
+    uint8_t monthDisplay() const;
+    uint8_t dayDisplay() const;
+    uint8_t weekDisplay() const;
+    uint8_t weekDayDisplay() const;
 
     // Used for calculating screen overlay colour and opacity.
     uint8_t dawn() const;

@@ -17,13 +17,16 @@ Hud::Hud(std::shared_ptr<Context>& ctx, graphics::Renderer& renderer)
     , mBoxSize(32, 32)
     , mHealthStaminaWidth(96)
     , mExpanded(false)
-    , mClockBackgroundBufferCount(4)
-    , mClockForegroundBufferCount(4)
+    , mClockBackgroundBufferCount(2)
+    , mClockForegroundBufferCount(2)
 {
     loadClockTextures(renderer);
 
-    auto clockDimension = mClockTextures->dimension(0);
+    auto clockDimension = mHudTextures->dimension(0);
     clockDimension.width /= 2;
+
+    auto boxDimension = mHudTextures->dimension(1);
+    Types::Point<float_t> rightBoxPoint((boxDimension.width / 4.0f) + 5.0f, (clockDimension.height / 4.0f) + 5.0f);
 
     {
         auto writer = mClockBackgroundBuffer->writer();
@@ -35,7 +38,26 @@ Hud::Hud(std::shared_ptr<Context>& ctx, graphics::Renderer& renderer)
             writer.append(static_cast<float_t>(0));
         }
 
+        {
+            auto boxDst = engine::graphics::Vector4D(rightBoxPoint.x, rightBoxPoint.y, boxDimension.width / 2.0f, boxDimension.height);
+            writer.append(boxDst);
+            writer.append(engine::graphics::Vector4D(0, 0, boxDimension.width / 2.0f, boxDimension.height));
+            writer.append(static_cast<float_t>(1));
+        }
+
         writer.release();
+    }
+
+    {
+        auto writer = mSeasonsBuffer->writer();
+        {
+            auto seasonDimension = mHudTextures->dimension(2);
+
+            auto seasonDst = engine::graphics::Vector4D(rightBoxPoint.x + 4.0f, rightBoxPoint.y + 4.0f, 24.0f, 24.0f);
+            writer.append(seasonDst);
+            writer.append(engine::graphics::Vector4D(0, 0, seasonDimension.width / 4.0f, seasonDimension.height));
+            writer.append(static_cast<float_t>(2));
+        }
     }
 
     {
@@ -48,22 +70,7 @@ Hud::Hud(std::shared_ptr<Context>& ctx, graphics::Renderer& renderer)
         }
 
         {
-            auto boxDimension = mClockTextures->dimension(1);
-            Types::Point<float_t> boxPoint((boxDimension.width / 4.0f) + 5.0f, (clockDimension.height / 4.0f) + 5.0f);
-
-            auto boxDst = engine::graphics::Vector4D(boxPoint.x, boxPoint.y, boxDimension.width / 2.0f, boxDimension.height);
-            writer.append(boxDst);
-            writer.append(engine::graphics::Vector4D(0, 0, boxDimension.width / 2.0f, boxDimension.height));
-            writer.append(static_cast<float_t>(1));
-
-            auto seasonDimension = mClockTextures->dimension(2);
-
-            auto seasonDst = engine::graphics::Vector4D(boxPoint.x + 4.0f, boxPoint.y + 4.0f, 24.0f, 24.0f);
-            writer.append(seasonDst);
-            writer.append(engine::graphics::Vector4D(0, 0, seasonDimension.width / 4.0f, seasonDimension.height));
-            writer.append(static_cast<float_t>(2));
-
-            auto frameDst = engine::graphics::Vector4D(boxPoint.x, boxPoint.y, boxDimension.width / 2.0f, boxDimension.height);
+            auto frameDst = engine::graphics::Vector4D(rightBoxPoint.x, rightBoxPoint.y, boxDimension.width / 2.0f, boxDimension.height);
             writer.append(frameDst);
             writer.append(engine::graphics::Vector4D(boxDimension.width / 2.0f, 0, boxDimension.width / 2.0f, boxDimension.height));
             writer.append(static_cast<float_t>(1));
@@ -75,11 +82,23 @@ Hud::Hud(std::shared_ptr<Context>& ctx, graphics::Renderer& renderer)
 
 void Hud::draw(graphics::Renderer& renderer, Clock& clock, Player& player, FrameTimer& frameTimer)
 {
-    auto clockDimension = mClockTextures->dimension(0);
+    {
+        auto writer = mSeasonsBuffer->writer();
+        {
+            auto seasonDimension = mHudTextures->dimension(2);
+
+            writer.skip(engine::graphics::Vector4D::Size());
+            writer.append(clock.month() * (seasonDimension.width / 4.0f));
+        }
+    }
+
+    auto clockDimension = mHudTextures->dimension(0);
     clockDimension.width /= 2;
 
     Types::Point<> dstPoint(renderer.width() - (clockDimension.width / 2) - 16, 16 + (clockDimension.height / 2));
-    renderer.drawTextures(dstPoint, mClockTextures.get(), mClockBackgroundBuffer.get(), mClockBackgroundBufferCount);
+    renderer.drawTextures(dstPoint, mHudTextures.get(), mClockBackgroundBuffer.get(), mClockBackgroundBufferCount);
+
+    renderer.drawTextures(dstPoint, mHudTextures.get(), mSeasonsBuffer.get(), 1);
 
     graphics::Color textColor(0.17f, 0.08f, 0.019f, 1.0f);
 
@@ -100,7 +119,7 @@ void Hud::draw(graphics::Renderer& renderer, Clock& clock, Player& player, Frame
     renderer.drawText(fpsRc, fpsStr.str(), {0, 0, 0}, 24, Types::TextAlign({Types::TextAlign::CentreH, Types::TextAlign::CentreV}), "hud");
 #endif
 
-    renderer.drawTextures(dstPoint, mClockTextures.get(), mClockForegroundBuffer.get(), mClockForegroundBufferCount);
+    renderer.drawTextures(dstPoint, mHudTextures.get(), mClockForegroundBuffer.get(), mClockForegroundBufferCount);
 
     /*renderer.save();
 
@@ -322,11 +341,12 @@ void Hud::loadClockTextures(graphics::Renderer& renderer)
         textureLoader += *context().assetManager().image(AssetManager::Ui, i);
     }
 
-    textureLoader.finish(mClockTextures);
+    textureLoader.finish(mHudTextures);
 
     uint32_t bufferSize = engine::graphics::Vector4D::Size() * 2 + sizeof(float_t);
     mClockBackgroundBuffer = renderer.createBuffer(bufferSize * mClockBackgroundBufferCount);
     mClockForegroundBuffer = renderer.createBuffer(bufferSize * mClockForegroundBufferCount);
+    mSeasonsBuffer = renderer.createBuffer(bufferSize);
 }
 
 void Hud::loadItemTextures(graphics::Renderer& renderer)

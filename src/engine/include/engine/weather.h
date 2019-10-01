@@ -2,6 +2,7 @@
 
 #include <mutex>
 
+#include <engine/clock.h>
 #include <engine/contextobject.h>
 #include <engine/particles.h>
 #include <engine/types.h>
@@ -64,6 +65,8 @@ private:
     void updateParticles(const Clock& clock);
 
     std::mutex mMutex;
+
+    std::array<std::array<uint8_t, Clock::Last + 1>, Weather::Last + 1> mPercentages;
 
     float_t mSizeMod;
     std::array<Weather::Data, 2> mData;

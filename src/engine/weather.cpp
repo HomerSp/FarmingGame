@@ -1,5 +1,4 @@
 #include <engine/camera.h>
-#include <engine/clock.h>
 #include <engine/context.h>
 #include <engine/graphics/renderer.h>
 #include <engine/logger.h>
@@ -27,9 +26,29 @@ Weather::Data::Data(Weather::Type type, float_t intensity, float_t windDirection
 
 Weather::Weather(std::shared_ptr<Context>& ctx, graphics::Renderer& renderer, Clock& clock)
     : ContextObject(ctx)
+    , mPercentages({})
     , mSizeMod(0.0f)
     , mData({})
 {
+    auto docPtr = context().assetManager().data(AssetManager::Config, "weather");
+    Json::Value doc = *docPtr;
+    if (!doc.isObject() || !doc.isMember("spring") || !doc.isMember("summer") || !doc.isMember("autumn") || !doc.isMember("winter")) {
+        Logger::critical("Weather") << "Invalid JSON data for config weather";
+        return;
+    }
+
+    auto percentFunc = [&](const std::string& name, int s) {
+        Json::Value springObj = doc[name];
+        for (uint32_t i = 0; i < springObj.size(); i++) {
+            mPercentages.at(s).at(i) = springObj[i].asInt();
+        }
+    };
+    
+    percentFunc("spring", Clock::Spring);
+    percentFunc("summer", Clock::Summer);
+    percentFunc("autumn", Clock::Autumn);
+    percentFunc("winter", Clock::Winter);
+
     mData[0] = Data(randomType(clock), Random::range(10, 100) / 100.0f, Random::range(3600) / 10.0f, Random::range(100) / 100.0f);
     mData[1] = Data(randomType(clock), Random::range(10, 100) / 100.0f, Random::range(3600) / 10.0f, Random::range(100) / 100.0f);
 
@@ -116,22 +135,9 @@ void Weather::daylightChanged(const Clock& clock)
 
 Weather::Type Weather::randomType(const Clock& clock)
 {
-    std::array<int8_t, Type::Last + 1> percentages = {50, 30, 20, 0};
-    switch (clock.month()) {
-    case Clock::Summer:
-        percentages[0] = 55; percentages[1] = 25; percentages[2] = 15; percentages[3] = 5;
-        break;
-    case Clock::Autumn:
-        percentages[0] = 30; percentages[1] = 40; percentages[2] = 20; percentages[3] = 10;
-        break;
-    case Clock::Winter:
-        percentages[0] = 43; percentages[1] = 20; percentages[2] = 30; percentages[3] = 7;
-        break;
-    }
-
     uint32_t i = 0, total = 0;
     auto r = Random::range(0, 100);
-    for (auto per: percentages) {
+    for (auto per: mPercentages.at(clock.month())) {
         total += per;
         if (r < total) {
             return static_cast<Weather::Type>(i);

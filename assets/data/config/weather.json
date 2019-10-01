@@ -1,2 +1,7 @@
 {
+    // Clear, overcast, rain, storm
+    "spring": [60, 30, 10, 00],
+    "summer": [63, 25, 07, 05],
+    "autumn": [30, 40, 22, 08],
+    "winter": [53, 10, 30, 07]
 }

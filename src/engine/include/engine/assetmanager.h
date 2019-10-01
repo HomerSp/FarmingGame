@@ -27,6 +27,7 @@ public:
         Ui,
         Item,
         Schedule,
+        Config,
     };
 
     AssetManager();
