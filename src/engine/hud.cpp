@@ -103,11 +103,11 @@ void Hud::draw(graphics::Renderer& renderer, Clock& clock, Player& player, Frame
     graphics::Color textColor(0.17f, 0.08f, 0.019f, 1.0f);
 
     // Week day
-    Types::Rect<> weekDayRc(dstPoint.x - clockDimension.width / 2, dstPoint.y - clockDimension.height / 2 + 13.0f, clockDimension.width, clockDimension.height / 2);
+    Types::Rect<> weekDayRc(dstPoint.x - clockDimension.width / 2, dstPoint.y - clockDimension.height / 2 + 6.0f, clockDimension.width, clockDimension.height / 2);
     renderer.drawText(weekDayRc, clock.weekDayFormattedShort() + " " + clock.dayFormatted(), textColor, 18, Types::TextAlign({Types::TextAlign::CentreH, Types::TextAlign::CentreV}), "hud", true);
 
     // Hour and minutes
-    Types::Rect<> timeRc(dstPoint.x - clockDimension.width / 2, dstPoint.y - 13.0f, clockDimension.width, clockDimension.height / 2);
+    Types::Rect<> timeRc(dstPoint.x - clockDimension.width / 2, dstPoint.y - 6.0f, clockDimension.width, clockDimension.height / 2);
     renderer.drawText(timeRc, clock.timeFormatted(), textColor, 18, Types::TextAlign({Types::TextAlign::CentreH, Types::TextAlign::CentreV}), "hud", true);
 
 #ifdef DEBUG
@@ -120,6 +120,8 @@ void Hud::draw(graphics::Renderer& renderer, Clock& clock, Player& player, Frame
 #endif
 
     renderer.drawTextures(dstPoint, mHudTextures.get(), mClockForegroundBuffer.get(), mClockForegroundBufferCount);
+
+    drawClock(renderer, clock);
 
     /*renderer.save();
 
