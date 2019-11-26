@@ -59,7 +59,7 @@ public:
 #else
     class debug {
     public:
-        debug() = default;
+        debug(std::string tag) {}
 
         template <class T>
         debug& operator<<(const T& x)
