@@ -121,7 +121,7 @@ bool Character::animate(uint64_t frameDiff, bool reset)
     float_t frame = mFrame;
     if (!reset) {
         int32_t cols = mCharset->columns(mCharsetType);
-        frame += frameDiff / 200.0f;
+        frame += (frameDiff / 200.0f) * (mSpeed);
         if (frame >= cols + cols - 2) {
             frame = 0;
         }
@@ -168,7 +168,7 @@ bool Character::processAsync(uint64_t frameDiff, const Map& map, std::unordered_
         // Do we have a target? Process it.
         if (targetX != -1 || targetY != -1) {
             float_t val = frameDiff / 200.0f;
-            int32_t x = 0, y = 0;
+            int8_t x = 0, y = 0;
             if (targetX != -1) {
                 if (targetX < posX) {
                     x = -1;
@@ -185,8 +185,8 @@ bool Character::processAsync(uint64_t frameDiff, const Map& map, std::unordered_
                 }
             }
 
-            updateVelocity(mVelocity.x, x, val, x != 0);
-            updateVelocity(mVelocity.y, y, val, y != 0);
+            updateVelocity(mVelocity.x, mVelocity.y, x, val, x != 0);
+            updateVelocity(mVelocity.y, mVelocity.x, y, val, y != 0);
 
             if (mDirectionTo == Direction::None) {
                 if (x < 0) {
@@ -355,12 +355,12 @@ void Character::processListeners()
     }
 }
 
-void Character::velocity(uint64_t frameDiff, float_t x, float_t y)
+void Character::velocity(uint64_t frameDiff, int8_t x, int8_t y)
 {
     std::lock_guard<std::mutex> lock(mMovementMutex);
-    float_t val = frameDiff / 200.0f;
-    updateVelocity(mVelocity.x, x, val, !mTargetNodes.empty());
-    updateVelocity(mVelocity.y, y, val, !mTargetNodes.empty());
+    auto val = frameDiff / 200.0f;
+    updateVelocity(mVelocity.x, mVelocity.y, x, val, !mTargetNodes.empty());
+    updateVelocity(mVelocity.y, mVelocity.x, y, val, !mTargetNodes.empty());
 }
 
 bool Character::isMoving()
@@ -499,10 +499,14 @@ void Character::checkCollision(const Character& other, Types::Point<float_t>& ds
     }
 }
 
-void Character::updateVelocity(float_t& velocity, float_t direction, float_t val, bool hasTarget)
+void Character::updateVelocity(float_t& velocity, float_t otherVelocity, int8_t direction, float_t val, bool hasTarget)
 {
     if (direction != 0) {
-        val *= (direction < 0) ? -direction : direction;
+        if (otherVelocity != 0.0f && velocity == 0.0f) {
+            val = std::abs(otherVelocity);
+        }
+
+        val *= std::abs(direction);
     }
 
     // Check if we are changing direction, this will increase the friction.

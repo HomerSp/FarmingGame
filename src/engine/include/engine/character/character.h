@@ -44,7 +44,7 @@ public:
     bool processAsync(uint64_t frameDiff, const Map& map, std::unordered_map<std::string, std::shared_ptr<Character>> *characters = nullptr, Camera* camera = nullptr);
     void processListeners();
 
-    void velocity(uint64_t frameDiff, float_t x, float_t y);
+    void velocity(uint64_t frameDiff, int8_t x, int8_t y);
 
     const std::string& id() const;
 
@@ -80,7 +80,7 @@ public:
 protected:
     void checkCollision(const Character& other, Types::Point<float_t>& dst);
 
-    void updateVelocity(float_t& velocity, float_t direction, float_t val, bool hasTarget);
+    void updateVelocity(float_t& velocity, float_t otherVelocity, int8_t direction, float_t val, bool hasTarget);
 
 private:
     bool mValid;

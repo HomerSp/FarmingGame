@@ -163,7 +163,7 @@ void Engine::processAsync()
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
 
-        float_t x = 0, y = 0;
+        int8_t x = 0, y = 0;
         if (mPlayer->canControl()) {
             if (keys.longPress(Keys::ExpandHudItems)) {
                 mHud->expandItems(true);
@@ -191,36 +191,28 @@ void Engine::processAsync()
 
                     switch (it->key) {
                     case engine::Keys::Up:
-                        if (y == 0) {
-                            y = -1;
-                        }
+                        y = (y == 0) ? -1 : y;
                         if (!turned) {
                             mPlayer->turnToDirection(engine::character::Character::Direction::Up);
                             turned = true;
                         }
                         break;
                     case engine::Keys::Down:
-                        if (y == 0) {
-                            y = 1;
-                        }
+                        y = (y == 0) ? 1 : y;
                         if (!turned) {
                             mPlayer->turnToDirection(engine::character::Character::Direction::Down);
                             turned = true;
                         }
                         break;
                     case engine::Keys::Left:
-                        if (x == 0) {
-                            x = -1;
-                        }
+                        x = (x == 0) ? -1 : x;
                         if (!turned) {
                             mPlayer->turnToDirection(engine::character::Character::Direction::Left);
                             turned = true;
                         }
                         break;
                     case engine::Keys::Right:
-                        if (x == 0) {
-                            x = 1;
-                        }
+                        x = (x == 0) ? 1 : x;
                         if (!turned) {
                             mPlayer->turnToDirection(engine::character::Character::Direction::Right);
                             turned = true;
