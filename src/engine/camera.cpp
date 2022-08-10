@@ -156,7 +156,7 @@ bool Camera::processAsync(uint64_t frameDiff, Map* map)
         posX = targetX = 0;
         targetPosX = -1;
     } else if (posX > map->pixelWidth() - mRect.width) {
-        posX = targetX = map->pixelWidth() - mRect.width;
+        posX = targetX = (mRect.width <= map->pixelWidth()) ? (map->pixelWidth() - mRect.width) : 0;
         targetPosX = -1;
     }
 
@@ -164,7 +164,7 @@ bool Camera::processAsync(uint64_t frameDiff, Map* map)
         posY = targetY = 0;
         targetPosY = -1;
     } else if (posY > map->pixelHeight() - mRect.height) {
-        posY = targetY = map->pixelHeight() - mRect.height;
+        posY = targetY = (mRect.height <= map->pixelHeight()) ? (map->pixelHeight() - mRect.height) : 0;
         targetPosY = -1;
     }
 

@@ -296,12 +296,7 @@ void Engine::paint()
         translateY = std::floor((mHeight / 2) - (mMap->pixelHeight() / 2));
     }
 
-    if (translateX != 0.0f || translateY != 0.0f) {
-        renderer.translate(translateX, translateY);
-    }
-
-    Types::Point<> dst(-mCamera->x(), -mCamera->y());
-
+    Types::Point<> dst(translateX - mCamera->x(), translateY - mCamera->y());
     renderer.beginNative();
 
     // Draw water tiles
@@ -321,13 +316,8 @@ void Engine::paint()
 
     mScreenEffects->draw(renderer, dst, *mClock, mLights, *mWeather);
 
-    renderer.endNative();
-
-    if (translateX != 0.0f || translateY != 0.0f) {
-        renderer.translate(-translateX, -translateY);
-    }
-
     mHud->draw(renderer, *mClock, *mPlayer, mDrawingTimer);
+    renderer.endNative();
 }
 
 void Engine::setKeyMap(const std::unordered_map<int32_t, Keys::Type>& keys)
