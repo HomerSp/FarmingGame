@@ -25,9 +25,11 @@ int main(int argc, char* argv[])
     buffer.clear();
 
     for (uint32_t i = 0; i < imageData.size(); i += 4) {
-        imageData[i] = (imageData[i] < 255 / 2) ? 0 : 255;
-        imageData[i + 1] = (imageData[i + 1] < 255 / 2) ? 0 : 255;
-        imageData[i + 2] = (imageData[i + 2] < 255 / 2) ? 0 : 255;
+        // 0 alpha means transparent, otherwise 0 colour means solid, and 255 is non-solid
+        auto d = (imageData[i + 3] < 255 / 2) ? 127 : ((imageData[i] < 255 / 2) ? 0 : 255);
+        imageData[i] = d;
+        imageData[i + 1] = d;
+        imageData[i + 2] = d;
         imageData[i + 3] = 255;
     }
 

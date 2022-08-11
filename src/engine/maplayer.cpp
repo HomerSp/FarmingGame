@@ -76,7 +76,7 @@ void MapLayer::updateRowBuffer(graphics::Renderer& renderer, int32_t row, Tilese
     auto nodeRow = nodes->at(row);
     for (auto &node : nodeRow) {
         if (above == TilesetAbove::Row) {
-            zOrder = 1.0f - ((node.second->baseY) / static_cast<float_t>(mDimensions.height));
+            zOrder = 1.0f - ((node.second->baseY + 1) / static_cast<float_t>(mDimensions.height));
         }
 
         mTileset->updateBuffer(renderer, *node.second, { node.first, row }, writer, mTilesetIndex, zOrder);
@@ -139,7 +139,7 @@ bool MapLayer::updateLightSources(std::vector<std::shared_ptr<MapLightSource>>& 
     for (auto& above: mNodes) {
         for(auto &nodeY: above.second) {
             for (auto &nodeX: nodeY.second) {
-                TilesetNode* node = nodeX.second.get();
+                const TilesetNode* node = nodeX.second.get();
                 if (node->type->hasAttribute(TilesetAttribute::LightSource) && std::find(added.begin(), added.end(), node->id) == added.end()) {
                     Types::Point<> base = node->type->lightBase();
                     auto dst = Types::Point<int32_t>(base.x + nodeX.first * d.width, base.y + nodeY.first * d.height);

@@ -70,16 +70,6 @@ bool TilesetType::hasAttribute(TilesetAttribute::Type type) const
     return mAttributes[type];
 }
 
-TilesetAbove::Type TilesetType::above() const
-{
-    return mTileAbove;
-}
-
-uint32_t TilesetType::index() const
-{
-    return mIndex;
-}
-
 Types::Point<> TilesetType::lightBase() const
 {
     return mLightBase;
@@ -182,7 +172,7 @@ std::shared_ptr<TilesetNode> TilesetType::toNode(Types::Map2D& tiles, uint32_t x
 {
     std::shared_ptr<TilesetNode> node = std::make_shared<TilesetNode>();
     node->id = x + (y * width);
-    node->baseY = y + 1;
+    node->baseY = y;
     node->animSize = Types::Point<>(mTileDimension.width, 0);
     node->frames = mFrames;
     node->toggleWidth = (mAttributes[TilesetAttribute::Toggle]) ? (mSize.width / 2) : 0;
@@ -204,14 +194,17 @@ std::shared_ptr<TilesetNode> TilesetType::toNode(Types::Map2D& tiles, uint32_t x
     uint32_t chunkHeight = (mTileDimension.height / 2);
 
     if (mTileAbove == TilesetAbove::Row) {
+        uint32_t startY = y;
         for(uint32_t iy = 1; iy < mCount.rows; iy++) {
-            if (y + iy < height - 1 && tiles[x][y + iy] == tiles[x][y]) {
-                node->baseY = y + iy + 1;
+            if (y - iy >= 0 && tiles[x][y - iy] == tiles[x][y]) {
+                startY = y - iy;
                 continue;
             }
 
             break;
         }
+
+        node->baseY = startY + mBase;
     }
 
     switch (mTileType) {
@@ -224,17 +217,19 @@ std::shared_ptr<TilesetNode> TilesetType::toNode(Types::Map2D& tiles, uint32_t x
             if (y - iy >= 0 && tiles[x][y - iy] == tiles[x][y]) {
                 pos.y += mTileDimension.height;
                 startY = y - iy;
-            } else {
-                break;
+                continue;
             }
+
+            break;
         }
         for(uint32_t ix = 1; ix < mCount.cols; ix++) {
             if (x - ix >= 0 && tiles[x - ix][y] == tiles[x][y]) {
                 pos.x += mTileDimension.width;
                 startX = x - ix;
-            } else {
-                break;
+                continue;
             }
+
+            break;
         }
 
         node->id = std::min(node->id, startX + (startY * width));
@@ -656,14 +651,15 @@ void Tileset::updateCollisionMap(const CollisionMap& tilesetMap, CollisionMap& o
             for (int32_t cx = 0; cx < dimen.width; cx++) {
                 uint32_t dstx = (x * mTileDimension.width) + (dx * (mTileDimension.width / 2)) + cx;
                 uint32_t dsty = (y * mTileDimension.height) + (dy * (mTileDimension.height / 2)) + cy;
-                outMap.set(dstx, dsty, tilesetMap.get(po.x + cx, po.y + cy));
+                if (!tilesetMap.transparent(po.x + cx, po.y + cy)) {
+                    outMap.set(dstx, dsty, tilesetMap.get(po.x + cx, po.y + cy));
+                }
             }
         }
 
-        dx++;
-        if (dx > 1) {
+        if (++dx > 1) {
             dx = 0;
-            dy++;
+            ++dy;
         }
     }
 }

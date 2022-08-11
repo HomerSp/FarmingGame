@@ -66,8 +66,9 @@ public:
     bool contains(const Types::Point<uint32_t>& other) const;
     bool hasAttribute(TilesetAttribute::Type type) const;
 
-    TilesetAbove::Type above() const;
-    uint32_t index() const;
+    TilesetAbove::Type above() const { return mTileAbove; }
+    uint32_t index() const { return mIndex; }
+    uint32_t base() const { return mBase; }
 
     Types::Point<> lightBase() const;
     int32_t lightRadius() const;

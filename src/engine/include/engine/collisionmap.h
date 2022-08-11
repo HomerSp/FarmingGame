@@ -11,6 +11,7 @@ public:
     CollisionMap(const std::string& path);
 
     bool get(uint32_t x, uint32_t y, uint32_t width = 1, uint32_t height = 1, Types::Quad<>* diff = nullptr) const;
+    bool transparent(uint32_t x, uint32_t y, uint32_t width = 1, uint32_t height = 1) const;
 
     void set(uint32_t x, uint32_t y, bool b);
 
@@ -34,5 +35,6 @@ private:
     uint32_t mWidth;
     uint32_t mHeight;
     std::vector<bool> mSolid;
+    std::vector<bool> mTransparent;
 };
 }

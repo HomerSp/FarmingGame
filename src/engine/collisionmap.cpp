@@ -15,7 +15,8 @@ CollisionMap::CollisionMap(uint32_t width, uint32_t height)
     , mWidth(width)
     , mHeight(height)
 {
-    mSolid.resize(mWidth * mHeight);
+    mSolid.resize(mWidth * mHeight, 0U);
+    mTransparent.resize(mWidth * mHeight, 0U);
 }
 
 CollisionMap::CollisionMap(const std::string& path)
@@ -29,10 +30,17 @@ CollisionMap::CollisionMap(const std::string& path)
         return;
     }
 
-    mSolid.resize(mWidth * mHeight);
+    mSolid.resize(mWidth * mHeight, 0U);
+    mTransparent.resize(mWidth * mHeight, 0U);
+
     for (uint32_t y = 0; y < mHeight; y++) {
         for (uint32_t x = 0; x < mWidth; x++) {
-            mSolid[(y * mWidth) + x] = data[((y * mWidth) + x) * 4] != 255;
+            auto d = data[((y * mWidth) + x) * 4];
+            if (d < 255/2 || d > 255/2) {
+                mSolid[(y * mWidth) + x] = d != 255;
+            } else {
+                mTransparent[(y * mWidth) + x] = true;
+            }
         }
     }
 
@@ -129,6 +137,15 @@ bool CollisionMap::get(uint32_t x, uint32_t y, uint32_t width, uint32_t height, 
     }
 
     return found;
+}
+
+bool CollisionMap::transparent(uint32_t x, uint32_t y, uint32_t width, uint32_t height) const
+{
+    if (width == 1 && height == 1) {
+        return bounds(x, y) && mTransparent[(y * mWidth) + x];
+    }
+
+    return false;
 }
 
 void CollisionMap::set(uint32_t x, uint32_t y, bool b)
