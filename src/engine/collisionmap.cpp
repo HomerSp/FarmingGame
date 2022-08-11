@@ -36,7 +36,7 @@ CollisionMap::CollisionMap(const std::string& path)
     for (uint32_t y = 0; y < mHeight; y++) {
         for (uint32_t x = 0; x < mWidth; x++) {
             auto d = data[((y * mWidth) + x) * 4];
-            if (d < 255/2 || d > 255/2) {
+            if (d < 75 || d > 180) {
                 mSolid[(y * mWidth) + x] = d != 255;
             } else {
                 mTransparent[(y * mWidth) + x] = true;
