@@ -81,12 +81,12 @@ public:
     template<typename T = int32_t>
     struct Quad {
     public:
-        Quad(T x1 = 0, T y1 = 0, T x2 = 0, T y2 = 0)
-            : x1(x1), y1(y1), x2(x2), y2(y2)
+        Quad(T l = 0, T t = 0, T r = 0, T b = 0)
+            : left(l), top(t), right(r), bottom(b)
         {}
 
-        T x1, y1;
-        T x2, y2;
+        T left, top;
+        T right, bottom;
     };
 
     struct Pair {

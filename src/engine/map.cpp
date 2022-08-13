@@ -190,62 +190,54 @@ void Map::checkCollision(const Types::Point<float_t>& pos, const Types::Dimensio
         velocityY = 0.0f;
     }
 
-    // No need to continue checking.
-    if (dst.x == 0.0f && dst.y == 0.0f) {
+    // Nothing to be done if we haven't moved a whole pixel
+    int32_t xdst = static_cast<int32_t>(pos.x + dst.x) - static_cast<int32_t>(pos.x);
+    int32_t ydst = static_cast<int32_t>(pos.y + dst.y) - static_cast<int32_t>(pos.y);
+    if (xdst == 0 && ydst == 0) {
         return;
     }
 
-    Types::Pair diff;
-    int8_t rDiff = 0;
-    if (dst.x != 0.0f && isColliding({ pos.x + dst.x, pos.y }, size, diff, rDiff, false)) {
-        // rDiff == 0 means that we can't move around the object, so we reset the velocity
-        if (rDiff == 0) {
+    Types::Quad<> diff;
+    Types::Pair diffPos = {0, 0};
+
+    auto found = isColliding(Types::Point<uint32_t>(pos.x, pos.y), {xdst, ydst}, size, diff, diffPos);
+    if (found.first) {
+        // diffPos == 0 means that we can't move around the object, so we reset the velocity
+        if (diffPos.first == 0) {
             velocityX = 0.0f;
-        } else if (dst.y == 0.0f) {
-            if (rDiff < 0) {
+            dst.x = 0.0f;
+        } else if (!found.second && dst.y == 0.0f) {
+            if (diffPos.first < 0) {
                 dst.y = (dst.x < 0.0f) ? dst.x : -dst.x;
-            } else if (rDiff > 0) {
+            } else {
                 dst.y = (dst.x < 0.0f) ? -dst.x : dst.x;
             }
         }
 
-        if (dst.x < 0.0f) {
-            dst.x = diff.first;
+        if (diff.left >= 0) {
+            dst.x = -diff.left;
         } else {
-            dst.x = diff.second;
+            dst.x = diff.right;
         }
     }
 
-    if (dst.y != 0.0f && isColliding({ pos.x, pos.y + dst.y }, size, diff, rDiff, true)) {
-        // rDiff == 0 means that we can't move around the object, so we reset the velocity
-        if (rDiff == 0) {
+    if (found.second) {
+        // diffPos == 0 means that we can't move around the object, so we reset the velocity
+        if (diffPos.second == 0) {
             velocityY = 0.0f;
-        } else if (dst.x == 0.0f) {
-            if (rDiff < 0) {
+            dst.y = 0.0f;
+        } else if (!found.first && dst.x == 0.0f) {
+            if (diffPos.second < 0) {
                 dst.x = (dst.y < 0.0f) ? dst.y : -dst.y;
-            } else if (rDiff > 0) {
+            } else if (diffPos.second > 0) {
                 dst.x = (dst.y < 0.0f) ? -dst.y : dst.y;
-            }
-
-            // We need to check x collision again to make sure we don't get stuck
-            Types::Pair diffx;
-            if (dst.x != 0.0f && isColliding({ pos.x + dst.x, pos.y }, size, diffx, rDiff, false)) {
-                if (rDiff == 0) {
-                    velocityX = 0.0f;
-                }
-
-                if (dst.x < 0.0f) {
-                    dst.x = diffx.first;
-                } else {
-                    dst.x = diffx.second;
-                }
             }
         }
 
-        if (dst.y < 0.0f) {
-            dst.y = diff.first;
+        if (diff.top >= 0) {
+            dst.y = -diff.top;
         } else {
-            dst.y = diff.second;
+            dst.y = diff.bottom;
         }
     }
 }
@@ -253,7 +245,7 @@ void Map::checkCollision(const Types::Point<float_t>& pos, const Types::Dimensio
 bool Map::isNodeSolid(int32_t x, int32_t y, const Types::Dimension<>& size) const
 {
     Types::Dimension<> d = getTileDimension();
-    return mCollisionMap->get(x * d.width, y * d.height, ((size.width / d.width) + 1) * d.width, ((size.height / d.height) + 1) * d.height);
+    return mCollisionMap->solid(Types::Point<uint32_t>(x * d.width, y * d.height), {((size.width / d.width) + 1) * d.width, ((size.height / d.height) + 1) * d.height});
 }
 
 bool Map::isNodePath(int32_t x, int32_t y) const
@@ -277,33 +269,29 @@ void Map::toggleLights(bool on)
     }
 }
 
-bool Map::isColliding(const Types::Point<float_t>& pos, const Types::Dimension<>& size, Types::Pair& diff, int8_t& rDiff, bool vertical) const
+std::pair<bool, bool> Map::isColliding(const Types::Point<uint32_t>& pos, const Types::Point<>& dst, const Types::Dimension<>& size, Types::Quad<>& diff, Types::Pair& diffPos) const
 {
-    rDiff = 0;
+    diffPos = {0, 0};
 
-    Types::Quad<> foundDiff;
-    bool found = mCollisionMap->get(pos.x, pos.y, size.width, size.height, &foundDiff);
+    auto found = mCollisionMap->check(pos, dst, size, &diff);
 
-    // Check if we can move around the obstacle.
-    if (vertical) {
-        diff.first = foundDiff.y1;
-        diff.second = foundDiff.y2;
-
-        int32_t obsdiff = size.width / 2;
-        if ((foundDiff.y1 == 0 && foundDiff.x1 >= 0 && size.width - foundDiff.x2 < obsdiff) || (foundDiff.y2 == 0 && foundDiff.x1 >= 0 && size.width - foundDiff.x2 < obsdiff)) {
-            rDiff = 1;
-        } else if ((foundDiff.y1 == 0 && foundDiff.x2 >= 0 && size.width - foundDiff.x1 < obsdiff) || (foundDiff.y2 == 0 && foundDiff.x2 >= 0 && size.width - foundDiff.x1 < obsdiff)) {
-            rDiff = -1;
-        }
-    } else {
-        diff.first = foundDiff.x1;
-        diff.second = foundDiff.x2;
-
+    // Found collision on X axis, check if we can move around
+    if (found.first) {
         int32_t obsdiff = size.height / 2;
-        if ((foundDiff.x1 == 0 && foundDiff.y1 >= 0 && size.height - foundDiff.y2 < obsdiff) || (foundDiff.x2 == 0 && foundDiff.y1 >= 0 && size.height - foundDiff.y2 < obsdiff)) {
-            rDiff = 1;
-        } else if ((foundDiff.x1 == 0 && foundDiff.y2 >= 0 && size.height - foundDiff.y1 < obsdiff) || (foundDiff.x2 == 0 && foundDiff.y2 >= 0 && size.height - foundDiff.y1 < obsdiff)) {
-            rDiff = -1;
+        if (diff.top > 0 && size.height - diff.top < obsdiff) {
+            diffPos.first = -1;
+        } else if (diff.bottom > 0 && size.height - diff.bottom < obsdiff) {
+            diffPos.first = 1;
+        }
+    }
+
+    // Found collision on Y axis, check if we can move around
+    if (found.second) {
+        int32_t obsdiff = size.width / 2;
+        if (diff.left > 0 && size.width - diff.left < obsdiff) {
+            diffPos.second = -1;
+        } else if (diff.right > 0 && size.width - diff.right < obsdiff) {
+            diffPos.second = 1;
         }
     }
 

@@ -652,7 +652,7 @@ void Tileset::updateCollisionMap(const CollisionMap& tilesetMap, CollisionMap& o
                 uint32_t dstx = (x * mTileDimension.width) + (dx * (mTileDimension.width / 2)) + cx;
                 uint32_t dsty = (y * mTileDimension.height) + (dy * (mTileDimension.height / 2)) + cy;
                 if (!tilesetMap.transparent(po.x + cx, po.y + cy)) {
-                    outMap.set(dstx, dsty, tilesetMap.get(po.x + cx, po.y + cy));
+                    outMap.set(dstx, dsty, tilesetMap.solid(po.x + cx, po.y + cy));
                 }
             }
         }

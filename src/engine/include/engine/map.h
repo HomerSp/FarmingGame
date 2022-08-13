@@ -79,7 +79,7 @@ public:
     bool operator!() const;
 
 protected:
-    bool isColliding(const Types::Point<float_t>& pos, const Types::Dimension<>& size, Types::Pair& diff, int8_t& rDiff, bool vertical) const;
+    std::pair<bool, bool> isColliding(const Types::Point<uint32_t>& pos, const Types::Point<>& dst, const Types::Dimension<>& size, Types::Quad<>& diff, Types::Pair& diffPos) const;
 
     uint32_t tilesCount(TilesetAbove::Type above);
 

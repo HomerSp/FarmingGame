@@ -456,21 +456,21 @@ void Character::checkCollision(const Character& other, Types::Point<float_t>& ds
     Types::Quad<float_t> otherQuad(other.mPos.x + othercol.x, other.mPos.y + othercol.y, other.mPos.x + othercol.x + othercol.width, other.mPos.y + othercol.y + othercol.height);
 
     // Check x collision.
-    if (dst.x != 0.0f && ((charQuad.y1 >= otherQuad.y1 && charQuad.y1 < otherQuad.y2) || (charQuad.y2 >= otherQuad.y1 && charQuad.y2 < otherQuad.y2))) {
+    if (dst.x != 0.0f && ((charQuad.top >= otherQuad.top && charQuad.top < otherQuad.bottom) || (charQuad.bottom >= otherQuad.top && charQuad.bottom < otherQuad.bottom))) {
         float_t d = dst.x - std::floor(dst.x);
         // Moving Left
         if (dst.x < 0.0f) {
             // We may be moving more than one pixel at a time, which can cause us to move through objects
             // if the distance is longer than the collision object.
             for (int32_t i = std::floor(dst.x); i <= 0; i++) {
-                if (charQuad.x1 + i + d <= otherQuad.x2 && charQuad.x1 + i + d > otherQuad.x1) {
+                if (charQuad.left + i + d <= otherQuad.right && charQuad.left + i + d > otherQuad.left) {
                     dst.x = 0.0f;
                 }
             }
         // Moving Right
         } else if(dst.x > 0.0f) {
             for (int32_t i = std::floor(dst.x); i >= 0; i--) {
-                if (charQuad.x2 + i + d >= otherQuad.x1 && charQuad.x2 + i + d < otherQuad.x2) {
+                if (charQuad.right + i + d >= otherQuad.left && charQuad.right + i + d < otherQuad.right) {
                     dst.x = 0.0f;
                 }
             }
@@ -478,12 +478,12 @@ void Character::checkCollision(const Character& other, Types::Point<float_t>& ds
     }
 
     // Check y collision.
-    if (dst.y != 0.0f && ((charQuad.x1 >= otherQuad.x1 && charQuad.x1 < otherQuad.x2) || (charQuad.x2 >= otherQuad.x1 && charQuad.x2 < otherQuad.x2))) {
+    if (dst.y != 0.0f && ((charQuad.left >= otherQuad.left && charQuad.left < otherQuad.right) || (charQuad.right >= otherQuad.left && charQuad.right < otherQuad.right))) {
         float_t d = dst.y - std::floor(dst.y);
         // Moving Up
         if (dst.y < 0.0f) {
             for (int32_t i = std::floor(dst.y); i <= 0; i++) {
-                if (charQuad.y1 + i + d <= otherQuad.y2 && charQuad.y1 + i + d > otherQuad.y1) {
+                if (charQuad.top + i + d <= otherQuad.bottom && charQuad.top + i + d > otherQuad.top) {
                     dst.y = 0.0f;
                 }
             }
@@ -491,7 +491,7 @@ void Character::checkCollision(const Character& other, Types::Point<float_t>& ds
         // Moving Down
         } else if(dst.y > 0.0f) {
             for (int32_t i = std::floor(dst.y); i >= 0; i--) {
-                if (charQuad.y2 + i + d >= otherQuad.y1 && charQuad.y2 + i + d < otherQuad.y2) {
+                if (charQuad.bottom + i + d >= otherQuad.top && charQuad.bottom + i + d < otherQuad.bottom) {
                     dst.y = 0.0f;
                 }
             }
