@@ -280,20 +280,20 @@ std::pair<bool, bool> Map::isColliding(const Types::Point<uint32_t>& pos, const 
 
     // Found collision on X axis, check if we can move around
     if (found.first) {
-        int32_t obsdiff = size.height / 2;
-        if (diff.top > 0 && size.height - diff.top < obsdiff) {
+        uint32_t obsdiff = size.height * 0.75f;
+        if (diff.top > 0 && (diff.bottom <= 0 || diff.top < diff.bottom) && size.height - diff.top <= obsdiff) {
             diffPos.first = -1;
-        } else if (diff.bottom > 0 && size.height - diff.bottom < obsdiff) {
+        } else if (diff.bottom > 0 && (diff.top <= 0 || diff.bottom < diff.top) && size.height - diff.bottom <= obsdiff) {
             diffPos.first = 1;
         }
     }
 
     // Found collision on Y axis, check if we can move around
     if (found.second) {
-        int32_t obsdiff = size.width / 2;
-        if (diff.left > 0 && size.width - diff.left < obsdiff) {
+        uint32_t obsdiff = size.width * 0.75f;
+        if (diff.left > 0 && (diff.right <= 0 || diff.left < diff.right) && size.width - diff.left <= obsdiff) {
             diffPos.second = -1;
-        } else if (diff.right > 0 && size.width - diff.right < obsdiff) {
+        } else if (diff.right > 0 && (diff.left <= 0 || diff.right < diff.left) && size.width - diff.right <= obsdiff) {
             diffPos.second = 1;
         }
     }
