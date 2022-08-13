@@ -59,8 +59,6 @@ std::pair<bool, bool> CollisionMap::check(const Types::Point<uint32_t>& pos, con
     if (checkX(pos, dst.x, size, (diff != nullptr) ? &xdiff : nullptr)) {
         ret.first = true;
         if (diff != nullptr) {
-            diff->top = xdiff.top;
-            diff->bottom = xdiff.bottom;
             if (dst.x < 0) {
                 diff->left = xdiff.left;
             } else {
@@ -72,13 +70,21 @@ std::pair<bool, bool> CollisionMap::check(const Types::Point<uint32_t>& pos, con
     if (checkY(pos, dst.y, size, (diff != nullptr) ? &ydiff : nullptr)) {
         ret.second = true;
         if (diff != nullptr) {
-            diff->left = ydiff.left;
-            diff->right = ydiff.right;
             if (dst.y < 0) {
                 diff->top = ydiff.top;
             } else {
                 diff->bottom = ydiff.bottom;
             }
+        }
+    }
+
+    if (diff != nullptr) {
+        if (ret.first && !ret.second) {
+            diff->top = xdiff.top;
+            diff->bottom = xdiff.bottom;
+        } else if (!ret.first && ret.second) {
+            diff->left = ydiff.left;
+            diff->right = ydiff.right;
         }
     }
 
