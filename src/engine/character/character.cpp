@@ -233,7 +233,7 @@ bool Character::processAsync(uint64_t frameDiff, const Map& map, std::unordered_
 
             Types::Point<float_t> pos(posX + col.x, posY + col.y);
             Types::Dimension<> size(col.width, col.height);
-            map.checkCollision(pos, size, dst, mVelocity.x, mVelocity.y);
+            map.checkCollision(pos, size, dst, mVelocity);
 
             // Check collisions with other characters.
             if (characters != nullptr && (dst.x != 0.0f || dst.y != 0.0f)) {

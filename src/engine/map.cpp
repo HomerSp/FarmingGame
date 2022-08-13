@@ -178,16 +178,17 @@ void Map::updateBuffers(graphics::Renderer& renderer)
     mNeedUpdate = false;
 }
 
-void Map::checkCollision(const Types::Point<float_t>& pos, const Types::Dimension<>& size, Types::Point<float_t>& dst, float_t& velocityX, float_t& velocityY) const
+void Map::checkCollision(const Types::Point<float_t>& pos, const Types::Dimension<>& size, Types::Point<float_t>& dst, Types::Point<float_t>& velocity) const
 {
+    // Ensure we're not out of bounds
     if (pos.x + dst.x < 0.0f) {
         dst.x = 0.0f;
-        velocityX = 0.0f;
+        velocity.x = 0.0f;
     }
 
     if (pos.y + dst.y < 0.0f) {
         dst.y = 0.0f;
-        velocityY = 0.0f;
+        velocity.y = 0.0f;
     }
 
     // Nothing to be done if we haven't moved a whole pixel
@@ -199,12 +200,11 @@ void Map::checkCollision(const Types::Point<float_t>& pos, const Types::Dimensio
 
     Types::Quad<> diff;
     Types::Pair diffPos = {0, 0};
-
     auto found = isColliding(Types::Point<uint32_t>(pos.x, pos.y), {xdst, ydst}, size, diff, diffPos);
     if (found.first) {
         // diffPos == 0 means that we can't move around the object, so we reset the velocity
         if (diffPos.first == 0) {
-            velocityX = 0.0f;
+            velocity.x = 0.0f;
             dst.x = 0.0f;
         } else if (!found.second && dst.y == 0.0f) {
             if (diffPos.first < 0) {
@@ -214,17 +214,19 @@ void Map::checkCollision(const Types::Point<float_t>& pos, const Types::Dimensio
             }
         }
 
+        // Use the position remainder to ensure we end up at a whole pixel position
+        float_t remain = pos.x - std::floor(pos.x);
         if (diff.left >= 0) {
-            dst.x = -diff.left;
+            dst.x = -(diff.left + remain);
         } else {
-            dst.x = diff.right;
+            dst.x = diff.right - remain;
         }
     }
 
     if (found.second) {
         // diffPos == 0 means that we can't move around the object, so we reset the velocity
         if (diffPos.second == 0) {
-            velocityY = 0.0f;
+            velocity.y = 0.0f;
             dst.y = 0.0f;
         } else if (!found.first && dst.x == 0.0f) {
             if (diffPos.second < 0) {
@@ -234,10 +236,11 @@ void Map::checkCollision(const Types::Point<float_t>& pos, const Types::Dimensio
             }
         }
 
+        float_t remain = pos.y - std::floor(pos.y);
         if (diff.top >= 0) {
-            dst.y = -diff.top;
+            dst.y = -(diff.top + remain);
         } else {
-            dst.y = diff.bottom;
+            dst.y = diff.bottom - remain;
         }
     }
 }

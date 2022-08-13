@@ -57,7 +57,7 @@ public:
     void drawBuffer(graphics::Renderer& renderer, const Types::Point<>& dst, TilesetAbove::Type above);
     void updateBuffers(graphics::Renderer& renderer);
 
-    void checkCollision(const Types::Point<float_t>& pos, const Types::Dimension<>& size, Types::Point<float_t>& dst, float_t& velocityX, float_t& velocityY) const;
+    void checkCollision(const Types::Point<float_t>& pos, const Types::Dimension<>& size, Types::Point<float_t>& dst, Types::Point<float_t>& velocity) const;
     bool isNodeSolid(int32_t x, int32_t y, const Types::Dimension<>& size) const;
     bool isNodePath(int32_t x, int32_t y) const;
 
