@@ -91,6 +91,16 @@ bool CollisionMap::checkX(const Types::Point<uint32_t>& pos, int32_t dst, const 
         diff->left = diff->right = diff->top = diff->bottom = -1;
     }
 
+    if (pos.x + dst < 0) {
+        diff->left = pos.x;
+        return true;
+    }
+
+    if (pos.x + size.width + dst >= mWidth) {
+        diff->right = mWidth - size.width - pos.x;
+        return true;
+    }
+
     auto start = pos.x + (dst >= 0 ? (size.width - 1) : 0);
     bool found = false;
     for (uint32_t cx = 0; cx < std::abs(dst); ++cx) {
@@ -137,6 +147,16 @@ bool CollisionMap::checkY(const Types::Point<uint32_t>& pos, int32_t dst, const 
 {
     if (diff != nullptr) {
         diff->left = diff->right = diff->top = diff->bottom = -1;
+    }
+
+    if (pos.y + dst < 0) {
+        diff->top = pos.y;
+        return true;
+    }
+
+    if (pos.y + size.height + dst >= mHeight) {
+        diff->bottom = mHeight - size.height - pos.y;
+        return true;
     }
 
     auto start = pos.y + (dst >= 0 ? (size.height - 1) : 0);
