@@ -201,6 +201,15 @@ void Map::checkCollision(const Types::Point<float_t>& pos, const Types::Dimensio
         return;
     }
 
+    // We may not have any velocity here if we tried to move out of bounds, so
+    // it's unnecessary to check for collision.
+    if (velocity.x == 0.0f) {
+        xdst = 0;
+    }
+    if (velocity.y == 0.0f) {
+        ydst = 0;
+    }
+
     Types::Quad<> diff;
     Types::Pair diffPos = {0, 0};
     Types::Point<float_t> dstMod(0.0f, 0.0f);
