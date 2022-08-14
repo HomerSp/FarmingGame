@@ -47,7 +47,7 @@ CollisionMap::CollisionMap(const std::string& path)
     mValid = true;
 }
 
-std::pair<bool, bool> CollisionMap::check(const Types::Point<uint32_t>& pos, const Types::Point<>& dst, const Types::Dimension<>& size, Types::Quad<>* diff) const
+std::pair<bool, bool> CollisionMap::check(const Types::Point<int32_t>& pos, const Types::Point<>& dst, const Types::Dimension<>& size, Types::Quad<>* diff) const
 {
     if (diff != nullptr) {
         diff->left = diff->top = diff->right = diff->bottom = -1;
@@ -91,14 +91,14 @@ std::pair<bool, bool> CollisionMap::check(const Types::Point<uint32_t>& pos, con
     return ret;
 }
 
-bool CollisionMap::checkX(const Types::Point<uint32_t>& pos, int32_t dst, const Types::Dimension<>& size, Types::Quad<>* diff) const
+bool CollisionMap::checkX(const Types::Point<int32_t>& pos, int32_t dst, const Types::Dimension<>& size, Types::Quad<>* diff) const
 {
     if (diff != nullptr) {
         diff->left = diff->right = diff->top = diff->bottom = -1;
     }
 
-    if (pos.x + dst < 0) {
-        diff->left = pos.x;
+    if (pos.x + dst <= 0) {
+        diff->left = pos.x + dst;
         return true;
     }
 
@@ -149,13 +149,13 @@ bool CollisionMap::checkX(const Types::Point<uint32_t>& pos, int32_t dst, const 
     return found;
 }
 
-bool CollisionMap::checkY(const Types::Point<uint32_t>& pos, int32_t dst, const Types::Dimension<>& size, Types::Quad<>* diff) const
+bool CollisionMap::checkY(const Types::Point<int32_t>& pos, int32_t dst, const Types::Dimension<>& size, Types::Quad<>* diff) const
 {
     if (diff != nullptr) {
         diff->left = diff->right = diff->top = diff->bottom = -1;
     }
 
-    if (pos.y + dst < 0) {
+    if (pos.y + dst <= 0) {
         diff->top = pos.y;
         return true;
     }

@@ -180,15 +180,18 @@ void Map::updateBuffers(graphics::Renderer& renderer)
 
 void Map::checkCollision(const Types::Point<float_t>& pos, const Types::Dimension<>& size, Types::Point<float_t>& dst, Types::Point<float_t>& velocity) const
 {
-    // Ensure we're not out of bounds
-    if (pos.x + dst.x < 0.0f) {
-        dst.x = 0.0f;
+    if (pos.x + dst.x <= 0.0f) {
         velocity.x = 0.0f;
+        dst.x = -pos.x;
     }
 
-    if (pos.y + dst.y < 0.0f) {
-        dst.y = 0.0f;
+    if (pos.y + dst.y <= 0.0f) {
         velocity.y = 0.0f;
+        dst.y = -pos.y;
+    }
+
+    if (velocity.x == 0.0f && velocity.y == 0.0f) {
+        return;
     }
 
     // Nothing to be done if we haven't moved a whole pixel
@@ -200,7 +203,8 @@ void Map::checkCollision(const Types::Point<float_t>& pos, const Types::Dimensio
 
     Types::Quad<> diff;
     Types::Pair diffPos = {0, 0};
-    auto found = isColliding(Types::Point<uint32_t>(pos.x, pos.y), {xdst, ydst}, size, diff, diffPos);
+    Types::Point<float_t> dstMod(0.0f, 0.0f);
+    auto found = isColliding(Types::Point<int32_t>(pos.x, pos.y), {xdst, ydst}, size, diff, diffPos);
     if (found.first) {
         // diffPos == 0 means that we can't move around the object, so we reset the velocity
         if (diffPos.first == 0) {
@@ -208,9 +212,9 @@ void Map::checkCollision(const Types::Point<float_t>& pos, const Types::Dimensio
             dst.x = 0.0f;
         } else if (!found.second && dst.y == 0.0f) {
             if (diffPos.first < 0) {
-                dst.y = -std::min<float_t>(diff.top, std::abs(dst.x));
+                dstMod.y = -std::min<float_t>(diff.top, std::abs(dst.x));
             } else {
-                dst.y = std::min<float_t>(diff.bottom, std::abs(dst.x));
+                dstMod.y = std::min<float_t>(diff.bottom, std::abs(dst.x));
             }
         }
 
@@ -230,9 +234,9 @@ void Map::checkCollision(const Types::Point<float_t>& pos, const Types::Dimensio
             dst.y = 0.0f;
         } else if (!found.first && dst.x == 0.0f) {
             if (diffPos.second < 0) {
-                dst.x = -std::min<float_t>(diff.left, std::abs(dst.y));
+                dstMod.x = -std::min<float_t>(diff.left, std::abs(dst.y));
             } else if (diffPos.second > 0) {
-                dst.x = std::min<float_t>(diff.right, std::abs(dst.y));
+                dstMod.x = std::min<float_t>(diff.right, std::abs(dst.y));
             }
         }
 
@@ -241,6 +245,21 @@ void Map::checkCollision(const Types::Point<float_t>& pos, const Types::Dimensio
             dst.y = -(diff.top + remain);
         } else {
             dst.y = diff.bottom - remain;
+        }
+    }
+
+    // Don't try to move around if we would end up colliding
+    if (dstMod.x != 0.0f || dstMod.y != 0.0f) {
+        dst.x = (dstMod.x != 0.0f) ? dstMod.x : dst.x;
+        dst.y = (dstMod.y != 0.0f) ? dstMod.y : dst.y;
+        xdst = static_cast<int32_t>(pos.x + dst.x) - static_cast<int32_t>(pos.x);
+        ydst = static_cast<int32_t>(pos.y + dst.y) - static_cast<int32_t>(pos.y);
+        auto f = mCollisionMap->check(Types::Point<int32_t>(pos.x, pos.y), {xdst, ydst}, size);
+        if (f.first) {
+            dst.x = 0.0f;
+        }
+        if (f.second) {
+            dst.y = 0.0f;
         }
     }
 }
@@ -272,7 +291,7 @@ void Map::toggleLights(bool on)
     }
 }
 
-std::pair<bool, bool> Map::isColliding(const Types::Point<uint32_t>& pos, const Types::Point<>& dst, const Types::Dimension<>& size, Types::Quad<>& diff, Types::Pair& diffPos) const
+std::pair<bool, bool> Map::isColliding(const Types::Point<int32_t>& pos, const Types::Point<>& dst, const Types::Dimension<>& size, Types::Quad<>& diff, Types::Pair& diffPos) const
 {
     diffPos = {0, 0};
 
@@ -281,7 +300,7 @@ std::pair<bool, bool> Map::isColliding(const Types::Point<uint32_t>& pos, const 
     // If we have a collision, see if we can move around it.
     // Prefer top and left if the differences are equal
     if (found.first) {
-        uint32_t obsdiff = std::max<uint32_t>(1, size.height / 5);
+        int32_t obsdiff = std::max<uint32_t>(1, size.height / 5);
         if (diff.top >= obsdiff && (diff.bottom <= 0 || diff.top >= diff.bottom)) {
             diffPos.first = -1;
         } else if (diff.bottom >= obsdiff && (diff.top <= 0 || diff.bottom > diff.top)) {
@@ -291,7 +310,7 @@ std::pair<bool, bool> Map::isColliding(const Types::Point<uint32_t>& pos, const 
 
     // Found collision on Y axis, check if we can move around
     if (found.second) {
-        uint32_t obsdiff = std::max<uint32_t>(1, size.width / 5);
+        int32_t obsdiff = std::max<uint32_t>(1, size.width / 5);
         if (diff.left >= obsdiff && (diff.right <= 0 || diff.left >= diff.right)) {
             diffPos.second = -1;
         } else if (diff.right >= obsdiff && (diff.left <= 0 || diff.right > diff.left)) {
