@@ -208,9 +208,9 @@ void Map::checkCollision(const Types::Point<float_t>& pos, const Types::Dimensio
             dst.x = 0.0f;
         } else if (!found.second && dst.y == 0.0f) {
             if (diffPos.first < 0) {
-                dst.y = (dst.x < 0.0f) ? dst.x : -dst.x;
+                dst.y = -std::min<float_t>(diff.top, std::abs(dst.x));
             } else {
-                dst.y = (dst.x < 0.0f) ? -dst.x : dst.x;
+                dst.y = std::min<float_t>(diff.bottom, std::abs(dst.x));
             }
         }
 
@@ -230,9 +230,9 @@ void Map::checkCollision(const Types::Point<float_t>& pos, const Types::Dimensio
             dst.y = 0.0f;
         } else if (!found.first && dst.x == 0.0f) {
             if (diffPos.second < 0) {
-                dst.x = (dst.y < 0.0f) ? dst.y : -dst.y;
+                dst.x = -std::min<float_t>(diff.left, std::abs(dst.y));
             } else if (diffPos.second > 0) {
-                dst.x = (dst.y < 0.0f) ? -dst.y : dst.y;
+                dst.x = std::min<float_t>(diff.right, std::abs(dst.y));
             }
         }
 
@@ -278,22 +278,23 @@ std::pair<bool, bool> Map::isColliding(const Types::Point<uint32_t>& pos, const 
 
     auto found = mCollisionMap->check(pos, dst, size, &diff);
 
-    // Found collision on X axis, check if we can move around
+    // If we have a collision, see if we can move around it.
+    // Prefer top and left if the differences are equal
     if (found.first) {
-        uint32_t obsdiff = size.height * 0.75f;
-        if (diff.top > 0 && (diff.bottom <= 0 || diff.top < diff.bottom) && size.height - diff.top <= obsdiff) {
+        uint32_t obsdiff = std::max<uint32_t>(1, size.height / 5);
+        if (diff.top >= obsdiff && (diff.bottom <= 0 || diff.top >= diff.bottom)) {
             diffPos.first = -1;
-        } else if (diff.bottom > 0 && (diff.top <= 0 || diff.bottom < diff.top) && size.height - diff.bottom <= obsdiff) {
+        } else if (diff.bottom >= obsdiff && (diff.top <= 0 || diff.bottom > diff.top)) {
             diffPos.first = 1;
         }
     }
 
     // Found collision on Y axis, check if we can move around
     if (found.second) {
-        uint32_t obsdiff = size.width * 0.75f;
-        if (diff.left > 0 && (diff.right <= 0 || diff.left < diff.right) && size.width - diff.left <= obsdiff) {
+        uint32_t obsdiff = std::max<uint32_t>(1, size.width / 5);
+        if (diff.left >= obsdiff && (diff.right <= 0 || diff.left >= diff.right)) {
             diffPos.second = -1;
-        } else if (diff.right > 0 && (diff.left <= 0 || diff.right < diff.left) && size.width - diff.right <= obsdiff) {
+        } else if (diff.right >= obsdiff && (diff.left <= 0 || diff.right > diff.left)) {
             diffPos.second = 1;
         }
     }
