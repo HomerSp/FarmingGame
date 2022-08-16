@@ -455,20 +455,16 @@ void Character::checkCollision(const Character& other, Types::Point<float_t>& ds
     Types::Rect<float_t> otherRc(other.mPos.x, other.mPos.y, othercol.width, othercol.height);
 
     if (dst.x != 0.0f) {
-        float_t xd = (dst.x < 0.0f ? (dst.x - 1.0f) : 0.0f);
-        float_t wd = (dst.x > 0.0f ? (dst.x + 1.0f) : 0.0f);
-        Types::Rect<float_t> charRcX(mPos.x + xd, mPos.y, col.width + wd, col.height);
-        if (charRcX.intersects(otherRc)) {
-            dst.x = (dst.x < 0.0f) ? ((otherRc.right() + 1.0f) - mPos.x) : ((otherRc.left() - 1.0f) - (mPos.x + col.width));
+        Types::Rect<float_t> charRc(mPos.x + std::min(dst.x, 0.0f), mPos.y, col.width + std::abs(dst.x), col.height);
+        if (charRc.intersects(otherRc)) {
+            dst.x = (dst.x < 0.0f) ? (otherRc.right() - mPos.x) : (otherRc.left() - (mPos.x + col.width));
         }
     }
 
     if (dst.y != 0.0f) {
-        float_t yd = (dst.y < 0.0f ? (dst.y - 1.0f) : 0.0f);
-        float_t hd = (dst.y > 0.0f ? (dst.y + 1.0f) : 0.0f);
-        Types::Rect<float_t> charRcY(mPos.x, mPos.y + yd, col.width, col.height + hd);
-        if (charRcY.intersects(otherRc)) {
-            dst.y = (dst.y < 0.0f) ? ((otherRc.bottom() + 1.0f) - mPos.y) : ((otherRc.top() - 1.0f) - (mPos.y + col.height));
+        Types::Rect<float_t> charRc(mPos.x, mPos.y + std::min(dst.y, 0.0f), col.width, col.height + std::abs(dst.y));
+        if (charRc.intersects(otherRc)) {
+            dst.y = (dst.y < 0.0f) ? (otherRc.bottom() - mPos.y) : (otherRc.top() - (mPos.y + col.height));
         }
     }
 }

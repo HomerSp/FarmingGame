@@ -51,10 +51,10 @@ public:
         T bottom() const { return y + height; }
 
         bool intersects(const Rect<T>& o) const {
-            return (o.x + o.width >= x &&
-                o.x <= x + width &&
-                o.y + o.height >= y &&
-                o.y <= y + height);
+            return (x < o.x + o.width &&
+                o.x < x + width &&
+                y < o.y + o.height &&
+                o.y < y + height);
         }
 
         T x, y;
