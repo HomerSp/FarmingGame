@@ -10,7 +10,7 @@ public:
     CollisionMap(uint32_t width = 0, uint32_t height = 0);
     CollisionMap(const std::string& path);
 
-    std::pair<bool, bool> check(const Types::Point<uint32_t>& pos, const Types::Point<>& dst, const Types::Dimension<>& size, Types::Quad<>* diff = nullptr) const;
+    std::pair<bool, bool> check(const Types::Point<int32_t>& pos, const Types::Point<>& dst, const Types::Dimension<>& size, Types::Quad<>* diff = nullptr) const;
 
     bool solid(uint32_t x, uint32_t y) const { return bounds(x, y) && mSolid[x + y * mWidth]; }
     bool solid(const Types::Point<uint32_t>& pos, const Types::Dimension<>& size) const;
@@ -33,8 +33,8 @@ protected:
         return (x + (y * mWidth) < mSolid.size());
     }
 
-    bool checkX(const Types::Point<uint32_t>& pos, int32_t dst, const Types::Dimension<>& size, Types::Quad<>* diff) const;
-    bool checkY(const Types::Point<uint32_t>& pos, int32_t dst, const Types::Dimension<>& size, Types::Quad<>* diff) const;
+    bool checkX(const Types::Point<int32_t>& pos, int32_t dst, const Types::Dimension<>& size, Types::Quad<>* diff) const;
+    bool checkY(const Types::Point<int32_t>& pos, int32_t dst, const Types::Dimension<>& size, Types::Quad<>* diff) const;
 
 private:
     bool mValid;

@@ -108,9 +108,9 @@ std::vector<Types::Point<int32_t>> PathFinding::find(const Map& map, Types::Rect
         node = closed.at({node.parent.x, node.parent.y});
     }
 
+    Types::Dimension<> d = map.getTileDimension();
     std::vector<Types::Point<int32_t> > ret;
     while (!paths.empty()) {
-        Types::Dimension<> d = map.getTileDimension();
         Types::Point<int32_t> p = paths.top();
         paths.pop();
         ret.emplace_back(Types::Point<int32_t>(p.x * d.width, p.y * d.height));

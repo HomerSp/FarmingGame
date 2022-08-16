@@ -16,29 +16,6 @@ class Types {
 public:
     typedef typename std::unordered_map<int32_t, std::unordered_map<int32_t, int32_t>> Map2D;
 
-    template<typename T = int32_t>
-    struct Rect {
-    public:
-        Rect(T x = 0, T y = 0, T w = 0, T h = 0)
-            : x(x), y(y), width(w), height(h)
-        {}
-
-        T left() const { return x; }
-        T top() const { return y; }
-        T right() const { return x + width; }
-        T bottom() const { return y + height; }
-
-        bool intersects(const Rect<T>& o) const {
-            return (x <= o.x + o.width &&
-                o.x <= x + width &&
-                y <= o.y + o.height &&
-                o.y <= y + height);
-        }
-
-        T x, y;
-        T width, height;
-    };
-
     template<typename T = int32_t, typename R = T>
     struct Point {
     public:
@@ -59,6 +36,29 @@ public:
         }
 
         T x, y;
+    };
+
+    template<typename T = int32_t>
+    struct Rect {
+    public:
+        Rect(T x = 0, T y = 0, T w = 0, T h = 0)
+            : x(x), y(y), width(w), height(h)
+        {}
+
+        T left() const { return x; }
+        T top() const { return y; }
+        T right() const { return x + width; }
+        T bottom() const { return y + height; }
+
+        bool intersects(const Rect<T>& o) const {
+            return (o.x + o.width >= x &&
+                o.x <= x + width &&
+                o.y + o.height >= y &&
+                o.y <= y + height);
+        }
+
+        T x, y;
+        T width, height;
     };
 
     template<typename T = int32_t>

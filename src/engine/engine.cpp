@@ -40,12 +40,12 @@ Engine::Engine(uint32_t width, uint32_t height, std::shared_ptr<graphics::Render
     mClock->connect(mClock->DayChanged, std::bind(&Weather::dayChanged, std::ref(*mWeather), std::cref(*mClock)));
     mClock->connect(mClock->DaylightChanged, std::bind(&Weather::daylightChanged, std::ref(*mWeather), std::cref(*mClock)));
 
-    mPlayer->setPosition("map", 9 * 48, (12 * 48) - 24);
+    mPlayer->setPosition("map", 9 * 48, 12 * 48);
 
     mCharacters.emplace("player", mPlayer);
 
     std::shared_ptr<character::Character> dude = std::make_shared<character::Character>(mContext, *mRenderer, "dude");
-    dude->setPosition("map", 10 * 48, (9 * 48) - 24);
+    dude->setPosition("map", 15 * 48, 8 * 48);
     dude->setDirection(Character::Direction::Down);
     mCharacters.emplace("dude", std::move(dude));
 
@@ -283,7 +283,7 @@ void Engine::paint()
 
     mMap->updateBuffers(renderer);
     for (auto& i: mCharacters) {
-        i.second->updateBuffers(renderer, mMap->pixelHeight());
+        i.second->updateBuffers(renderer, *mMap);
     }
 
     // Centre small maps.

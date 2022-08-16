@@ -38,7 +38,7 @@ public:
 
     void drawBuffer(graphics::Renderer& renderer, const Types::Point<>& dst);
 
-    void updateBuffers(graphics::Renderer& renderer, uint32_t mapHeight);
+    void updateBuffers(graphics::Renderer& renderer, const Map& map);
 
     bool animate(uint64_t frameDiff, bool reset = false);
     bool processAsync(uint64_t frameDiff, const Map& map, std::unordered_map<std::string, std::shared_ptr<Character>> *characters = nullptr, Camera* camera = nullptr);

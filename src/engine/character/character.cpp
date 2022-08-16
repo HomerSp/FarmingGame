@@ -96,7 +96,7 @@ void Character::drawBuffer(graphics::Renderer& renderer, const Types::Point<>& d
     renderer.drawTexturesAnim(dst, mTexture.get(), mBuffer.get(), 0, 1);
 }
 
-void Character::updateBuffers(graphics::Renderer& renderer, uint32_t mapHeight)
+void Character::updateBuffers(graphics::Renderer& renderer, const Map& map)
 {
     std::lock_guard<std::mutex> lock(mMovementMutex);
     int32_t cols = mCharset->columns(mCharsetType);
@@ -105,10 +105,11 @@ void Character::updateBuffers(graphics::Renderer& renderer, uint32_t mapHeight)
         frame = frame + 1 - cols;
     }
 
-    int32_t height = mCharset->height(mCharsetType);
-    float_t zOrder = 1.0f - ((mPos.y + height) / static_cast<float_t>(mapHeight));
+    Types::Rect<> col = mCharset->collision(mCharsetType);
+    Types::Point<> pos(mPos.x - col.x, mPos.y - col.y);
 
-    Types::Point<> pos(mPos.x, mPos.y);
+    int32_t height = mCharset->height(mCharsetType);
+    float_t zOrder = 1.0f - ((pos.y + height) / static_cast<float_t>(map.pixelHeight()));
 
     auto writer = mBuffer->writer();
     mCharset->updateBuffer(renderer, pos, mCharsetType, mDirection, frame, writer, 0, zOrder);
@@ -147,7 +148,7 @@ bool Character::processAsync(uint64_t frameDiff, const Map& map, std::unordered_
         if (mTargetPos.x != -1 && mTargetPos.y != -1 && mTargetNodes.empty()) {
             Types::Rect<> col = mCharset->collision(mCharsetType);
 
-            mTargetNodes = PathFinding::find(map, Types::Rect<uint32_t>(posX + col.x, posY + col.y, col.width, col.height), mTargetPos);
+            mTargetNodes = PathFinding::find(map, Types::Rect<uint32_t>(posX, posY, col.width, col.height), mTargetPos);
             mTargetNodesCurrent = 1;
 
             // Did we actually find a path to the destination?
@@ -231,7 +232,7 @@ bool Character::processAsync(uint64_t frameDiff, const Map& map, std::unordered_
             // Check collisions with the map if we have one
             Types::Rect<> col = mCharset->collision(mCharsetType);
 
-            Types::Point<float_t> pos(posX + col.x, posY + col.y);
+            Types::Point<float_t> pos(posX, posY);
             Types::Dimension<> size(col.width, col.height);
             map.checkCollision(pos, size, dst, mVelocity);
 
@@ -450,51 +451,24 @@ void Character::setY(float_t y)
 void Character::checkCollision(const Character& other, Types::Point<float_t>& dst)
 {
     Types::Rect<> col = mCharset->collision(mCharsetType);
-    Types::Quad<float_t> charQuad(mPos.x + col.x, mPos.y + col.y, mPos.x + col.x + col.width, mPos.y + col.y + col.height);
-
     Types::Rect<> othercol = other.mCharset->collision(other.mCharsetType);
-    Types::Quad<float_t> otherQuad(other.mPos.x + othercol.x, other.mPos.y + othercol.y, other.mPos.x + othercol.x + othercol.width, other.mPos.y + othercol.y + othercol.height);
+    Types::Rect<float_t> otherRc(other.mPos.x, other.mPos.y, othercol.width, othercol.height);
 
-    // Check x collision.
-    if (dst.x != 0.0f && ((charQuad.top >= otherQuad.top && charQuad.top < otherQuad.bottom) || (charQuad.bottom >= otherQuad.top && charQuad.bottom < otherQuad.bottom))) {
-        float_t d = dst.x - std::floor(dst.x);
-        // Moving Left
-        if (dst.x < 0.0f) {
-            // We may be moving more than one pixel at a time, which can cause us to move through objects
-            // if the distance is longer than the collision object.
-            for (int32_t i = std::floor(dst.x); i <= 0; i++) {
-                if (charQuad.left + i + d <= otherQuad.right && charQuad.left + i + d > otherQuad.left) {
-                    dst.x = 0.0f;
-                }
-            }
-        // Moving Right
-        } else if(dst.x > 0.0f) {
-            for (int32_t i = std::floor(dst.x); i >= 0; i--) {
-                if (charQuad.right + i + d >= otherQuad.left && charQuad.right + i + d < otherQuad.right) {
-                    dst.x = 0.0f;
-                }
-            }
+    if (dst.x != 0.0f) {
+        float_t xd = (dst.x < 0.0f ? (dst.x - 1.0f) : 0.0f);
+        float_t wd = (dst.x > 0.0f ? (dst.x + 1.0f) : 0.0f);
+        Types::Rect<float_t> charRcX(mPos.x + xd, mPos.y, col.width + wd, col.height);
+        if (charRcX.intersects(otherRc)) {
+            dst.x = (dst.x < 0.0f) ? ((otherRc.right() + 1.0f) - mPos.x) : ((otherRc.left() - 1.0f) - (mPos.x + col.width));
         }
     }
 
-    // Check y collision.
-    if (dst.y != 0.0f && ((charQuad.left >= otherQuad.left && charQuad.left < otherQuad.right) || (charQuad.right >= otherQuad.left && charQuad.right < otherQuad.right))) {
-        float_t d = dst.y - std::floor(dst.y);
-        // Moving Up
-        if (dst.y < 0.0f) {
-            for (int32_t i = std::floor(dst.y); i <= 0; i++) {
-                if (charQuad.top + i + d <= otherQuad.bottom && charQuad.top + i + d > otherQuad.top) {
-                    dst.y = 0.0f;
-                }
-            }
-            
-        // Moving Down
-        } else if(dst.y > 0.0f) {
-            for (int32_t i = std::floor(dst.y); i >= 0; i--) {
-                if (charQuad.bottom + i + d >= otherQuad.top && charQuad.bottom + i + d < otherQuad.bottom) {
-                    dst.y = 0.0f;
-                }
-            }
+    if (dst.y != 0.0f) {
+        float_t yd = (dst.y < 0.0f ? (dst.y - 1.0f) : 0.0f);
+        float_t hd = (dst.y > 0.0f ? (dst.y + 1.0f) : 0.0f);
+        Types::Rect<float_t> charRcY(mPos.x, mPos.y + yd, col.width, col.height + hd);
+        if (charRcY.intersects(otherRc)) {
+            dst.y = (dst.y < 0.0f) ? ((otherRc.bottom() + 1.0f) - mPos.y) : ((otherRc.top() - 1.0f) - (mPos.y + col.height));
         }
     }
 }
