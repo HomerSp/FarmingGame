@@ -282,8 +282,14 @@ void Engine::paint()
     auto& renderer = *mRenderer;
 
     mMap->updateBuffers(renderer);
-    for (auto& i: mCharacters) {
+
+    const auto& tiled = mMap->getTileDimension();
+    std::map<int32_t, std::multimap<int32_t, engine::character::Character*>> charsSort;
+    for (const auto& i: mCharacters) {
         i.second->updateBuffers(renderer, *mMap);
+
+        int32_t row = std::floor(i.second->bottom() / static_cast<float_t>(tiled.height));
+        charsSort[row].insert({i.second->bottom(), i.second.get()});
     }
 
     // Centre small maps.
@@ -305,11 +311,17 @@ void Engine::paint()
 
     mMap->drawBuffer(renderer, dst, TilesetAbove::None);
 
-    for (auto& i: mCharacters) {
-        i.second->drawBuffer(renderer, dst);
+    for (int32_t r = 0; r < mMap->height(); ++r) {
+        auto cit = charsSort.find(r);
+        if (cit != charsSort.end()) {
+            for (auto i: cit->second) {
+                i.second->drawBuffer(renderer, dst);
+            }
+        }
+
+        mMap->drawRowBuffer(renderer, dst, r);
     }
 
-    mMap->drawBuffer(renderer, dst, TilesetAbove::Row);
     mMap->drawBuffer(renderer, dst, TilesetAbove::All);
 
     mWeather->drawWeather(renderer, dst);

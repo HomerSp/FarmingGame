@@ -22,7 +22,6 @@ Map::Map(std::shared_ptr<Context>& ctx, graphics::Renderer& renderer, const std:
     , mType(Map::Type::Outside)
     , mDimensions(0, 0)
     , mNeedUpdate(true)
-    , mBufferCount(0)
     , mAnimFrame(0)
 {
     Logger::debug("Map") << "Loading Map" << id;
@@ -121,8 +120,15 @@ Map::Map(std::shared_ptr<Context>& ctx, graphics::Renderer& renderer, const std:
 
     uint32_t bufferSize = engine::graphics::Vector4D::Size() * 2 + engine::graphics::Vector2D::Size() + sizeof(float_t) * 2;
     for (auto above: TilesetAbove::Types) {
-        mBufferCount[above] = tilesCount(above);
-        mBuffer[above] = renderer.createBuffer(bufferSize * mBufferCount[above]);
+        if (above == TilesetAbove::Row) {
+            for (uint32_t r = 0; r < mDimensions.height; ++r) {
+                mRowBufferCount[r] = tilesCount(above, r);
+                mRowBuffer[r] = renderer.createBuffer(bufferSize * mRowBufferCount[r]);
+            }
+        } else {
+            mBufferCount[above] = tilesCount(above);
+            mBuffer[above] = renderer.createBuffer(bufferSize * mBufferCount[above]);
+        }
     }
 
     uint32_t w = 0, h = 0;
@@ -160,6 +166,11 @@ void Map::drawBuffer(graphics::Renderer& renderer, const Types::Point<>& dst, Ti
     renderer.drawTexturesAnim(dst, mTexture.get(), mBuffer[above].get(), std::floor(mAnimFrame), mBufferCount[above]);
 }
 
+void Map::drawRowBuffer(graphics::Renderer& renderer, const Types::Point<>& dst, int32_t row)
+{
+    renderer.drawTexturesAnim(dst, mTexture.get(), mRowBuffer[row].get(), std::floor(mAnimFrame), mRowBufferCount[row]);
+}
+
 void Map::updateBuffers(graphics::Renderer& renderer)
 {
     if (!mNeedUpdate) {
@@ -167,12 +178,19 @@ void Map::updateBuffers(graphics::Renderer& renderer)
     }
 
     for (auto above: TilesetAbove::Types) {
-        auto writer = mBuffer[above]->writer();
-        for (const auto& layer : mLayers) {
-            layer->updateBuffer(renderer, above, writer);
+        if (above == TilesetAbove::Row) {
+            for (int32_t r = 0; r < mDimensions.height; ++r) {
+                auto writer = mRowBuffer[r]->writer();
+                for (const auto& layer : mLayers) {
+                    layer->updateRowBuffer(renderer, above, r, writer);
+                }
+            }
+        } else {
+            auto writer = mBuffer[above]->writer();
+            for (const auto& layer : mLayers) {
+                layer->updateBuffer(renderer, above, writer);
+            }
         }
-
-        writer.release();
     }
 
     mNeedUpdate = false;
@@ -330,11 +348,11 @@ std::pair<bool, bool> Map::isColliding(const Types::Point<int32_t>& pos, const T
     return found;
 }
 
-uint32_t Map::tilesCount(TilesetAbove::Type above)
+uint32_t Map::tilesCount(TilesetAbove::Type above, int32_t row)
 {
     uint32_t ret = 0;
     for (const auto& layer : mLayers) {
-        ret += layer->tilesCount(above);
+        ret += layer->tilesCount(above, row);
     }
 
     return ret;

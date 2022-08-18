@@ -59,19 +59,19 @@ const std::string& Character::id() const
 
 const std::string& Character::map()
 {
-    std::lock_guard<std::mutex> lock(mMovementMutex);
+    std::shared_lock<std::shared_timed_mutex> lock(mMovementMutex);
     return mMap;
 }
 
 int32_t Character::x()
 {
-    std::lock_guard<std::mutex> lock(mMovementMutex);
+    std::shared_lock<std::shared_timed_mutex> lock(mMovementMutex);
     return static_cast<int32_t>(mPos.x);
 }
 
 int32_t Character::y()
 {
-    std::lock_guard<std::mutex> lock(mMovementMutex);
+    std::shared_lock<std::shared_timed_mutex> lock(mMovementMutex);
     return static_cast<int32_t>(mPos.y);
 }
 
@@ -85,9 +85,16 @@ uint32_t Character::height() const
     return mCharset->height(mCharsetType);
 }
 
+int32_t Character::bottom()
+{
+    std::shared_lock<std::shared_timed_mutex> lock(mMovementMutex);
+    Types::Rect<> col = mCharset->collision(mCharsetType);
+    return mPos.y + col.height;
+}
+
 Types::Rect<float_t> Character::rect()
 {
-    std::lock_guard<std::mutex> lock(mMovementMutex);
+    std::shared_lock<std::shared_timed_mutex> lock(mMovementMutex);
     return {mPos.x, mPos.y, static_cast<float_t>(mCharset->width(mCharsetType)), static_cast<float_t>(mCharset->height(mCharsetType))};
 }
 
@@ -98,10 +105,10 @@ void Character::drawBuffer(graphics::Renderer& renderer, const Types::Point<>& d
 
 void Character::updateBuffers(graphics::Renderer& renderer, const Map& map)
 {
-    std::lock_guard<std::mutex> lock(mMovementMutex);
+    std::shared_lock<std::shared_timed_mutex> lock(mMovementMutex);
     int32_t cols = mCharset->columns(mCharsetType);
     int32_t frame = std::floor(mFrame);
-    if(frame >= cols) {
+    if (frame >= cols) {
         frame = frame + 1 - cols;
     }
 
@@ -118,7 +125,7 @@ void Character::updateBuffers(graphics::Renderer& renderer, const Map& map)
 
 bool Character::animate(uint64_t frameDiff, bool reset)
 {
-    std::lock_guard<std::mutex> lock(mMovementMutex);
+    std::unique_lock<std::shared_timed_mutex> lock(mMovementMutex);
     float_t frame = mFrame;
     if (!reset) {
         int32_t cols = mCharset->columns(mCharsetType);
@@ -141,7 +148,7 @@ bool Character::processAsync(uint64_t frameDiff, const Map& map, std::unordered_
     float_t posX, posY;
     int32_t targetX = -1, targetY = -1;
     {
-        std::lock_guard<std::mutex> lock(mMovementMutex);
+        std::unique_lock<std::shared_timed_mutex> lock(mMovementMutex);
         posX = mPos.x;
         posY = mPos.y;
 
@@ -358,7 +365,7 @@ void Character::processListeners()
 
 void Character::velocity(uint64_t frameDiff, int8_t x, int8_t y)
 {
-    std::lock_guard<std::mutex> lock(mMovementMutex);
+    std::unique_lock<std::shared_timed_mutex> lock(mMovementMutex);
     auto val = frameDiff / 200.0f;
     updateVelocity(mVelocity.x, mVelocity.y, x, val, !mTargetNodes.empty());
     updateVelocity(mVelocity.y, mVelocity.x, y, val, !mTargetNodes.empty());
@@ -366,7 +373,7 @@ void Character::velocity(uint64_t frameDiff, int8_t x, int8_t y)
 
 bool Character::isMoving()
 {
-    std::lock_guard<std::mutex> lock(mMovementMutex);
+    std::shared_lock<std::shared_timed_mutex> lock(mMovementMutex);
     return mVelocity.x != 0.0f || mVelocity.y != 0.0f;
 }
 
@@ -377,14 +384,14 @@ void Character::moveTo(int32_t x, int32_t y, asIScriptFunction* fun)
         mMoveListeners.push_back(std::make_shared<Listeners::MoveListener>(fun, x, y));
     }
 
-    std::lock_guard<std::mutex> lock(mMovementMutex);
+    std::unique_lock<std::shared_timed_mutex> lock(mMovementMutex);
     mTargetPos.x = x;
     mTargetPos.y = y;
 }
 
 void Character::turnToDirection(Direction::Type direction)
 {
-    std::lock_guard<std::mutex> lock(mMovementMutex);
+    std::unique_lock<std::shared_timed_mutex> lock(mMovementMutex);
     if (mDirection != direction) {
         mDirectionTo = direction;
         if (mDirectionTo == Direction::None) {
@@ -410,7 +417,7 @@ void Character::turnTo(const std::string& d)
 
 void Character::setDirection(Direction::Type direction)
 {
-    std::lock_guard<std::mutex> lock(mMovementMutex);
+    std::unique_lock<std::shared_timed_mutex> lock(mMovementMutex);
     mDirection = direction;
     mDirectionTo = Direction::None;
     mDirectionTurn = 0.0f;
@@ -418,19 +425,19 @@ void Character::setDirection(Direction::Type direction)
 
 void Character::setSpeed(float_t speed)
 {
-    std::lock_guard<std::mutex> lock(mMovementMutex);
+    std::unique_lock<std::shared_timed_mutex> lock(mMovementMutex);
     mSpeed = speed;
 }
 
 void Character::setFriction(float_t friction)
 {
-    std::lock_guard<std::mutex> lock(mMovementMutex);
+    std::unique_lock<std::shared_timed_mutex> lock(mMovementMutex);
     mFriction = friction;
 }
 
 void Character::setPosition(const std::string& map, float_t x, float_t y)
 {
-    std::lock_guard<std::mutex> lock(mMovementMutex);
+    std::unique_lock<std::shared_timed_mutex> lock(mMovementMutex);
     mMap = map;
     mPos.x = x;
     mPos.y = y;
@@ -438,13 +445,13 @@ void Character::setPosition(const std::string& map, float_t x, float_t y)
 
 void Character::setX(float_t x)
 {
-    std::lock_guard<std::mutex> lock(mMovementMutex);
+    std::unique_lock<std::shared_timed_mutex> lock(mMovementMutex);
     mPos.x = x;
 }
 
 void Character::setY(float_t y)
 {
-    std::lock_guard<std::mutex> lock(mMovementMutex);
+    std::unique_lock<std::shared_timed_mutex> lock(mMovementMutex);
     mPos.y = y;
 }
 

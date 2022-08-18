@@ -52,14 +52,15 @@ MapLayer::MapLayer(graphics::Renderer& renderer, Types::Map2D data, std::shared_
     mValid = true;
 }
 
+
 void MapLayer::updateBuffer(graphics::Renderer& renderer, TilesetAbove::Type above, graphics::Buffer::Writer& writer)
 {
     for (auto &nodeY: mNodes[above]) {
-        updateRowBuffer(renderer, nodeY.first, above, writer);
+        updateRowBuffer(renderer, above, nodeY.first, writer);
     }
 }
 
-void MapLayer::updateRowBuffer(graphics::Renderer& renderer, int32_t row, TilesetAbove::Type above, graphics::Buffer::Writer& writer)
+void MapLayer::updateRowBuffer(graphics::Renderer& renderer, TilesetAbove::Type above, int32_t row, graphics::Buffer::Writer& writer)
 {
     auto* nodes = &mNodes[above];
 
@@ -83,11 +84,25 @@ void MapLayer::updateRowBuffer(graphics::Renderer& renderer, int32_t row, Tilese
     }
 }
 
-uint32_t MapLayer::tilesCount(TilesetAbove::Type above)
+uint32_t MapLayer::tilesCount(TilesetAbove::Type above, int32_t row) const
 {
+    auto ita = mNodes.find(above);
+    if (ita == mNodes.end()) {
+        return 0;
+    }
+
     uint32_t ret = 0;
-    for (auto &nodeY: mNodes[above]) {
-        ret += nodeY.second.size() * 4;
+    if (row >= 0) {
+        auto itr = ita->second.find(row);
+        if (itr == ita->second.end()) {
+            return 0;
+        }
+
+        ret = itr->second.size() * 4;
+    } else {
+        for (auto &nodeY: ita->second) {
+            ret += nodeY.second.size() * 4;
+        }
     }
 
     return ret;

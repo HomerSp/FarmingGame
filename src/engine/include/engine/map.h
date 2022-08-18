@@ -55,6 +55,7 @@ public:
     bool animate(uint64_t frameDiff);
 
     void drawBuffer(graphics::Renderer& renderer, const Types::Point<>& dst, TilesetAbove::Type above);
+    void drawRowBuffer(graphics::Renderer& renderer, const Types::Point<>& dst, int32_t row);
     void updateBuffers(graphics::Renderer& renderer);
 
     void checkCollision(const Types::Point<float_t>& pos, const Types::Dimension<>& size, Types::Point<float_t>& dst, Types::Point<float_t>& velocity) const;
@@ -81,7 +82,7 @@ public:
 protected:
     std::pair<bool, bool> isColliding(const Types::Point<int32_t>& pos, const Types::Point<>& dst, const Types::Dimension<>& size, Types::Quad<>& diff, Types::Pair& diffPos) const;
 
-    uint32_t tilesCount(TilesetAbove::Type above);
+    uint32_t tilesCount(TilesetAbove::Type above, int32_t row = -1);
 
 private:
     bool mValid;
@@ -98,6 +99,10 @@ private:
     std::atomic<bool> mNeedUpdate;
     std::unordered_map<TilesetAbove::Type, std::unique_ptr<graphics::Buffer>> mBuffer;
     std::unordered_map<TilesetAbove::Type, uint32_t> mBufferCount;
+
+    std::unordered_map<uint32_t, std::unique_ptr<graphics::Buffer>> mRowBuffer;
+    std::unordered_map<uint32_t, uint32_t> mRowBufferCount;
+
     std::unique_ptr<graphics::Texture> mTexture;
 
     std::atomic<float_t> mAnimFrame;

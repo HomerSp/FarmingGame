@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <mutex>
+#include <shared_mutex>
 
 #include <engine/camera.h>
 #include <engine/charset.h>
@@ -54,6 +55,7 @@ public:
     virtual uint32_t width() const;
     virtual uint32_t height() const;
     Types::Rect<float_t> rect();
+    int32_t bottom();
 
     bool isMoving();
 
@@ -104,7 +106,7 @@ private:
     Types::Point<int32_t> mTargetPos;
     std::vector<Types::Point<int32_t>> mTargetNodes;
     uint32_t mTargetNodesCurrent;
-    std::mutex mMovementMutex;
+    std::shared_timed_mutex mMovementMutex;
 
     std::mutex mListenerMutex;
     std::vector<std::shared_ptr<Listeners::MoveListener>> mMoveListeners;
