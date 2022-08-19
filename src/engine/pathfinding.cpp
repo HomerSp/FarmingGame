@@ -100,26 +100,21 @@ std::vector<Types::Point<int32_t>> PathFinding::find(const Map& map, Types::Rect
         return {};
     }
 
+    std::vector<Types::Point<int32_t>> ret;
+    ret.reserve(closed.size());
+
     // Go through the closed list in reverse order to find the optimal path.
     // Also simplify the list by only adding nodes where we actually change direction
     Types::Point<int8_t> olddir(0, 0);
-    std::stack<Types::Point<int32_t> > paths;
     Node& node = closed.at({end.x, end.y});
     while (node.pos != start && node.parent.x != -1 && node.parent.y != -1) {
         Types::Point<int8_t> dir(node.parent.x < node.pos.x ? -1 : node.parent.x > node.pos.x ? 1 : 0, node.parent.y < node.pos.y ? -1 : node.parent.y > node.pos.y ? 1 : 0);
         if (dir.x != olddir.x || dir.y != olddir.y) {
-            paths.push(node.pos);
+            ret.insert(ret.begin(), Types::Point<int32_t>(node.pos.x * tileDimen.width, node.pos.y * tileDimen.height));
             olddir = dir;
         }
 
         node = closed.at({node.parent.x, node.parent.y});
-    }
-
-    std::vector<Types::Point<int32_t> > ret;
-    while (!paths.empty()) {
-        Types::Point<int32_t> p = paths.top();
-        paths.pop();
-        ret.emplace_back(Types::Point<int32_t>(p.x * tileDimen.width, p.y * tileDimen.height));
     }
 
     // Since we are looking at tiles nodes above we may not actually end up at the pixel position requested.
