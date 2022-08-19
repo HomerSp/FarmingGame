@@ -156,19 +156,16 @@ bool Character::processAsync(uint64_t frameDiff, const Map& map, std::unordered_
             Types::Rect<> col = mCharset->collision(mCharsetType);
 
             mTargetNodes = PathFinding::find(map, Types::Rect<uint32_t>(posX, posY, col.width, col.height), mTargetPos);
-            mTargetNodesCurrent = 1;
-
-            // Did we actually find a path to the destination?
-            if (mTargetNodesCurrent < mTargetNodes.size()) {
-                mTargetNodesCurrent++;
-            } else {
+            // Clear target if we couldn't find a path to it
+            if (mTargetNodes.empty()) {
                 mTargetPos.x = mTargetPos.y = -1;
+                mTargetNodesCurrent = -1;
+            } else {
                 mTargetNodesCurrent = 0;
-                mTargetNodes.clear();
             }
         }
 
-        if (mTargetNodesCurrent < mTargetNodes.size()) {
+        if (mTargetNodesCurrent >= 0 && mTargetNodesCurrent < mTargetNodes.size()) {
             targetX = mTargetNodes.at(mTargetNodesCurrent).x;
             targetY = mTargetNodes.at(mTargetNodesCurrent).y;
         }
@@ -289,7 +286,7 @@ bool Character::processAsync(uint64_t frameDiff, const Map& map, std::unordered_
                 posY += dst.y;
             }
 
-            if (!mTargetNodes.empty() && targetX == -1 && targetY == -1) {
+            if (mTargetNodesCurrent >= 0 && !mTargetNodes.empty() && targetX == -1 && targetY == -1) {
                 if (mTargetNodesCurrent < mTargetNodes.size() - 1) {
                     mTargetNodesCurrent++;
                     targetX = mTargetNodes.at(mTargetNodesCurrent).x;
