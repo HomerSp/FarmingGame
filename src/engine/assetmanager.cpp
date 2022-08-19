@@ -21,6 +21,11 @@ std::unique_ptr<Json::Value> AssetManager::data(Type type, const std::string& na
     std::string path = AssetManager::dataPath(type, name);
     if (path.length() > 0) {
         std::ifstream file(path);
+        if (!file.good()) {
+            Logger::critical("AssetManager") << "data, File does not exist" << path;
+            return nullptr;
+        }
+
         try {
             file >> *doc;
         } catch(const Json::RuntimeError &e) {
