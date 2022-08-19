@@ -317,7 +317,7 @@ bool Character::processAsync(uint64_t frameDiff, const Map& map, std::unordered_
 
         // Only set changed if we have actually moved, as this will
         // trigger a repaint.
-        changed = std::floor(mPos.x) != std::floor(posX) || std::floor(mPos.y) != std::floor(posY);
+        changed = static_cast<int32_t>(mPos.x) != static_cast<int32_t>(posX) || static_cast<int32_t>(mPos.y) != static_cast<int32_t>(posY);
         mPos.x = posX;
         mPos.y = posY;
     }
@@ -379,14 +379,19 @@ bool Character::isMoving()
 
 void Character::moveTo(int32_t x, int32_t y, asIScriptFunction* fun)
 {
+    std::unique_lock<std::shared_timed_mutex> lock(mMovementMutex);
+
+    // Clear any current target
+    mTargetNodesCurrent = -1;
+    mTargetNodes.clear();
+
+    mTargetPos.x = x;
+    mTargetPos.y = y;
+
     if (fun != nullptr) {
         std::lock_guard<std::mutex> lock(mListenerMutex);
         mMoveListeners.push_back(std::make_shared<Listeners::MoveListener>(fun, x, y));
     }
-
-    std::unique_lock<std::shared_timed_mutex> lock(mMovementMutex);
-    mTargetPos.x = x;
-    mTargetPos.y = y;
 }
 
 void Character::turnToDirection(Direction::Type direction)
