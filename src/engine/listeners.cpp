@@ -3,8 +3,9 @@
 
 using namespace engine;
 
-Listeners::Listener::Listener(asIScriptFunction* fun)
-    : mCanTrigger(false)
+Listeners::Listener::Listener(asIScriptFunction* fun, bool oneShot)
+    : mOneShot(oneShot)
+    , mCanTrigger(false)
 {
     mFunction = FunctionPtrHelper::get<script::ScriptCallback>(fun);
 }
@@ -49,7 +50,7 @@ void Listeners::Listener::setCanTrigger(bool b)
 }
 
 Listeners::MoveListener::MoveListener(asIScriptFunction* fun, int32_t x, int32_t y)
-    : Listener(fun)
+    : Listener(fun, true)
     , mTarget(x, y)
 {
 }

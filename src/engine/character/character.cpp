@@ -330,34 +330,7 @@ bool Character::processAsync(uint64_t frameDiff, const Map& map, std::unordered_
 
 void Character::processListeners()
 {
-    std::vector<Listeners::MoveListener *> listeners;
-    {
-        std::lock_guard<std::mutex> lock(mListenerMutex);
-        for (auto& i: mMoveListeners) {
-            listeners.emplace_back(i.get());
-        }
-    }
-
-    auto it = listeners.begin();
-    while (it != listeners.end()) {
-        if (!(*it)->maybeTrigger(scriptContext())) {
-            it = listeners.erase(it);
-        } else {
-            it++;
-        }
-    }
-
-    std::lock_guard<std::mutex> lock(mListenerMutex);
-    for (auto i: listeners) {
-        auto moveIt = mMoveListeners.begin();
-        while (moveIt != mMoveListeners.end()) {
-            if (i == moveIt->get()) {
-                moveIt = mMoveListeners.erase(moveIt);
-            } else {
-                moveIt++;
-            }
-        }
-    }
+    Listeners::maybeTrigger<Listeners::MoveListener>(scriptContext(), mListenerMutex, mMoveListeners);
 }
 
 void Character::velocity(uint64_t frameDiff, int8_t x, int8_t y)
