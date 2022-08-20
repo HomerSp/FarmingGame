@@ -29,11 +29,12 @@ public:
 private:
     class ChangeListener : public Listeners::Listener {
     public:
-        ChangeListener(asIScriptFunction* fun, const std::string& format);
+        ChangeListener(asIScriptFunction* fun, const std::string& format, uint64_t delayStart = 0);
 
         bool check(uint64_t val);
 
     private:
+        bool mDelay;
         bool mTriggered;
         Time mTime;
     };
@@ -78,6 +79,7 @@ public:
     void setTime(int32_t h, int32_t m);
 
     // Scripting
+    void delay(const std::string& format, asIScriptFunction* func);
     void on(const std::string& type, const std::string& format, asIScriptFunction* func);
 
     static void registerClass(asIScriptEngine* engine);

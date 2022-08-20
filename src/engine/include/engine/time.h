@@ -22,12 +22,15 @@ public:
 
     bool equals(const Time& time) const;
 
+    bool operator<(const Time& other) const;
+
     static Time fromCurrent(uint64_t val);
-    static Time fromString(const std::string& format);
+    static Time fromString(const std::string& format, uint64_t start = 0);
 
 private:
     void parseBlock(const std::string& block);
 
+    uint64_t mTimestamp = 0;
     int8_t mYear, mMonth, mDay, mWeek, mWeekDay, mHour, mMinute;
 
 };

@@ -203,19 +203,7 @@ bool Clock::processAsync(uint64_t frameDiff, Map* map)
 
 void Clock::processListeners()
 {
-    std::vector<ChangeListener *> listeners;
-    {
-        std::lock_guard<std::mutex> lock(mListenerMutex);
-        for (auto& i: mChangeListeners) {
-            listeners.emplace_back(i.get());
-        }
-    }
-
-    auto it = listeners.begin();
-    while (it != listeners.end()) {
-        (*it)->maybeTrigger(scriptContext());
-        it++;
-    }
+    Listeners::maybeTrigger(scriptContext(), mListenerMutex, mChangeListeners);
 
     if (mChangedDay) {
         trigger(DayChanged);
@@ -244,6 +232,12 @@ void Clock::setTime(int32_t h, int32_t m)
     mCurrentMod += (v - c);
 }
 
+void Clock::delay(const std::string& format, asIScriptFunction* func)
+{
+    std::lock_guard<std::mutex> lock(mListenerMutex);
+    mChangeListeners.push_back(std::make_shared<ChangeListener>(func, format, mCurrent + mCurrentMod));
+}
+
 void Clock::on(const std::string& type, const std::string& format, asIScriptFunction* func)
 {
     if (type == "change") {
@@ -269,20 +263,22 @@ void Clock::registerClass(asIScriptEngine* engine)
     REGISTER_FUNC(engine, Clock, uint, weekDay);
     REGISTER_FUNC(engine, Clock, uint, hour);
     REGISTER_FUNC(engine, Clock, uint, minute);
+    REGISTER_FUNC_ARGS(engine, Clock, void, delay, const std::string, script::ScriptCallback&&);
     REGISTER_FUNC_ARGS(engine, Clock, void, on, const std::string, const std::string, script::ScriptCallback&&);
 }
 
-Clock::ChangeListener::ChangeListener(asIScriptFunction* fun, const std::string& format)
-    : Listener(fun)
+Clock::ChangeListener::ChangeListener(asIScriptFunction* fun, const std::string& format, uint64_t delayStart)
+    : Listener(fun, delayStart > 0)
+    , mDelay(delayStart > 0)
     , mTriggered(false)
 {
-    mTime = Time::fromString(format);
+    mTime = Time::fromString(format, delayStart);
 }
 
 bool Clock::ChangeListener::check(uint64_t val)
 {
     Time current = Time::fromCurrent(val);
-    if (!mTime.equals(current)) {
+    if ((mDelay && current < mTime) || (!mDelay && !mTime.equals(current))) {
         mTriggered = false;
         return false;
     }

@@ -1,3 +1,4 @@
+#include <engine/logger.h>
 #include <engine/time.h>
 
 using namespace engine;
@@ -81,9 +82,15 @@ bool Time::equals(const Time& time) const
     return true;
 }
 
+bool Time::operator<(const Time& other) const
+{
+    return mTimestamp < other.mTimestamp;
+}
+
 Time Time::fromCurrent(uint64_t val)
 {
     Time ret;
+    ret.mTimestamp = val;
     ret.mMinute = static_cast<int8_t>(val % 60);
     val /= 60;
     ret.mHour = static_cast<int8_t>(val % 24);
@@ -98,24 +105,35 @@ Time Time::fromCurrent(uint64_t val)
     return ret;
 }
 
-Time Time::fromString(const std::string& format)
+Time Time::fromString(const std::string& format, uint64_t start)
 {
     Time ret;
 
-    size_t start = 0;
+    size_t beg = 0;
     if(format.find(',') != std::string::npos) {
         size_t end = 0;
         while((end = format.find(',', end)) != std::string::npos)
         {
-            ret.parseBlock(format.substr(start, end));
+            ret.parseBlock(format.substr(beg, end));
             end++;
-            start = end;
+            beg = end;
         }
     }
 
-    if (start != std::string::npos) {
-        ret.parseBlock(format.substr(start));
+    if (beg != std::string::npos) {
+        ret.parseBlock(format.substr(beg));
     }
+
+    uint64_t val = std::max<int64_t>(0, ret.mYear);
+    val *= 4;
+    val += std::max<int64_t>(0, ret.mMonth);
+    val *= 28;
+    val += std::max<int64_t>(0, ret.mDay);
+    val *= 24;
+    val += std::max<int64_t>(0, ret.mHour);
+    val *= 60;
+    val += std::max<int64_t>(0, ret.mMinute);
+    ret.mTimestamp = start + val;
 
     return ret;
 }
