@@ -36,6 +36,7 @@ void QtWindow::initializeGL()
 
 void QtWindow::resizeGL(int width, int height)
 {
+    makeCurrent();
     mEngine->setSize(width, height, devicePixelRatio());
 }
 
