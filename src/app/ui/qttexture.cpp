@@ -19,6 +19,17 @@ QtTexture::QtTexture(uint32_t w, uint32_t h, uint32_t layers)
     mTexture->setMagnificationFilter(QOpenGLTexture::Linear);
 }
 
+QtTexture::QtTexture(const QImage& img)
+    : QtTexture(img.width(), img.height(), 1)
+{
+    auto copied = img.copy({0, 0, mTexture->width(), mTexture->height()});
+    QOpenGLPixelTransferOptions uploadOptions;
+    uploadOptions.setAlignment(1);
+    mTexture->setData(0, 0, QOpenGLTexture::RGBA, QOpenGLTexture::UInt8, copied.constBits(), &uploadOptions);
+
+    setDimensions(engine::Types::Dimension<>(img.width(), img.height()), 0);
+}
+
 void QtTexture::bind(uint32_t id)
 {
     mTexture->bind(id);
@@ -31,7 +42,7 @@ void QtTexture::release()
 
 void QtTexture::setData(const engine::graphics::Image& image, uint32_t layer)
 {
-    auto copied = image.copy({0, 0, mTexture->width(), mTexture->height()});
+    auto copied = image.copy(engine::Types::Rect<uint32_t>(0, 0, mTexture->width(), mTexture->height()));
     QOpenGLPixelTransferOptions uploadOptions;
     uploadOptions.setAlignment(1);
     mTexture->setData(0, layer, QOpenGLTexture::RGBA, QOpenGLTexture::UInt8, copied.data(), &uploadOptions);

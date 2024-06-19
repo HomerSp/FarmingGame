@@ -179,7 +179,7 @@ void Map::updateBuffers(graphics::Renderer& renderer)
 
     for (auto above: TilesetAbove::Types) {
         if (above == TilesetAbove::Row) {
-            for (int32_t r = 0; r < mDimensions.height; ++r) {
+            for (int32_t r = 0; r < static_cast<int32_t>(mDimensions.height); ++r) {
                 auto writer = mRowBuffer[r]->writer();
                 for (const auto& layer : mLayers) {
                     layer->updateRowBuffer(renderer, above, r, writer);
@@ -294,7 +294,10 @@ void Map::checkCollision(const Types::Point<float_t>& pos, const Types::Dimensio
 bool Map::isNodeSolid(int32_t x, int32_t y, const Types::Dimension<>& size) const
 {
     Types::Dimension<> d = getTileDimension();
-    return mCollisionMap->solid(Types::Point<uint32_t>(x * d.width, y * d.height), {((size.width / d.width) + 1) * d.width, ((size.height / d.height) + 1) * d.height});
+    return mCollisionMap->solid(
+        Types::Point<uint32_t>(x * d.width, y * d.height),
+        Types::Dimension<uint32_t>(((size.width / d.width) + 1) * d.width, ((size.height / d.height) + 1) * d.height)
+    );
 }
 
 bool Map::isNodePath(int32_t x, int32_t y) const

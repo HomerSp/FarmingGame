@@ -13,7 +13,7 @@ public:
     std::pair<bool, bool> check(const Types::Point<int32_t>& pos, const Types::Point<>& dst, const Types::Dimension<>& size, Types::Quad<>* diff = nullptr) const;
 
     bool solid(uint32_t x, uint32_t y) const { return bounds(x, y) && mSolid[x + y * mWidth]; }
-    bool solid(const Types::Point<uint32_t>& pos, const Types::Dimension<>& size) const;
+    bool solid(const Types::Point<uint32_t>& pos, const Types::Dimension<uint32_t>& size) const;
     bool transparent(uint32_t x, uint32_t y, uint32_t width = 1, uint32_t height = 1) const;
 
     void set(uint32_t x, uint32_t y, bool b);

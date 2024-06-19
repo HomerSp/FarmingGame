@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <memory>
 
+#include <QImage>
 #include <QOpenGLTexture>
 
 #include <engine/graphics/image.h>
@@ -11,6 +12,7 @@
 class QtTexture : public engine::graphics::Texture {
 public:
     QtTexture(uint32_t w, uint32_t h, uint32_t layers);
+    QtTexture(const QImage& img);
     virtual ~QtTexture() = default;
 
     virtual void bind(uint32_t id) override;
@@ -20,6 +22,9 @@ public:
 
     virtual uint32_t width() const override;
     virtual uint32_t height() const override;
+
+protected:
+    QtTexture(uint32_t layers);
 
 private:
     std::unique_ptr<QOpenGLTexture> mTexture;

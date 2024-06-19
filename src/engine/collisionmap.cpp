@@ -102,7 +102,7 @@ bool CollisionMap::checkX(const Types::Point<int32_t>& pos, int32_t dst, const T
         return true;
     }
 
-    if (pos.x + size.width + dst >= mWidth) {
+    if (static_cast<uint32_t>(pos.x + size.width + dst) >= mWidth) {
         diff->right = mWidth - size.width - pos.x;
         return true;
     }
@@ -111,7 +111,7 @@ bool CollisionMap::checkX(const Types::Point<int32_t>& pos, int32_t dst, const T
     bool found = false;
     for (uint32_t cx = 0; cx < std::abs(dst); ++cx) {
         auto cur = start + (dst >= 0 ? (cx + 1) : -(cx + 1));
-        for (uint32_t cy = 0; cy < std::max(1, size.height); ++cy) {
+        for (uint32_t cy = 0; cy < std::max<uint32_t>(1, size.height); ++cy) {
             // Check top and bottom simultaneously
             auto ts = solid(cur, pos.y + cy);
             auto bs = solid(cur, pos.y + size.height - cy - 1);
@@ -160,7 +160,7 @@ bool CollisionMap::checkY(const Types::Point<int32_t>& pos, int32_t dst, const T
         return true;
     }
 
-    if (pos.y + size.height + dst >= mHeight) {
+    if (static_cast<uint32_t>(pos.y + size.height + dst) >= mHeight) {
         diff->bottom = mHeight - size.height - pos.y;
         return true;
     }
@@ -169,7 +169,7 @@ bool CollisionMap::checkY(const Types::Point<int32_t>& pos, int32_t dst, const T
     bool found = false;
     for (uint32_t cy = 0; cy < std::abs(dst); ++cy) {
         auto cur = (start + (dst >= 0 ? (cy + 1) : -(cy + 1)));
-        for (uint32_t cx = 0; cx < std::max(1, size.width); ++cx) {
+        for (uint32_t cx = 0; cx < std::max<uint32_t>(1, size.width); ++cx) {
             // Check left and right simultaneously
             auto ls = solid(pos.x + cx, cur);
             auto rs = solid(pos.x + size.width - cx - 1, cur);
@@ -207,7 +207,7 @@ bool CollisionMap::checkY(const Types::Point<int32_t>& pos, int32_t dst, const T
     return found;
 }
 
-bool CollisionMap::solid(const Types::Point<uint32_t>& pos, const Types::Dimension<>& size) const
+bool CollisionMap::solid(const Types::Point<uint32_t>& pos, const Types::Dimension<uint32_t>& size) const
 {
     if (size.width <= 1 && size.height <= 1) {
         return solid(pos.x, pos.y);

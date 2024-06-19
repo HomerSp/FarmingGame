@@ -50,7 +50,7 @@ Engine::Engine(uint32_t width, uint32_t height, std::shared_ptr<graphics::Render
     mCharacters.emplace("dude", std::move(dude));
 
     std::shared_ptr<character::Character> horse = std::make_shared<Character>(mContext, *mRenderer, "horse");
-    horse->setPosition("map", 48, 96);
+    horse->setPosition("map", 1 * 48, 2 * 48);
     horse->setDirection(Character::Direction::Right);
     mCharacters.emplace("horse", std::move(horse));
 
@@ -311,7 +311,7 @@ void Engine::paint()
 
     mMap->drawBuffer(renderer, dst, TilesetAbove::None);
 
-    for (int32_t r = 0; r < mMap->height(); ++r) {
+    for (int32_t r = 0; r < static_cast<int32_t>(mMap->height()); ++r) {
         auto cit = charsSort.find(r);
         if (cit != charsSort.end()) {
             for (auto i: cit->second) {

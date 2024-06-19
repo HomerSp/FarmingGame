@@ -1,3 +1,4 @@
+#include <cstdint>
 #include "include/utils.h"
 
 bool Utils::createParentDir(const std::string& filePath, mode_t mode)

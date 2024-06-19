@@ -135,7 +135,7 @@ void Weather::daylightChanged(const Clock& clock)
 
 Weather::Type Weather::randomType(const Clock& clock)
 {
-    uint32_t i = 0, total = 0;
+    int32_t i = 0, total = 0;
     auto r = Random::range(0, 100);
     for (auto per: mPercentages.at(clock.month())) {
         total += per;

@@ -1,6 +1,7 @@
 #include <QFontDatabase>
 #include <QOpenGLPixelTransferOptions>
 #include <QOpenGLVertexArrayObject>
+#include <QPainterPath>
 
 #include <engine/context.h>
 #include <engine/fontmanager.h>

@@ -14,9 +14,10 @@ public:
     Image(const Image& other);
     Image(const std::string& path);
     Image(const std::vector<uint8_t>& data);
+    Image(const uint8_t* data, uint32_t width, uint32_t height);
     ~Image() = default;
 
-    Image copy(const Types::Rect<> &rc) const;
+    Image copy(const Types::Rect<uint32_t> &rc) const;
 
     const uint8_t *data() const;
     

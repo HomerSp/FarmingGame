@@ -32,7 +32,14 @@ Image::Image(const std::vector<uint8_t>& data)
     initData(data);
 }
 
-Image Image::copy(const Types::Rect<> &rc) const
+Image::Image(const uint8_t* data, uint32_t width, uint32_t height)
+    : mWidth(width)
+    , mHeight(height)
+{
+    std::copy(data, data + (width * height * 4), std::back_inserter(mData));
+}
+
+Image Image::copy(const Types::Rect<uint32_t> &rc) const
 {
     if (rc.top() >= rc.bottom() || rc.left() >= rc.right()) {
         return Image();
@@ -44,7 +51,7 @@ Image Image::copy(const Types::Rect<> &rc) const
     ret.mData.resize(rc.width * rc.height * 4, 0);
 
     uint32_t colCount = ((mWidth < rc.width) ? mWidth : rc.width) * 4;
-    for (uint32_t row = rc.top(); row < rc.bottom(); row++) {
+    for (uint32_t row = rc.top(); row < static_cast<uint32_t>(rc.bottom()); row++) {
         uint32_t toStart = row * rc.width * 4;
         uint32_t fromStart = (rc.x + row * mWidth) * 4;
         std::copy(mData.begin() + fromStart, mData.begin() + fromStart + colCount, ret.mData.begin() + toStart);
