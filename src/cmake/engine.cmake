@@ -13,7 +13,7 @@ link_directories(${base_DIR}/external/lodepng)
 link_directories(${src_DIR}/angelscript)
 link_directories(${src_DIR}/engine)
 
-set(engine_EXTRA_LIBRARY jsoncpp_lib_static lodepng)
+set(engine_EXTRA_LIBRARY jsoncpp lodepng)
 set(engine_LIBRARY engine angelscript angelscript_addon angelscript_function ${engine_EXTRA_LIBRARY})
 
 if(LINT)

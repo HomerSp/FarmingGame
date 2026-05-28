@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.1.0)
+cmake_minimum_required(VERSION 3.5.0)
 
 set(CMAKE_CXX_CLANG_TIDY_TEMP "${CMAKE_CXX_CLANG_TIDY}")
 unset(CMAKE_CXX_CLANG_TIDY)
@@ -12,6 +12,7 @@ SET(JSONCPP_WITH_TESTS OFF CACHE BOOL "Compile JsonCpp without test")
 SET(JSONCPP_WITH_TESTS OFF CACHE BOOL "Compile JsonCpp without unittest")
 SET(JSONCPP_WITH_PKGCONFIG_SUPPORT OFF CACHE BOOL "Compile JsonCpp without pkgconfig")
 SET(JSONCPP_WITH_CMAKE_PACKAGE OFF CACHE BOOL "Compile JsonCpp without cmake")
+SET(BUILD_STATIC_LIBS ON CACHE BOOL "Compule JsonCpp as static library")
 add_subdirectory(jsoncpp)
 
 add_subdirectory(lodepng)
