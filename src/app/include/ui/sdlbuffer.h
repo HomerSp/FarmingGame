@@ -1,21 +1,18 @@
 #pragma once
 
 #include <cmath>
-
-#include <QOpenGLBuffer>
-
+#include <vector>
+#include <SDL3/SDL.h>
 #include <engine/graphics/buffer.h>
 #include <engine/graphics/quad.h>
 
-class QtBuffer : public engine::graphics::Buffer
+class SdlBuffer : public engine::graphics::Buffer
 {
 public:
-    QtBuffer(uint32_t size = 0);
-    virtual ~QtBuffer();
+    SdlBuffer(SDL_GPUDevice* device, uint32_t size = 0);
+    virtual ~SdlBuffer();
 
-    virtual void bind() override;
-    virtual void release() override;
-
+    virtual void upload() override;
     virtual void resize(uint32_t size) override;
 
     virtual uint32_t write(uint32_t offset, const engine::graphics::Color& color) override;
@@ -29,6 +26,15 @@ public:
     virtual uint32_t write(uint32_t offset, float_t val) override;
     virtual uint32_t write(uint32_t offset, uint32_t val) override;
 
+    SDL_GPUBuffer* getGpuBuffer() const { return mGpuBuffer; }
+    uint32_t getSize() const { return mSize; }
+
 private:
-    QOpenGLBuffer mBuffer;
+    void writeStaging(uint32_t offset, const void* data, uint32_t size);
+
+    SDL_GPUDevice* mDevice;
+    SDL_GPUBuffer* mGpuBuffer;
+    uint32_t mSize;
+    std::vector<uint8_t> mStagingData;
+    bool mDirty;
 };

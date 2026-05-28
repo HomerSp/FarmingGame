@@ -5,45 +5,35 @@ project(${PROJECT})
 
 include(${engine_INCLUDE_FILE})
 
-find_package(Qt5 COMPONENTS Widgets Qml Quick REQUIRED)
-
-include_directories(${Qt5Widgets_INCLUDE_DIRS} ${QtQml_INCLUDE_DIRS})
-add_definitions(${Qt5Widgets_DEFINITIONS} ${QtQml_DEFINITIONS} ${${Qt5Quick_DEFINITIONS}})
-
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt5Widgets_EXECUTABLE_COMPILE_FLAGS}")
-set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTORCC ON)
-set(CMAKE_AUTOUIC ON)
+find_package(SDL3 REQUIRED)
+find_package(SDL3_ttf REQUIRED)
 
 include_directories(
     include
 )
 
 set(HEADERS
-    include/ui/qtbuffer.h
-    include/ui/qtshaderprogram.h
-    include/ui/qttexture.h
-    include/ui/qtrenderer.h
-    include/ui/qtwindow.h
+    include/ui/sdlbuffer.h
+    include/ui/sdltexture.h
+    include/ui/sdlrenderer.h
+    include/ui/sdlwindow.h
 )
 
 set(SOURCES
     main.cpp
-    ui/qtbuffer.cpp
-    ui/qtshaderprogram.cpp
-    ui/qttexture.cpp
-    ui/qtrenderer.cpp
-    ui/qtwindow.cpp
+    ui/sdlbuffer.cpp
+    ui/sdltexture.cpp
+    ui/sdlrenderer.cpp
+    ui/sdlwindow.cpp
 )
 
 source_group("Header Files" FILES ${HEADERS})
 source_group("Source Files" FILES ${SOURCES})
 
-add_executable(${PROJECT} ${HEADERS} ${SOURCES} ${QT_RESOURCES})
+add_executable(${PROJECT} ${HEADERS} ${SOURCES})
 
 target_link_libraries(${PROJECT}
-    Qt5::Widgets
-    Qt5::Qml
-    Qt5::Quick
+    SDL3::SDL3
+    SDL3_ttf::SDL3_ttf
     ${engine_LIBRARY}
 )

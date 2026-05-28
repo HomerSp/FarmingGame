@@ -21,7 +21,6 @@ class Buffer;
 class Color;
 class Image;
 class Matrix;
-class ShaderProgram;
 class Texture;
 class Transform;
 
@@ -36,8 +35,6 @@ public:
     virtual int32_t width() = 0;
     virtual int32_t height() = 0;
 
-    virtual void beginNative() = 0;
-    virtual void endNative() = 0;
 
     virtual void fillEllipse(const engine::Types::Rect<>& dst, const engine::graphics::Color& color) = 0;
     virtual void fillRect(const Types::Rect<>& dst, const graphics::Color& color) = 0;
@@ -56,7 +53,6 @@ public:
     virtual void restore() = 0;
 
     virtual std::unique_ptr<graphics::Buffer> createBuffer(uint32_t size) const = 0;
-    virtual std::unique_ptr<engine::graphics::ShaderProgram> createShader(const std::string& vertexFile, const std::string& fragmentFile) const = 0;
     virtual std::unique_ptr<engine::graphics::Texture> createTexture(uint32_t w, uint32_t h, uint32_t layers = 0) const = 0;
 
     Context& context();

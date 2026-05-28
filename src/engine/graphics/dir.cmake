@@ -5,7 +5,6 @@ set(HEADERS
     include/engine/graphics/colorgradient.h
     include/engine/graphics/image.h
     include/engine/graphics/matrix.h
-    include/engine/graphics/shaderprogram.h
     include/engine/graphics/texture.h
     include/engine/graphics/textureloader.h
     include/engine/graphics/transform.h
@@ -22,7 +21,6 @@ set(SOURCES
     graphics/image.cpp
     graphics/matrix.cpp
     graphics/renderer.cpp
-    graphics/shaderprogram.cpp
     graphics/texture.cpp
     graphics/textureloader.cpp
 ) 

@@ -45,8 +45,7 @@ public:
 
     Writer writer(uint32_t offset = 0);
 
-    virtual void bind() = 0;
-    virtual void release() = 0;
+    virtual void upload() = 0;
 
     virtual void resize(uint32_t size) = 0;
 

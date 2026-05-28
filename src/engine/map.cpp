@@ -184,12 +184,14 @@ void Map::updateBuffers(graphics::Renderer& renderer)
                 for (const auto& layer : mLayers) {
                     layer->updateRowBuffer(renderer, above, r, writer);
                 }
+                writer.release();
             }
         } else {
             auto writer = mBuffer[above]->writer();
             for (const auto& layer : mLayers) {
                 layer->updateBuffer(renderer, above, writer);
             }
+            writer.release();
         }
     }
 

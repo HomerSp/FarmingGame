@@ -279,6 +279,7 @@ void Engine::paint()
 {
     mDrawingTimer.start();
 
+
     auto& renderer = *mRenderer;
 
     mMap->updateBuffers(renderer);
@@ -289,6 +290,7 @@ void Engine::paint()
         i.second->updateBuffers(renderer, *mMap);
 
         int32_t row = std::floor(i.second->bottom() / static_cast<float_t>(tiled.height));
+        row = std::max(0, std::min(row, static_cast<int32_t>(mMap->height()) - 1));
         charsSort[row].insert({i.second->bottom(), i.second.get()});
     }
 
@@ -303,7 +305,6 @@ void Engine::paint()
     }
 
     Types::Point<> dst(translateX - mCamera->x(), translateY - mCamera->y());
-    renderer.beginNative();
 
     // Draw water tiles
     mMap->drawBuffer(renderer, dst, TilesetAbove::Water);
@@ -315,6 +316,7 @@ void Engine::paint()
         auto cit = charsSort.find(r);
         if (cit != charsSort.end()) {
             for (auto i: cit->second) {
+
                 i.second->drawBuffer(renderer, dst);
             }
         }
@@ -329,7 +331,6 @@ void Engine::paint()
     mScreenEffects->draw(renderer, dst, *mClock, mLights, *mWeather);
 
     mHud->draw(renderer, *mClock, *mPlayer, mDrawingTimer);
-    renderer.endNative();
 }
 
 void Engine::setKeyMap(const std::unordered_map<int32_t, Keys::Type>& keys)

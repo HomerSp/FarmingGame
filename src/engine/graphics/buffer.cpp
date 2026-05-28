@@ -9,7 +9,6 @@ Buffer::Writer::Writer(Buffer& buffer, uint32_t offset)
     : mBuffer(buffer)
     , mOffset(offset)
 {
-    mBuffer.bind();
 }
 
 void Buffer::Writer::skip(uint32_t offset)
@@ -19,7 +18,7 @@ void Buffer::Writer::skip(uint32_t offset)
 
 void Buffer::Writer::release()
 {
-    mBuffer.release();
+    mBuffer.upload();
 }
 
 Buffer::Writer& Buffer::Writer::append(const Color& color)

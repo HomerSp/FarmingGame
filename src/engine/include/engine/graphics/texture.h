@@ -20,8 +20,7 @@ public:
 
     bool operator!() const;
 
-    virtual void bind(uint32_t id = 0) = 0;
-    virtual void release() = 0;
+
 
     virtual void setData(const Image& image, uint32_t layer) = 0;
     

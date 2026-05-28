@@ -4,7 +4,6 @@
 #include <engine/collisionmap.h>
 #include <engine/graphics/image.h>
 #include <engine/graphics/renderer.h>
-#include <engine/graphics/shaderprogram.h>
 #include <engine/logger.h>
 
 using namespace engine;
@@ -70,10 +69,6 @@ std::string AssetManager::script(const std::string& name) const
     return "";   
 }
 
-std::unique_ptr<graphics::ShaderProgram> AssetManager::shader(const graphics::Renderer& renderer, const std::string& vertex, const std::string& fragment) const
-{
-    return renderer.createShader(shaderPath(vertex, "vs"), shaderPath(fragment, "fs"));
-}
 
 std::string AssetManager::dataPath(Type type, const std::string& name) const
 {
