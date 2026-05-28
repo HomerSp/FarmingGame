@@ -22,6 +22,14 @@ Hud::Hud(std::shared_ptr<Context>& ctx, graphics::Renderer& renderer)
 {
     loadClockTextures(renderer);
 
+    // Load bottom HUD images
+    mClockImage = context().assetManager().image(AssetManager::Ui, "hud_round_big");
+    mHudItemEquipped = context().assetManager().image(AssetManager::Ui, "hud_bar_left");
+    mHudItem = context().assetManager().image(AssetManager::Ui, "hud_item");
+    mBarSmall = context().assetManager().image(AssetManager::Ui, "hud_bar_small");
+    mHealthStamina = context().assetManager().image(AssetManager::Ui, "hud_health_stamina");
+    mSeasonsImage = context().assetManager().image(AssetManager::Ui, "seasons");
+
     auto clockDimension = mHudTextures->dimension(0);
     clockDimension.width /= 2;
 
@@ -58,6 +66,8 @@ Hud::Hud(std::shared_ptr<Context>& ctx, graphics::Renderer& renderer)
             writer.append(engine::graphics::Vector4D(0, 0, seasonDimension.width / 4.0f, seasonDimension.height));
             writer.append(static_cast<float_t>(2));
         }
+
+        writer.release();
     }
 
     {
@@ -90,12 +100,44 @@ void Hud::draw(graphics::Renderer& renderer, Clock& clock, Player& player, Frame
             writer.skip(engine::graphics::Vector4D::Size());
             writer.append(clock.month() * (seasonDimension.width / 4.0f));
         }
+
+        writer.release();
     }
 
     auto clockDimension = mHudTextures->dimension(0);
     clockDimension.width /= 2;
 
     Types::Point<> dstPoint(renderer.width() - (clockDimension.width / 2) - 16, 16 + (clockDimension.height / 2));
+
+    // Items position: to the left of the clock, vertically centered
+    int32_t itemsX = dstPoint.x - (clockDimension.width / 2) - 10;
+    int32_t itemsY = dstPoint.y;
+    int32_t itemWidth = mHudItemEquipped->width() / 2;
+    int32_t itemHalfHeight = mHudItemEquipped->height() / 2;
+    int32_t barWidth = itemWidth;
+    int32_t itemLeftEdge = itemsX - (itemWidth / 2);
+
+    // Stamina bar (above items, left-aligned, no gap)
+    renderer.save();
+    renderer.translate(itemLeftEdge, itemsY - itemHalfHeight - mBarSmall->height());
+    float_t staminaPct = player.stamina() / static_cast<float_t>(player.maxStamina());
+    drawBarSmall(renderer, barWidth, {1.0f, 1.0f, 0.0f, 0.8f}, staminaPct, 0);
+    renderer.restore();
+
+    // Items (drawn before clock so they appear behind it)
+    renderer.save();
+    renderer.translate(itemsX, itemsY);
+    drawItems(renderer, player);
+    renderer.restore();
+
+    // Health bar (below items, left-aligned, no gap)
+    renderer.save();
+    renderer.translate(itemLeftEdge, itemsY + itemHalfHeight);
+    float_t healthPct = player.health() / static_cast<float_t>(player.maxHealth());
+    drawBarSmall(renderer, barWidth, {1.0f, 0, 0, 0.8f}, healthPct, mHealthStamina->width() / 2);
+    renderer.restore();
+
+    // Clock background
     renderer.drawTextures(dstPoint, mHudTextures.get(), mClockBackgroundBuffer.get(), mClockBackgroundBufferCount);
 
     renderer.drawTextures(dstPoint, mHudTextures.get(), mSeasonsBuffer.get(), 1);
@@ -111,44 +153,26 @@ void Hud::draw(graphics::Renderer& renderer, Clock& clock, Player& player, Frame
     renderer.drawText(timeRc, clock.timeFormatted(), textColor, 18, Types::TextAlign({Types::TextAlign::CentreH, Types::TextAlign::CentreV}), "hud", true);
 
 #ifdef DEBUG
-    Types::Rect<> fpsRc(0, 0, 24 * 6, 24);
-    renderer.fillRect(fpsRc, {1.0f, 1.0f, 1.0f});
+    Types::Rect<> fpsRc0(0, 0, 24 * 6, 24);
+    renderer.fillRect(fpsRc0, {1.0f, 1.0f, 1.0f});
 
-    std::stringstream fpsStr;
-    fpsStr << frameTimer.framesPerSecond() << "fps";
-    renderer.drawText(fpsRc, fpsStr.str(), {0, 0, 0}, 24, Types::TextAlign({Types::TextAlign::CentreH, Types::TextAlign::CentreV}), "hud");
+    std::stringstream fpsStr0;
+    fpsStr0 << frameTimer.framesPerSecond() << "fps";
+    renderer.drawText(fpsRc0, fpsStr0.str(), {0, 0, 0}, 24, Types::TextAlign({Types::TextAlign::CentreH, Types::TextAlign::CentreV}), "hud");
 #endif
 
+    // Clock foreground
     renderer.drawTextures(dstPoint, mHudTextures.get(), mClockForegroundBuffer.get(), mClockForegroundBufferCount);
 
-    drawClock(renderer, clock);
-
-    /*renderer.save();
-
-    // Bottom hud
-    renderer.translate(renderer.width() / 2, renderer.height() - (mClockImage->height() / 2) - 16);
-
-    renderer.translate(-(mClockImage->width() / 4), 0);
-    drawItems(renderer, player);
-    renderer.translate((mClockImage->width() / 4), 0);
-
-    renderer.translate((mClockImage->width() / 4), 0);
-    drawHealth(renderer, player);
-    renderer.translate(-(mClockImage->width() / 4), 0);
-
-    drawClock(renderer, clock);
-    renderer.translate(-(renderer.width() / 2), -(renderer.height() - (mClockImage->height() / 2) - 16));
-
-    // FPS Counter
+    // FPS Counter (top-left)
+    renderer.save();
     Types::Rect<> fpsRc(0, 0, 24 * 6, 24);
-    renderer.translate(renderer.width() - fpsRc.width, 0);
     renderer.fillRect(fpsRc, {1.0f, 1.0f, 1.0f});
 
     std::stringstream fpsStr;
     fpsStr << frameTimer.framesPerSecond() << "fps";
     renderer.drawText({0, 0, fpsRc.width, fpsRc.height}, fpsStr.str(), {0, 0, 0}, 24, Types::TextAlign({Types::TextAlign::CentreH, Types::TextAlign::CentreV}), "hud");
-
-    renderer.restore();*/
+    renderer.restore();
 }
 
 void Hud::expandItems(bool expand)
@@ -162,7 +186,7 @@ bool Hud::isExpanded() const {
 
 void Hud::drawClock(graphics::Renderer& renderer, Clock& clock)
 {
-    /*Types::Dimension<> clockDimen(mClockImage->width() / 2, mClockImage->height());
+    Types::Dimension<> clockDimen(mClockImage->width() / 2, mClockImage->height());
 
     int32_t centreX = (clockDimen.width / 2);
     int32_t centreY = (clockDimen.height / 2);
@@ -199,12 +223,12 @@ void Hud::drawClock(graphics::Renderer& renderer, Clock& clock)
     clockRc.x = clockDimen.width;
     renderer.drawImage(*mClockImage, {}, clockRc);
 
-    renderer.translate(centreX, centreY);*/
+    renderer.translate(centreX, centreY);
 }
 
 void Hud::drawHealth(graphics::Renderer& renderer, Player& player)
 {
-    /*renderer.translate(-10, -(50 / 2));
+    renderer.translate(-10, -(50 / 2));
 
     // Stamina
     float_t p = player.stamina() / static_cast<float_t>(player.maxStamina());
@@ -217,12 +241,12 @@ void Hud::drawHealth(graphics::Renderer& renderer, Player& player)
     drawBarSmall(renderer, mHealthStaminaWidth, {1.0f, 0, 0, 0.8f}, p, mHealthStamina->width() / 2);
     renderer.translate(0, mBarSmall->height());
 
-    renderer.translate(10, -(50 / 2));*/
+    renderer.translate(10, -(50 / 2));
 }
 
 void Hud::drawItems(graphics::Renderer& renderer, Player& player)
 {
-    /*Types::Rect<> leftItemRc(0, 0, mHudItemEquipped->width() / 2, mHudItemEquipped->height());
+    Types::Rect<> leftItemRc(0, 0, mHudItemEquipped->width() / 2, mHudItemEquipped->height());
     renderer.translate(-(leftItemRc.width / 2), -(leftItemRc.height / 2));
     renderer.drawImage(*mHudItemEquipped, {}, leftItemRc);
 
@@ -230,9 +254,9 @@ void Hud::drawItems(graphics::Renderer& renderer, Player& player)
 
     const auto& itemImage = player.currentItem().uiImage();
 
-    renderer.translate(-(mBoxSize.x / 2), -(mBoxSize.y / 2));
-    renderer.drawImage(itemImage, {0, 0, mBoxSize.x, mBoxSize.y});
-    renderer.translate(mBoxSize.x / 2, mBoxSize.y / 2);
+    renderer.translate(-(mBoxSize.width / 2), -(mBoxSize.height / 2));
+    renderer.drawImage(itemImage, {0, 0, static_cast<int32_t>(mBoxSize.width), static_cast<int32_t>(mBoxSize.height)});
+    renderer.translate(mBoxSize.width / 2, mBoxSize.height / 2);
     renderer.translate(-leftItemRc.height / 2, -leftItemRc.height / 2);
 
     leftItemRc.x = leftItemRc.width;
@@ -256,9 +280,9 @@ void Hud::drawItems(graphics::Renderer& renderer, Player& player)
             if (player.hasItem(i)) {
                 const auto &itemsImage = player.item(i).uiImage();
                 renderer.translate((itemRc.width / 2), (itemRc.height / 2));
-                renderer.translate(-(mBoxSize.x / 2), -(mBoxSize.y / 2));
-                renderer.drawImage(itemsImage, {0, 0, mBoxSize.x, mBoxSize.y});
-                renderer.translate((mBoxSize.x / 2), (mBoxSize.y / 2));
+                renderer.translate(-(mBoxSize.width / 2), -(mBoxSize.height / 2));
+                renderer.drawImage(itemsImage, {0, 0, static_cast<int32_t>(mBoxSize.width), static_cast<int32_t>(mBoxSize.height)});
+                renderer.translate((mBoxSize.width / 2), (mBoxSize.height / 2));
                 renderer.translate(-(itemRc.width / 2), -(itemRc.height / 2));
             }
 
@@ -268,12 +292,12 @@ void Hud::drawItems(graphics::Renderer& renderer, Player& player)
         }
 
         renderer.translate((leftItemRc.width / 2), (leftItemRc.height / 2));
-    }*/
+    }
 }
 
 void Hud::drawBarSmall(graphics::Renderer& renderer, uint32_t width, graphics::Color fillColor, float_t fillPercent, uint32_t indicatorX)
 {
-    /*Types::Rect<int32_t> bgRc(0, 0, (mBarSmall->width() / 2) / 5, mBarSmall->height());
+    Types::Rect<int32_t> bgRc(0, 0, (mBarSmall->width() / 2) / 5, mBarSmall->height());
     Types::Rect<int32_t> fillRc(0, 0, std::max(0, static_cast<int32_t>(width - (bgRc.width * 2))), bgRc.height);
 
     // Background
@@ -328,7 +352,7 @@ void Hud::drawBarSmall(graphics::Renderer& renderer, uint32_t width, graphics::C
     renderer.translate(bgRc.width, 0);
     renderer.drawImage(*mBarSmall, {}, bgRc);
 
-    renderer.translate(-(fillRc.width + (bgRc.width * 3)), 0);*/
+    renderer.translate(-(fillRc.width + (bgRc.width * 3)), 0);
 }
 
 void Hud::loadClockTextures(graphics::Renderer& renderer)

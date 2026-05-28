@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <map>
 #include <memory>
+#include <unordered_map>
 #include <string>
 #include <vector>
 #include <SDL3/SDL.h>
@@ -18,6 +19,7 @@
 #include <engine/particles.h>
 
 #include <ui/sdlbuffer.h>
+#include <ui/sdltexture.h>
 
 class SdlRenderer : public engine::graphics::Renderer
 {
@@ -89,6 +91,7 @@ private:
     SDL_GPUShader* mParticle2DFrag;
     SDL_GPUShader* mFBO2DVert;
     SDL_GPUShader* mFBO2DFrag;
+    SDL_GPUShader* mText2DVert;
 
     // Pipelines
     SDL_GPUGraphicsPipeline* mTexture2DPipeline;
@@ -97,10 +100,14 @@ private:
     SDL_GPUGraphicsPipeline* mColorPipeline;
     SDL_GPUGraphicsPipeline* mParticle2DPipeline;
     SDL_GPUGraphicsPipeline* mFBO2DPipeline;
+    SDL_GPUGraphicsPipeline* mText2DPipeline;
 
     // Font cache
     std::map<int32_t, TTF_Font*> mFonts;
     std::string mFontPath;
+
+    // Image texture cache (keyed by data pointer)
+    std::unordered_map<const void*, std::unique_ptr<SdlTexture>> mImageTextureCache;
 
     uint32_t mWidth;
     uint32_t mHeight;

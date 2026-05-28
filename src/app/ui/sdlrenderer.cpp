@@ -4,6 +4,7 @@
 #include <ui/sdltexture.h>
 #include <ui/sdlbuffer.h>
 #include <engine/context.h>
+#include <engine/graphics/image.h>
 #include <engine/graphics/vector.h>
 
 using namespace engine;
@@ -54,6 +55,7 @@ SdlRenderer::~SdlRenderer()
     if (mParticle2DFrag) SDL_ReleaseGPUShader(mDevice, mParticle2DFrag);
     if (mFBO2DVert) SDL_ReleaseGPUShader(mDevice, mFBO2DVert);
     if (mFBO2DFrag) SDL_ReleaseGPUShader(mDevice, mFBO2DFrag);
+    if (mText2DVert) SDL_ReleaseGPUShader(mDevice, mText2DVert);
 
     // Release pipelines
     if (mTexture2DPipeline) SDL_ReleaseGPUGraphicsPipeline(mDevice, mTexture2DPipeline);
@@ -62,6 +64,7 @@ SdlRenderer::~SdlRenderer()
     if (mColorPipeline) SDL_ReleaseGPUGraphicsPipeline(mDevice, mColorPipeline);
     if (mParticle2DPipeline) SDL_ReleaseGPUGraphicsPipeline(mDevice, mParticle2DPipeline);
     if (mFBO2DPipeline) SDL_ReleaseGPUGraphicsPipeline(mDevice, mFBO2DPipeline);
+    if (mText2DPipeline) SDL_ReleaseGPUGraphicsPipeline(mDevice, mText2DPipeline);
 }
 
 void SdlRenderer::beginFrame(SDL_GPUCommandBuffer* cmd, SDL_GPUTexture* swapchainTexture)
@@ -207,7 +210,100 @@ void SdlRenderer::fillRect(const engine::Types::Rect<>& dst, const engine::graph
 
 void SdlRenderer::drawImage(const engine::graphics::Image& img, engine::Types::Rect<> dst, engine::Types::Rect<> src)
 {
+    if (!img || img.width() == 0 || img.height() == 0) return;
+
+    // Use source rect as the whole image if not specified
+    if (src.width == 0 || src.height == 0) {
+        src = {0, 0, static_cast<int32_t>(img.width()), static_cast<int32_t>(img.height())};
+    }
+
+    // Use source dimensions for destination if not specified
+    if (dst.width == 0 || dst.height == 0) {
+        dst.width = src.width;
+        dst.height = src.height;
+    }
+
+    // Find or create cached GPU texture
+    const void* key = img.data();
+    auto it = mImageTextureCache.find(key);
+    if (it == mImageTextureCache.end()) {
+        auto tex = std::make_unique<SdlTexture>(mDevice, img.width(), img.height(), 1);
+        uint32_t sizeBytes = img.width() * img.height() * 4;
+
+        SDL_GPUTransferBufferCreateInfo transferInfo{};
+        transferInfo.usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD;
+        transferInfo.size = sizeBytes;
+        SDL_GPUTransferBuffer* transferBuffer = SDL_CreateGPUTransferBuffer(mDevice, &transferInfo);
+        if (transferBuffer) {
+            void* ptr = SDL_MapGPUTransferBuffer(mDevice, transferBuffer, false);
+            if (ptr) {
+                std::memcpy(ptr, img.data(), sizeBytes);
+                SDL_UnmapGPUTransferBuffer(mDevice, transferBuffer);
+            }
+
+            SDL_GPUCommandBuffer* cmd = SDL_AcquireGPUCommandBuffer(mDevice);
+            if (cmd) {
+                SDL_GPUCopyPass* copyPass = SDL_BeginGPUCopyPass(cmd);
+                if (copyPass) {
+                    SDL_GPUTextureTransferInfo sourceInfo{};
+                    sourceInfo.transfer_buffer = transferBuffer;
+                    sourceInfo.offset = 0;
+
+                    SDL_GPUTextureRegion destRegion{};
+                    destRegion.texture = tex->getGpuTexture();
+                    destRegion.w = img.width();
+                    destRegion.h = img.height();
+                    destRegion.d = 1;
+
+                    SDL_UploadToGPUTexture(copyPass, &sourceInfo, &destRegion, false);
+                    SDL_EndGPUCopyPass(copyPass);
+                }
+                SDL_SubmitGPUCommandBuffer(cmd);
+            }
+            SDL_ReleaseGPUTransferBuffer(mDevice, transferBuffer);
+        }
+
+        it = mImageTextureCache.emplace(key, std::move(tex)).first;
+    }
+
+    // Build instance buffer: dst rect + src rect (for text2d pipeline with source rect support)
+    SdlBuffer instBuffer(mDevice, sizeof(float) * 8);
+    instBuffer.writer()
+        .append(engine::graphics::Vector4D(dst.x, dst.y, dst.width, dst.height))
+        .append(engine::graphics::Vector4D(src.x, src.y, src.width, src.height))
+        .release();
+
+    SDL_GPUColorTargetInfo targetInfo{};
+    targetInfo.texture = mCurrentSwapchainTexture;
+    targetInfo.load_op = SDL_GPU_LOADOP_LOAD;
+    targetInfo.store_op = SDL_GPU_STOREOP_STORE;
+
+    SDL_GPURenderPass* pass = SDL_BeginGPURenderPass(mCurrentCmd, &targetInfo, 1, nullptr);
+    if (pass) {
+        SDL_BindGPUGraphicsPipeline(pass, mText2DPipeline);
+
+        SDL_GPUBufferBinding vertexBinding{};
+        vertexBinding.buffer = mQuadVertexBuffer->getGpuBuffer();
+        vertexBinding.offset = 0;
+        SDL_BindGPUVertexBuffers(pass, 0, &vertexBinding, 1);
+
+        SDL_GPUBufferBinding instBinding{};
+        instBinding.buffer = instBuffer.getGpuBuffer();
+        instBinding.offset = 0;
+        SDL_BindGPUVertexBuffers(pass, 1, &instBinding, 1);
+
+        SDL_GPUTextureSamplerBinding samplerBinding{};
+        samplerBinding.texture = it->second->getGpuTexture();
+        samplerBinding.sampler = mSampler;
+        SDL_BindGPUFragmentSamplers(pass, 0, &samplerBinding, 1);
+
+        SDL_PushGPUVertexUniformData(mCurrentCmd, 0, mWorldMatrix.constData(), 64);
+
+        SDL_DrawGPUPrimitives(pass, 4, 1, 0, 0);
+        SDL_EndGPURenderPass(pass);
+    }
 }
+
 
 TTF_Font* SdlRenderer::getFont(int32_t size)
 {
@@ -243,7 +339,14 @@ void SdlRenderer::drawText(const engine::Types::Rect<>& dst, const std::string& 
         static_cast<uint8_t>(color.a() * 255)
     };
 
-    SDL_Surface* surface = TTF_RenderText_Blended(font, text.c_str(), text.length(), sdlColor);
+    SDL_Surface* surface = nullptr;
+    if (text.find('\n') != std::string::npos) {
+        TTF_SetFontWrapAlignment(font, TTF_HORIZONTAL_ALIGN_CENTER);
+        surface = TTF_RenderText_Blended_Wrapped(font, text.c_str(), text.length(), sdlColor, 0);
+        TTF_SetFontWrapAlignment(font, TTF_HORIZONTAL_ALIGN_LEFT);
+    } else {
+        surface = TTF_RenderText_Blended(font, text.c_str(), text.length(), sdlColor);
+    }
     if (!surface) return;
 
     SDL_Surface* converted = SDL_ConvertSurface(surface, SDL_PIXELFORMAT_RGBA32);
@@ -303,9 +406,10 @@ void SdlRenderer::drawText(const engine::Types::Rect<>& dst, const std::string& 
         y = dst.y + (dst.height - (int32_t)tex->height()) / 2;
     }
 
-    SdlBuffer instBuffer(mDevice, sizeof(float) * 4);
+    SdlBuffer instBuffer(mDevice, sizeof(float) * 8);
     instBuffer.writer()
         .append(Vector4D(x, y, tex->width(), tex->height()))
+        .append(Vector4D(0, 0, tex->width(), tex->height()))
         .release();
 
     SDL_GPUColorTargetInfo targetInfo{};
@@ -315,7 +419,7 @@ void SdlRenderer::drawText(const engine::Types::Rect<>& dst, const std::string& 
 
     SDL_GPURenderPass* pass = SDL_BeginGPURenderPass(mCurrentCmd, &targetInfo, 1, nullptr);
     if (pass) {
-        SDL_BindGPUGraphicsPipeline(pass, mFBO2DPipeline); 
+        SDL_BindGPUGraphicsPipeline(pass, mText2DPipeline);
 
         SDL_GPUBufferBinding vertexBinding{};
         vertexBinding.buffer = mQuadVertexBuffer->getGpuBuffer();
@@ -608,6 +712,7 @@ void SdlRenderer::initContext()
     mParticle2DFrag = loadShader("assets/shader/particle2d.frag.spv", SDL_GPU_SHADERSTAGE_FRAGMENT, 0, 1);
     mFBO2DVert = loadShader("assets/shader/fbo2d.vert.spv", SDL_GPU_SHADERSTAGE_VERTEX, 0, 1);
     mFBO2DFrag = loadShader("assets/shader/fbo2d.frag.spv", SDL_GPU_SHADERSTAGE_FRAGMENT, 1, 0);
+    mText2DVert = loadShader("assets/shader/text2d.vert.spv", SDL_GPU_SHADERSTAGE_VERTEX, 0, 1);
 
     // Create Sampler
     SDL_GPUSamplerCreateInfo samplerInfo{};
@@ -984,6 +1089,49 @@ void SdlRenderer::initContext()
         mFBO2DPipeline = SDL_CreateGPUGraphicsPipeline(mDevice, &pipelineInfo);
     }
 
+    // 7. Text2D Pipeline (same layout as FBO but with alpha blend and corrected UVs)
+    {
+        SDL_GPUGraphicsPipelineCreateInfo pipelineInfo{};
+        pipelineInfo.vertex_shader = mText2DVert;
+        pipelineInfo.fragment_shader = mFBO2DFrag;
+        pipelineInfo.primitive_type = SDL_GPU_PRIMITIVETYPE_TRIANGLESTRIP;
+
+        SDL_GPUVertexBufferDescription bufferDescs[2]{};
+        bufferDescs[0].slot = 0;
+        bufferDescs[0].pitch = sizeof(float) * 2;
+        bufferDescs[0].input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX;
+
+        bufferDescs[1].slot = 1;
+        bufferDescs[1].pitch = sizeof(float) * 8;
+        bufferDescs[1].input_rate = SDL_GPU_VERTEXINPUTRATE_INSTANCE;
+        bufferDescs[1].instance_step_rate = 0;
+
+        SDL_GPUVertexAttribute attributeDescs[3]{};
+        attributeDescs[0].location = 0;
+        attributeDescs[0].buffer_slot = 0;
+        attributeDescs[0].format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2;
+        attributeDescs[0].offset = 0;
+
+        attributeDescs[1].location = 1;
+        attributeDescs[1].buffer_slot = 1;
+        attributeDescs[1].format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT4;
+        attributeDescs[1].offset = 0;
+
+        attributeDescs[2].location = 2;
+        attributeDescs[2].buffer_slot = 1;
+        attributeDescs[2].format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT4;
+        attributeDescs[2].offset = 16;
+
+        pipelineInfo.vertex_input_state.num_vertex_buffers = 2;
+        pipelineInfo.vertex_input_state.vertex_buffer_descriptions = bufferDescs;
+        pipelineInfo.vertex_input_state.num_vertex_attributes = 3;
+        pipelineInfo.vertex_input_state.vertex_attributes = attributeDescs;
+
+        pipelineInfo.target_info.num_color_targets = 1;
+        pipelineInfo.target_info.color_target_descriptions = &defaultColorTarget;
+
+        mText2DPipeline = SDL_CreateGPUGraphicsPipeline(mDevice, &pipelineInfo);
+    }
     // Diagnostic logging
     fprintf(stderr, "=== initContext diagnostics ===\n");
     fprintf(stderr, "Shaders: tex2d_v=%p tex2d_f=%p anim_v=%p anim_f=%p light_v=%p light_f=%p col_v=%p col_f=%p part_v=%p part_f=%p fbo_v=%p fbo_f=%p\n",

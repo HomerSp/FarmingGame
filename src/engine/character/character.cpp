@@ -238,14 +238,7 @@ bool Character::processAsync(uint64_t frameDiff, const Map& map, std::unordered_
 
             Types::Point<float_t> pos(posX, posY);
             Types::Dimension<> size(col.width, col.height);
-            Types::Point<float_t> dstBefore = dst;
             map.checkCollision(pos, size, dst, mVelocity);
-            if (mID == "player" && (dst.x != dstBefore.x || dst.y != dstBefore.y)) {
-                Logger::warning("Collision") << mID << " pos=(" << posX << "," << posY
-                    << ") col=(" << col.x << "," << col.y << "," << col.width << "," << col.height
-                    << ") dstBefore=(" << dstBefore.x << "," << dstBefore.y
-                    << ") dstAfter=(" << dst.x << "," << dst.y << ")";
-            }
 
             // Check collisions with other characters.
             if (characters != nullptr && (dst.x != 0.0f || dst.y != 0.0f)) {

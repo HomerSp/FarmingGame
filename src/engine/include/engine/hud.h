@@ -49,5 +49,12 @@ private:
     const uint32_t mClockBackgroundBufferCount, mClockForegroundBufferCount;
     std::unique_ptr<graphics::Buffer> mClockBackgroundBuffer, mClockForegroundBuffer, mSeasonsBuffer;
     std::unique_ptr<graphics::Texture> mHudTextures;
+
+    // Bottom HUD images
+    std::unique_ptr<graphics::Image> mClockImage;
+    std::unique_ptr<graphics::Image> mHudItemEquipped, mHudItem;
+    std::unique_ptr<graphics::Image> mBarSmall;
+    std::unique_ptr<graphics::Image> mHealthStamina;
+    std::unique_ptr<graphics::Image> mSeasonsImage;
 };
 }
