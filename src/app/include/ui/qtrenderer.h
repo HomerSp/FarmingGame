@@ -79,6 +79,7 @@ private:
     std::unique_ptr<engine::graphics::Matrix> mWorldMatrix, mFBOMatrix;
     std::unique_ptr<QOpenGLFramebufferObject> mFBO;
     std::unique_ptr<QtBuffer> mQuadVertexBuffer, mCircleTextureBuffer;
+    std::unique_ptr<QtBuffer> mOverlayBuffer;
     QOpenGLVertexArrayObject mOverlayVAO;
 
     std::unique_ptr<engine::graphics::ShaderProgram> mTestShader;

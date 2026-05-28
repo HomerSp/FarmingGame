@@ -47,8 +47,8 @@ void QtRenderer::setSize(uint32_t w, uint32_t h, double devicePixelRatio)
     mFBOMatrix->reset();
     mFBOMatrix->scale(mFBO->width(), mFBO->height());
 
-    QtBuffer overlayBuffer(engine::graphics::Vector4D::Size());
-    overlayBuffer.writer()
+    mOverlayBuffer = std::make_unique<QtBuffer>(engine::graphics::Vector4D::Size());
+    mOverlayBuffer->writer()
         .append(engine::graphics::Vector4D(0, 0, mFBO->width(), mFBO->height()))
         .release();
 
@@ -56,7 +56,7 @@ void QtRenderer::setSize(uint32_t w, uint32_t h, double devicePixelRatio)
 
     mFBO2DShader->bufferEnabler(*mQuadVertexBuffer)
         .append(GL_FLOAT, engine::graphics::Vector2D::Size())
-        .buffer(overlayBuffer)
+        .buffer(*mOverlayBuffer)
         .append(GL_FLOAT, engine::graphics::Vector4D::Size(), true)
         .release();
 
@@ -235,6 +235,9 @@ void QtRenderer::drawOverlay(const engine::Types::Point<>& dst, engine::Overlay&
 
     mFBO->release();
     mWorldMatrix->translate(-dst.x, -dst.y);
+
+    // Restore screen viewport after FBO rendering
+    glViewport(0, 0, mDevice->width(), mDevice->height());
 
     mFBO2DShader->bind();
     mOverlayVAO.bind();
